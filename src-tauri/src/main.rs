@@ -411,7 +411,7 @@ fn capture_screenshots(
                 
                 let remaining = duration as u64 - elapsed_total;
                 let progress_script = format!(
-                    "let msg = document.getElementById('rs-msg'); if (msg) msg.innerText = '録画・保存を同時処理中... 残り {} 秒 ({} コマ完了)';",
+                    "let ui = document.getElementById('rs-recorder-ui'); if (ui) {{ let msg = ui.querySelector('div'); if (msg) msg.textContent = '● 録画・保存中... 残り{}秒 ({}コマ完了)'; }}",
                     remaining, frame_count
                 );
                 let _ = tab.evaluate(&progress_script, false);
@@ -441,11 +441,16 @@ fn capture_screenshots(
                     img = dynamic_img.resize_exact(first_width, first_height, image::imageops::FilterType::Nearest).into_rgba8();
                 }
 
-                let mut frame = gif::Frame::from_rgba_speed(first_width as u16, first_height as u16, &mut img.into_raw(), 30);
-                
-                // Sync dynamic processing lags to real-time display delays mathematically (1 unit = 10ms)
-                let elapsed_ms = frame_start.elapsed().as_millis() as u16;
-                frame.delay = (elapsed_ms / 10).max(10); // Floor it to 10 FPS logic, but extend if encode took longer
+                let mut frame = gif::Frame::from_rgba_speed(first_width as u16, first_height as u16, &mut img.into_raw(), 10);
+
+                // Fixed 10 FPS frame delay (10 units = 100ms in GIF spec)
+                frame.delay = 10;
+
+                // Sleep to maintain consistent frame interval
+                let elapsed_ms = frame_start.elapsed().as_millis() as u64;
+                if elapsed_ms < 100 {
+                    std::thread::sleep(Duration::from_millis(100 - elapsed_ms));
+                }
                 
                 if let Some(ref mut enc) = encoder {
                     enc.write_frame(&frame).map_err(|e| format!("Line {}: Frame write - {}", line!(), e))?;
@@ -495,8 +500,10 @@ fn capture_screenshots(
                 .map_err(|e| format!("Failed to save image at {:?}: {}", dst, e))?;
         }
         
-        // Explicitly leak the browser pointer so headless_chrome doesn't execute a blocking Drop hook
-        std::mem::forget(browser);
+        // Drop the browser in a separate thread to avoid blocking the main thread
+        std::thread::spawn(move || {
+            drop(browser);
+        });
     }
 
     Ok(())

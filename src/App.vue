@@ -235,19 +235,22 @@ const abortCapture = async () => {
           </div>
         </label>
 
-        <!-- Extra settings for GIF Mode -->
-        <div v-show="outputFormat === 'gif'" class="mt-4 p-5 bg-gray-50 dark:bg-gray-900 border border-blue-100 dark:border-blue-900/30 rounded-lg flex flex-col gap-5">
+        <!-- Delay setting (common to PNG and GIF) -->
+        <div class="mt-4 p-5 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg flex flex-col gap-5">
           <div class="flex flex-col sm:flex-row items-center justify-between gap-4">
             <div class="text-sm">
-              <span class="font-bold text-gray-800 dark:text-gray-200">録画待機時間 (準備用):</span>
-              <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">キャプチャ実行後、この秒数待機してから録画を開始します。</p>
+              <span class="font-bold text-gray-800 dark:text-gray-200">待機時間 (準備用):</span>
+              <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">キャプチャ実行後、この秒数待機してからキャプチャを開始します。</p>
             </div>
             <div class="flex items-center gap-3 bg-white dark:bg-gray-800 p-2 rounded border border-gray-200 dark:border-gray-700">
               <input type="range" v-model.number="startDelay" min="1" max="10" step="1" class="w-24 accent-blue-500" />
               <span class="font-mono text-blue-500 font-bold w-12 text-center">{{ startDelay }} 秒</span>
             </div>
           </div>
-          <hr class="border-gray-200 dark:border-gray-700" />
+        </div>
+
+        <!-- Extra settings for GIF Mode -->
+        <div v-show="outputFormat === 'gif'" class="mt-4 p-5 bg-gray-50 dark:bg-gray-900 border border-blue-100 dark:border-blue-900/30 rounded-lg flex flex-col gap-5">
           <div class="flex flex-col sm:flex-row items-center justify-between gap-4">
             <div class="text-sm">
               <span class="font-bold text-gray-800 dark:text-gray-200">動画の長さ:</span>
@@ -328,7 +331,7 @@ const abortCapture = async () => {
           <button 
             v-if="isCapturing"
             @click="abortCapture"
-            class="flex-1 w-full sm:w-auto px-12 py-4 bg-red-600 hover:bg-red-700 focus:ring-4 focus:ring-red-300 dark:focus:red-blue-800 text-white font-bold text-lg rounded-xl shadow-lg dark:shadow-none transition-all flex items-center justify-center gap-3 animate-pulse"
+            class="flex-1 w-full sm:w-auto px-12 py-4 bg-red-600 hover:bg-red-700 focus:ring-4 focus:ring-red-300 dark:focus:ring-red-800 text-white font-bold text-lg rounded-xl shadow-lg dark:shadow-none transition-all flex items-center justify-center gap-3 animate-pulse"
           >
             <span class="i-carbon-stop-outline text-2xl"></span>
             処理を中止する
