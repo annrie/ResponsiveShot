@@ -427,7 +427,17 @@ fn capture_screenshots(
                     )
                     .map_err(|e| format!("Line {}: Screenshot Error - {}", line!(), e))?;
 
-                let mut img = image::load_from_memory(&png_data).map_err(|e| format!("Line {}: Image load Error - {}", line!(), e))?.into_rgba8();
+                let loaded = image::load_from_memory(&png_data).map_err(|e| format!("Line {}: Image load Error - {}", line!(), e))?;
+
+                // Cap GIF width at 800px to keep encoding fast across all viewport sizes
+                const GIF_MAX_WIDTH: u32 = 800;
+                let mut img = if loaded.width() > GIF_MAX_WIDTH {
+                    let ratio = GIF_MAX_WIDTH as f64 / loaded.width() as f64;
+                    let new_height = (loaded.height() as f64 * ratio) as u32;
+                    loaded.resize_exact(GIF_MAX_WIDTH, new_height, image::imageops::FilterType::Triangle).into_rgba8()
+                } else {
+                    loaded.into_rgba8()
+                };
 
                 if frame_count == 0 {
                     first_width = img.width();
@@ -441,15 +451,15 @@ fn capture_screenshots(
                     img = dynamic_img.resize_exact(first_width, first_height, image::imageops::FilterType::Nearest).into_rgba8();
                 }
 
-                let mut frame = gif::Frame::from_rgba_speed(first_width as u16, first_height as u16, &mut img.into_raw(), 10);
+                let mut frame = gif::Frame::from_rgba_speed(first_width as u16, first_height as u16, &mut img.into_raw(), 30);
 
-                // Fixed 10 FPS frame delay (10 units = 100ms in GIF spec)
-                frame.delay = 10;
+                // Fixed 3 FPS frame delay (33 units = 330ms in GIF spec)
+                frame.delay = 33;
 
                 // Sleep to maintain consistent frame interval
                 let elapsed_ms = frame_start.elapsed().as_millis() as u64;
-                if elapsed_ms < 100 {
-                    std::thread::sleep(Duration::from_millis(100 - elapsed_ms));
+                if elapsed_ms < 330 {
+                    std::thread::sleep(Duration::from_millis(330 - elapsed_ms));
                 }
                 
                 if let Some(ref mut enc) = encoder {
