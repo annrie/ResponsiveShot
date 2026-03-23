@@ -5,7 +5,7 @@ import { invoke } from '@tauri-apps/api/core'
 import { open } from '@tauri-apps/plugin-dialog'
 
 const colorPreference = useStorage('vueuse-color-scheme', 'auto')
-const colorMode = useColorMode() // Activates UnoCSS dark listener
+useColorMode() // Activates UnoCSS dark listener
 
 const url = useStorage('rs-url', 'https://example.com')
 const urlHistory = useStorage<string[]>('rs-url-history', [])
