@@ -42,7 +42,7 @@
   },
   "productName": "ResponsiveShot",
   "mainBinaryName": "ResponsiveShot",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "identifier": "com.responsiveshot.app",
   "plugins": {},
   "app": {

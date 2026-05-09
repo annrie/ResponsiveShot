@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { computed, ref, onMounted } from 'vue'
 import { useStorage, useColorMode } from '@vueuse/core'
 import { invoke } from '@tauri-apps/api/core'
 import { open } from '@tauri-apps/plugin-dialog'
@@ -30,6 +30,49 @@ const addToHistory = (newUrl: string) => {
 
 const predefinedWidths = [320, 375, 640, 768, 1024, 1440, 1600]
 const selectedWidths = useStorage<number[]>('rs-widths', predefinedWidths.slice())
+const heightAuto = useStorage('rs-height-auto', true)
+const selectedRatio = useStorage('rs-ratio', '16:9')
+const customRatioW = useStorage('rs-custom-ratio-w', 5)
+const customRatioH = useStorage('rs-custom-ratio-h', 4)
+
+const ratioOptions = [
+  { value: '16:9', label: '16:9', description: '標準ワイド' },
+  { value: '16:10', label: '16:10', description: 'PC/Mac' },
+  { value: '4:3', label: '4:3', description: '旧来画面' },
+  { value: '3:2', label: '3:2', description: '写真/Surface' },
+  { value: '1:1', label: '1:1', description: '正方形' },
+  { value: '21:9', label: '21:9', description: '超横長' },
+  { value: '9:16', label: '9:16', description: '縦長' },
+  { value: 'custom', label: 'その他', description: '任意比率' },
+]
+
+const activeRatio = computed(() => {
+  if (selectedRatio.value === 'custom') {
+    const w = Number(customRatioW.value)
+    const h = Number(customRatioH.value)
+    return w > 0 && h > 0 ? w / h : 16 / 9
+  }
+
+  const [w, h] = selectedRatio.value.split(':').map(Number)
+  return w > 0 && h > 0 ? w / h : 16 / 9
+})
+
+const viewportHeight = computed(() => {
+  if (heightAuto.value || targetMode.value === 'fullpage') return null
+  if (selectedWidths.value.length === 0) return null
+  return Math.max(1, Math.round(Math.max(...selectedWidths.value) / activeRatio.value))
+})
+
+const ratioPreview = computed(() => {
+  if (targetMode.value === 'fullpage') return 'フルページでは無効'
+  if (heightAuto.value) return '高さ指定なし'
+  if (selectedWidths.value.length === 0) return '幅を選択してください'
+  return selectedWidths.value
+    .slice()
+    .sort((a, b) => a - b)
+    .map(w => `${w}x${Math.max(1, Math.round(w / activeRatio.value))}`)
+    .join(' / ')
+})
 
 onMounted(async () => {
   if (!saveDir.value) {
@@ -115,7 +158,8 @@ const captureScreenshots = async () => {
       saveDir: saveDir.value,
       duration: outputFormat.value === 'gif' ? gifDuration.value : 0,
       delay: startDelay.value,
-      manualInteraction: manualInteraction.value
+      manualInteraction: manualInteraction.value,
+      viewportHeight: viewportHeight.value
     })
     
     statusMessage.value = "すべてのキャプチャが完了しました！"
@@ -292,6 +336,55 @@ const abortCapture = async () => {
             <input type="checkbox" :value="w" v-model="selectedWidths" class="text-blue-500 rounded" />
             <span class="text-sm font-mono">{{ w }}px</span>
           </label>
+        </div>
+
+        <div class="mt-5 border-t border-gray-100 dark:border-gray-700 pt-5">
+          <label class="flex items-start gap-3 cursor-pointer">
+            <input type="checkbox" v-model="heightAuto" class="mt-1 text-blue-500 rounded" />
+            <div class="flex flex-col">
+              <span class="text-sm font-bold text-gray-800 dark:text-gray-200">高さを自動にする</span>
+              <span class="text-xs text-gray-500 dark:text-gray-400 mt-1">現在の仕様で撮影します。オンの場合、下の比率指定は使いません。</span>
+            </div>
+          </label>
+
+          <div class="mt-4" :class="{'opacity-45 pointer-events-none': heightAuto || targetMode === 'fullpage'}">
+            <div class="flex items-center justify-between gap-3 mb-3">
+              <h3 class="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wide">画面比率</h3>
+              <span class="text-xs font-mono text-blue-600 dark:text-blue-400 truncate">{{ ratioPreview }}</span>
+            </div>
+
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
+              <label
+                v-for="ratio in ratioOptions"
+                :key="ratio.value"
+                class="min-h-16 flex items-center gap-2 p-3 border rounded-lg cursor-pointer transition-colors bg-gray-50 dark:bg-gray-900 hover:bg-white dark:hover:bg-gray-800"
+                :class="{'border-blue-500 bg-blue-50 dark:bg-blue-900/20': selectedRatio === ratio.value, 'border-gray-200 dark:border-gray-700': selectedRatio !== ratio.value}"
+              >
+                <input type="radio" :value="ratio.value" v-model="selectedRatio" class="text-blue-500" />
+                <span class="flex flex-col min-w-0">
+                  <span class="text-sm font-mono font-bold">{{ ratio.label }}</span>
+                  <span class="text-xs text-gray-500 dark:text-gray-400 truncate">{{ ratio.description }}</span>
+                </span>
+              </label>
+            </div>
+
+            <div v-show="selectedRatio === 'custom'" class="mt-3 flex flex-wrap items-center gap-2 p-3 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg">
+              <span class="text-xs font-medium text-gray-500 dark:text-gray-400">任意比率</span>
+              <input
+                v-model.number="customRatioW"
+                type="number"
+                min="1"
+                class="w-20 px-3 py-2 text-sm font-mono border rounded-md bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 focus:outline-none focus:ring-1 focus:ring-blue-500"
+              />
+              <span class="text-gray-400">:</span>
+              <input
+                v-model.number="customRatioH"
+                type="number"
+                min="1"
+                class="w-20 px-3 py-2 text-sm font-mono border rounded-md bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 focus:outline-none focus:ring-1 focus:ring-blue-500"
+              />
+            </div>
+          </div>
         </div>
       </section>
 

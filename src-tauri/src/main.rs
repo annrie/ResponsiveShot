@@ -3,15 +3,234 @@
     windows_subsystem = "windows"
 )]
 
-use headless_chrome::{Browser, LaunchOptionsBuilder};
-use headless_chrome::types::Bounds;
+use base64::Engine;
 use headless_chrome::protocol::cdp::Page::Viewport;
+use headless_chrome::protocol::cdp::{Emulation, Page};
+use headless_chrome::types::Bounds;
+use headless_chrome::{Browser, LaunchOptionsBuilder};
+use image::{imageops, ImageOutputFormat, RgbaImage};
+use std::io::Cursor;
 use std::path::PathBuf;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::time::Duration;
 use tauri::command;
 
 static ABORT_FLAG: AtomicBool = AtomicBool::new(false);
+const VIEWPORT_HEIGHT: u32 = 1080;
+
+fn set_viewport_metrics(
+    tab: &headless_chrome::browser::tab::Tab,
+    width: u32,
+    height: u32,
+) -> Result<(), String> {
+    tab.call_method(Emulation::SetDeviceMetricsOverride {
+        width,
+        height,
+        device_scale_factor: 1.0,
+        mobile: false,
+        scale: None,
+        screen_width: Some(width),
+        screen_height: Some(height),
+        position_x: None,
+        position_y: None,
+        dont_set_visible_size: None,
+        screen_orientation: None,
+        viewport: None,
+        display_feature: None,
+        device_posture: None,
+    })
+    .map(|_| ())
+    .map_err(|e| e.to_string())
+}
+
+fn page_metric(
+    tab: &headless_chrome::browser::tab::Tab,
+    key: &str,
+    fallback: f64,
+) -> Result<f64, String> {
+    let script = format!(
+        r#"
+        (() => {{
+            const doc = document.documentElement;
+            const body = document.body;
+            const viewportWidth = Math.ceil(window.innerWidth || doc.clientWidth || 0);
+            const viewportHeight = Math.ceil(window.innerHeight || doc.clientHeight || 0);
+            const scrollWidth = Math.ceil(Math.max(
+                viewportWidth,
+                doc ? doc.scrollWidth : 0,
+                doc ? doc.offsetWidth : 0,
+                body ? body.scrollWidth : 0,
+                body ? body.offsetWidth : 0
+            ));
+            const scrollHeight = Math.ceil(Math.max(
+                viewportHeight,
+                doc ? doc.scrollHeight : 0,
+                doc ? doc.offsetHeight : 0,
+                body ? body.scrollHeight : 0,
+                body ? body.offsetHeight : 0
+            ));
+            return {{ viewportWidth, viewportHeight, scrollWidth, scrollHeight }}.{};
+        }})()
+        "#,
+        key
+    );
+
+    let value = tab
+        .evaluate(&script, false)
+        .map_err(|e| e.to_string())?
+        .value;
+    Ok(value.and_then(|v| v.as_f64()).unwrap_or(fallback).max(1.0))
+}
+
+fn capture_screenshot(
+    tab: &headless_chrome::browser::tab::Tab,
+    clip: Option<Viewport>,
+    capture_beyond_viewport: bool,
+) -> Result<Vec<u8>, String> {
+    let data = tab
+        .call_method(Page::CaptureScreenshot {
+            format: Some(Page::CaptureScreenshotFormatOption::Png),
+            quality: None,
+            clip,
+            from_surface: Some(true),
+            capture_beyond_viewport: Some(capture_beyond_viewport),
+            optimize_for_speed: None,
+        })
+        .map_err(|e| e.to_string())?
+        .data;
+
+    base64::prelude::BASE64_STANDARD
+        .decode(data)
+        .map_err(|e| e.to_string())
+}
+
+fn wait_for_paint(tab: &headless_chrome::browser::tab::Tab) -> Result<(), String> {
+    let _ = tab.evaluate(
+        r#"
+        new Promise((resolve) => {
+            const finish = () => requestAnimationFrame(() => {
+                requestAnimationFrame(() => resolve(true));
+            });
+            const visibleImages = Array.from(document.images || []).filter((img) => {
+                const rect = img.getBoundingClientRect();
+                return rect.bottom >= 0 && rect.top <= window.innerHeight && rect.width > 0 && rect.height > 0;
+            });
+            const pending = visibleImages.filter((img) => !img.complete);
+            if (pending.length === 0) {
+                finish();
+                return;
+            }
+            let remaining = pending.length;
+            const done = () => {
+                remaining -= 1;
+                if (remaining <= 0) finish();
+            };
+            const timeout = setTimeout(finish, 1200);
+            pending.forEach((img) => {
+                img.addEventListener('load', done, { once: true });
+                img.addEventListener('error', done, { once: true });
+            });
+            Promise.allSettled(
+                visibleImages.map((img) => img.decode ? img.decode() : Promise.resolve())
+            ).then(() => {
+                clearTimeout(timeout);
+                finish();
+            }).catch(() => {
+                clearTimeout(timeout);
+                finish();
+            });
+        })
+        "#,
+        true,
+    );
+    std::thread::sleep(Duration::from_millis(300));
+    Ok(())
+}
+
+fn capture_fullpage_stitched(
+    tab: &headless_chrome::browser::tab::Tab,
+    width: f64,
+    viewport_height: f64,
+    initial_total_height: f64,
+) -> Result<Vec<u8>, String> {
+    let width_px = width.ceil().max(1.0) as u32;
+    let viewport_height_px = viewport_height.ceil().max(1.0) as u32;
+    let mut total_height_px = initial_total_height.ceil().max(viewport_height).max(1.0) as u32;
+    let mut canvas = RgbaImage::new(width_px, total_height_px);
+    let mut next_y = 0_u32;
+
+    loop {
+        if ABORT_FLAG.load(Ordering::Relaxed) {
+            return Err("ユーザーによってキャプチャが中止されました".to_string());
+        }
+
+        let measured_total_height =
+            page_metric(tab, "scrollHeight", total_height_px as f64)?.ceil() as u32;
+        if measured_total_height > total_height_px {
+            let mut expanded = RgbaImage::new(width_px, measured_total_height);
+            imageops::overlay(&mut expanded, &canvas, 0, 0);
+            canvas = expanded;
+            total_height_px = measured_total_height;
+        }
+
+        let max_scroll_y = total_height_px.saturating_sub(viewport_height_px);
+        let scroll_y = next_y.min(max_scroll_y);
+        let scroll_script = format!("window.scrollTo(0, {}); window.scrollY", scroll_y);
+        let actual_y = tab
+            .evaluate(&scroll_script, false)
+            .map_err(|e| e.to_string())?
+            .value
+            .and_then(|v| v.as_f64())
+            .unwrap_or(scroll_y as f64)
+            .round()
+            .max(0.0) as u32;
+
+        wait_for_paint(tab)?;
+
+        let png_data = capture_screenshot(tab, None, false)?;
+        let frame = image::load_from_memory(&png_data)
+            .map_err(|e| format!("Failed to decode fullpage slice: {}", e))?
+            .into_rgba8();
+        let visible_height = total_height_px.saturating_sub(actual_y).min(frame.height());
+        let cropped = imageops::crop_imm(&frame, 0, 0, frame.width().min(width_px), visible_height)
+            .to_image();
+        imageops::overlay(&mut canvas, &cropped, 0, actual_y as i64);
+
+        if actual_y >= max_scroll_y {
+            break;
+        }
+        next_y = actual_y.saturating_add(viewport_height_px);
+    }
+
+    let _ = tab.evaluate("window.scrollTo(0, 0)", false);
+
+    let mut out = Cursor::new(Vec::new());
+    image::DynamicImage::ImageRgba8(canvas)
+        .write_to(&mut out, ImageOutputFormat::Png)
+        .map_err(|e| format!("Failed to encode stitched fullpage PNG: {}", e))?;
+    Ok(out.into_inner())
+}
+
+fn capture_fullpage_expanded_viewport(
+    tab: &headless_chrome::browser::tab::Tab,
+    width: f64,
+    total_height: f64,
+) -> Result<Vec<u8>, String> {
+    let width_px = width.ceil().max(1.0) as u32;
+    let height_px = total_height.ceil().max(1.0) as u32;
+
+    let _ = tab.set_bounds(Bounds::Normal {
+        left: None,
+        top: None,
+        width: Some(width_px as f64),
+        height: Some(height_px as f64),
+    });
+    set_viewport_metrics(tab, width_px, height_px)?;
+    let _ = tab.evaluate("window.scrollTo(0, 0)", false);
+    wait_for_paint(tab)?;
+
+    capture_screenshot(tab, None, false)
+}
 
 #[command]
 fn get_default_save_dir() -> String {
@@ -138,22 +357,24 @@ fn capture_screenshots(
     duration: u32,
     delay: u32,
     manual_interaction: bool,
+    viewport_height: Option<u32>,
 ) -> Result<(), String> {
     let save_path = PathBuf::from(save_dir);
     ABORT_FLAG.store(false, Ordering::Relaxed);
+    let capture_height = viewport_height.unwrap_or(VIEWPORT_HEIGHT).max(1);
 
     for w in widths {
         if ABORT_FLAG.load(Ordering::Relaxed) {
-             return Err("ユーザーによってキャプチャが中止されました".to_string());
+            return Err("ユーザーによってキャプチャが中止されました".to_string());
         }
 
         // Launch a new context or resize for each to be safe and avoid stale states
         let launch_opts = LaunchOptionsBuilder::default()
             .headless(false)
-            .window_size(Some((w, 1080)))
+            .window_size(Some((w, capture_height)))
             .args(vec![
                 std::ffi::OsStr::new("--disable-web-security"),
-                std::ffi::OsStr::new("--disable-site-isolation-trials")
+                std::ffi::OsStr::new("--disable-site-isolation-trials"),
             ])
             .build()
             .map_err(|e| e.to_string())?;
@@ -161,11 +382,16 @@ fn capture_screenshots(
         let browser = Browser::new(launch_opts).map_err(|e| e.to_string())?;
         let tab = browser.new_tab().map_err(|e| e.to_string())?;
 
+        set_viewport_metrics(&tab, w, capture_height)?;
         tab.navigate_to(&url).map_err(|e| e.to_string())?;
         tab.wait_until_navigated().map_err(|e| e.to_string())?;
-        
+
         if manual_interaction {
-            let btn_text = if duration > 0 { "録画開始" } else { "撮影開始" };
+            let btn_text = if duration > 0 {
+                "録画開始"
+            } else {
+                "撮影開始"
+            };
             let inject_ui = format!(
                 r#"
                 (function() {{
@@ -265,15 +491,16 @@ fn capture_screenshots(
 
             loop {
                 if ABORT_FLAG.load(Ordering::Relaxed) {
-                     return Err("ユーザーによってキャプチャが中止されました".to_string());
+                    return Err("ユーザーによってキャプチャが中止されました".to_string());
                 }
 
-                let status = tab.evaluate("window.__RS_REC_STATUS", false)
+                let status = tab
+                    .evaluate("window.__RS_REC_STATUS", false)
                     .map_err(|e| e.to_string())?
                     .value
                     .and_then(|v| v.as_str().map(|s| s.to_string()))
                     .unwrap_or_else(|| "waiting".to_string());
-                
+
                 if status == "recording" {
                     break;
                 }
@@ -286,7 +513,7 @@ fn capture_screenshots(
             // Use user-defined delay to allow page rendering or lazy-load processing silently
             for _ in 0..(delay * 5) {
                 if ABORT_FLAG.load(Ordering::Relaxed) {
-                     return Err("ユーザーによってキャプチャが中止されました".to_string());
+                    return Err("ユーザーによってキャプチャが中止されました".to_string());
                 }
                 std::thread::sleep(Duration::from_millis(200));
             }
@@ -296,13 +523,34 @@ fn capture_screenshots(
             // Scroll down slowly to trigger intersection observers and lazy loading
             let scroll_script = r#"
                 new Promise((resolve) => {
-                    let totalHeight = 0;
-                    let distance = 300;
+                    const distance = Math.max(300, Math.floor((window.innerHeight || 1080) * 0.8));
+                    let lastHeight = 0;
+                    let stableTicks = 0;
+                    let steps = 0;
                     let timer = setInterval(() => {
-                        window.scrollBy(0, distance);
-                        totalHeight += distance;
+                        const doc = document.documentElement;
+                        const body = document.body;
+                        const scrollHeight = Math.max(
+                            window.innerHeight || 0,
+                            doc ? doc.scrollHeight : 0,
+                            doc ? doc.offsetHeight : 0,
+                            body ? body.scrollHeight : 0,
+                            body ? body.offsetHeight : 0
+                        );
 
-                        if (totalHeight >= document.documentElement.scrollHeight || totalHeight > 15000) {
+                        window.scrollBy(0, distance);
+                        steps++;
+
+                        if (scrollHeight === lastHeight) {
+                            stableTicks++;
+                        } else {
+                            stableTicks = 0;
+                            lastHeight = scrollHeight;
+                        }
+
+                        const reachedBottom = window.scrollY + window.innerHeight >= scrollHeight - 2;
+
+                        if ((reachedBottom && stableTicks >= 2) || steps >= 300) {
                             clearInterval(timer);
                             resolve('done');
                         }
@@ -310,44 +558,42 @@ fn capture_screenshots(
                 })
             "#;
             let _ = tab.evaluate(scroll_script, true); // true to await the Promise
-            
+
             // Wait for images at the bottom to finish loading
             std::thread::sleep(Duration::from_secs(1));
 
             // Scroll back up
             let _ = tab.evaluate("window.scrollTo(0, 0)", false);
-            
+
             // Wait for fixed headers to reposition
             std::thread::sleep(Duration::from_secs(1));
         }
 
-        let eval_h = tab.evaluate("document.documentElement.scrollHeight", false).map_err(|e| e.to_string())?;
-        let scroll_h = eval_h.value.and_then(|v| v.as_f64()).unwrap_or(1080.0);
-        let eval_w = tab.evaluate("document.documentElement.scrollWidth", false).map_err(|e| e.to_string())?;
-        let scroll_w = eval_w.value.and_then(|v| v.as_f64()).unwrap_or(w as f64);
+        let viewport_w = page_metric(&tab, "viewportWidth", w as f64)?;
+        let viewport_h = page_metric(&tab, "viewportHeight", capture_height as f64)?;
+        let scroll_h = page_metric(&tab, "scrollHeight", viewport_h)?;
 
-        let _clip_viewport = Viewport {
-            x: 0.0,
-            y: 0.0,
-            width: scroll_w,
-            height: if mode == "fullpage" { scroll_h } else { 1080.0 },
-            scale: 1.0,
-        };
-
-        // Resize bounds to allow rendering full document height if fullpage
+        // Keep the visible viewport stable. Full page capture uses captureBeyondViewport instead
+        // of resizing the browser to the whole document height.
         let _ = tab.set_bounds(Bounds::Normal {
             left: None,
             top: None,
             width: Some(w as f64),
-            height: Some(if mode == "fullpage" { scroll_h } else { 1080.0 }),
+            height: Some(capture_height as f64),
         });
+        set_viewport_metrics(&tab, w, capture_height)?;
 
         std::thread::sleep(Duration::from_millis(500)); // wait for final layout snap
 
-        let file_name = if duration > 0 {
-            format!("capture_{}px_{}.gif", w, mode)
+        let size_label = if viewport_height.is_some() {
+            format!("{}x{}", w, capture_height)
         } else {
-            format!("capture_{}px_{}.png", w, mode)
+            format!("{}px", w)
+        };
+        let file_name = if duration > 0 {
+            format!("capture_{}_{}.gif", size_label, mode)
+        } else {
+            format!("capture_{}_{}.png", size_label, mode)
         };
         let dst = save_path.join(file_name);
 
@@ -358,9 +604,7 @@ fn capture_screenshots(
         if duration > 0 {
             // Pre-calculate exact bounds so GIF frames remain identical dimensions.
             // Using headless_chrome get_box_model to get absolute viewport frame
-            let mut expected_clip = None;
-
-            if mode == "element" {
+            let expected_clip = if mode == "element" {
                 let rect_json = tab.evaluate(
                     &format!(
                         "(function() {{ let el = document.querySelector('{}'); if (!el) return null; let rect = el.getBoundingClientRect(); return {{ x: rect.left + window.scrollX, y: rect.top + window.scrollY, width: rect.width, height: rect.height }}; }})()",
@@ -372,13 +616,13 @@ fn capture_screenshots(
 
                 if let Some(val) = rect_json {
                     if let Some(rect) = val.as_object() {
-                        expected_clip = Some(Viewport {
+                        Some(Viewport {
                             x: rect["x"].as_f64().unwrap_or(0.0),
                             y: rect["y"].as_f64().unwrap_or(0.0),
                             width: rect["width"].as_f64().unwrap_or(100.0),
                             height: rect["height"].as_f64().unwrap_or(100.0),
                             scale: 1.0,
-                        });
+                        })
                     } else {
                         return Err("Element rect evaluation did not return an object".to_string());
                     }
@@ -388,10 +632,13 @@ fn capture_screenshots(
             } else {
                 // For both viewport and fullpage in GIF mode, passing `None` allows Chromium to automatically capture exactly the inner rendering surface without out-of-bounds exceptions.
                 // It safely avoids Mac OS titlebar height differences.
-                expected_clip = None;
-            }
+                None
+            };
 
-            let mut file_opt = Some(std::fs::File::create(&dst).map_err(|e| format!("Line {}: Failed to create file: {}", line!(), e))?);
+            let mut file_opt = Some(
+                std::fs::File::create(&dst)
+                    .map_err(|e| format!("Line {}: Failed to create file: {}", line!(), e))?,
+            );
             let mut encoder: Option<gif::Encoder<std::fs::File>> = None;
             let mut first_width = 0;
             let mut first_height = 0;
@@ -408,7 +655,7 @@ fn capture_screenshots(
                 if elapsed_total >= duration as u64 {
                     break;
                 }
-                
+
                 let remaining = duration as u64 - elapsed_total;
                 let progress_script = format!(
                     "let ui = document.getElementById('rs-recorder-ui'); if (ui) {{ let msg = ui.querySelector('div'); if (msg) msg.textContent = '● 録画・保存中... 残り{}秒 ({}コマ完了)'; }}",
@@ -427,14 +674,21 @@ fn capture_screenshots(
                     )
                     .map_err(|e| format!("Line {}: Screenshot Error - {}", line!(), e))?;
 
-                let loaded = image::load_from_memory(&png_data).map_err(|e| format!("Line {}: Image load Error - {}", line!(), e))?;
+                let loaded = image::load_from_memory(&png_data)
+                    .map_err(|e| format!("Line {}: Image load Error - {}", line!(), e))?;
 
                 // Cap GIF width at 800px to keep encoding fast across all viewport sizes
                 const GIF_MAX_WIDTH: u32 = 800;
                 let mut img = if loaded.width() > GIF_MAX_WIDTH {
                     let ratio = GIF_MAX_WIDTH as f64 / loaded.width() as f64;
                     let new_height = (loaded.height() as f64 * ratio) as u32;
-                    loaded.resize_exact(GIF_MAX_WIDTH, new_height, image::imageops::FilterType::Triangle).into_rgba8()
+                    loaded
+                        .resize_exact(
+                            GIF_MAX_WIDTH,
+                            new_height,
+                            image::imageops::FilterType::Triangle,
+                        )
+                        .into_rgba8()
                 } else {
                     loaded.into_rgba8()
                 };
@@ -443,15 +697,29 @@ fn capture_screenshots(
                     first_width = img.width();
                     first_height = img.height();
                     let file = file_opt.take().unwrap();
-                    let mut enc = gif::Encoder::new(file, first_width as u16, first_height as u16, &[]).map_err(|e| format!("Line {}: Encoder create - {}", line!(), e))?;
-                    enc.set_repeat(gif::Repeat::Infinite).map_err(|e| format!("Line {}: Encoder repeat - {}", line!(), e))?;
+                    let mut enc =
+                        gif::Encoder::new(file, first_width as u16, first_height as u16, &[])
+                            .map_err(|e| format!("Line {}: Encoder create - {}", line!(), e))?;
+                    enc.set_repeat(gif::Repeat::Infinite)
+                        .map_err(|e| format!("Line {}: Encoder repeat - {}", line!(), e))?;
                     encoder = Some(enc);
                 } else if img.width() != first_width || img.height() != first_height {
                     let dynamic_img = image::DynamicImage::ImageRgba8(img);
-                    img = dynamic_img.resize_exact(first_width, first_height, image::imageops::FilterType::Nearest).into_rgba8();
+                    img = dynamic_img
+                        .resize_exact(
+                            first_width,
+                            first_height,
+                            image::imageops::FilterType::Nearest,
+                        )
+                        .into_rgba8();
                 }
 
-                let mut frame = gif::Frame::from_rgba_speed(first_width as u16, first_height as u16, &mut img.into_raw(), 30);
+                let mut frame = gif::Frame::from_rgba_speed(
+                    first_width as u16,
+                    first_height as u16,
+                    &mut img.into_raw(),
+                    30,
+                );
 
                 // Fixed 3 FPS frame delay (33 units = 330ms in GIF spec)
                 frame.delay = 33;
@@ -461,9 +729,10 @@ fn capture_screenshots(
                 if elapsed_ms < 330 {
                     std::thread::sleep(Duration::from_millis(330 - elapsed_ms));
                 }
-                
+
                 if let Some(ref mut enc) = encoder {
-                    enc.write_frame(&frame).map_err(|e| format!("Line {}: Frame write - {}", line!(), e))?;
+                    enc.write_frame(&frame)
+                        .map_err(|e| format!("Line {}: Frame write - {}", line!(), e))?;
                 }
                 frame_count += 1;
             }
@@ -476,40 +745,30 @@ fn capture_screenshots(
                     )
                     .map_err(|e| e.to_string())?
                 }
-                "viewport" => tab
-                    .capture_screenshot(
-                        headless_chrome::protocol::cdp::Page::CaptureScreenshotFormatOption::Png,
-                        None,
-                        Some(Viewport {
-                            x: 0.0,
-                            y: 0.0,
-                            width: scroll_w,
-                            height: 1080.0,
-                            scale: 1.0,
-                        }), // capture the exact width (including scroll_w) and 1080px height
-                        true,
-                    )
-                    .map_err(|e| e.to_string())?,
-                "fullpage" | _ => tab
-                    .capture_screenshot(
-                        headless_chrome::protocol::cdp::Page::CaptureScreenshotFormatOption::Png,
-                        None,
-                        Some(Viewport {
-                            x: 0.0,
-                            y: 0.0,
-                            width: scroll_w,
-                            height: scroll_h,
-                            scale: 1.0,
-                        }),
-                        true,
-                    )
-                    .map_err(|e| e.to_string())?,
+                "viewport" => capture_screenshot(
+                    &tab,
+                    Some(Viewport {
+                        x: 0.0,
+                        y: 0.0,
+                        width: viewport_w,
+                        height: viewport_h,
+                        scale: 1.0,
+                    }),
+                    false,
+                )?,
+                "fullpage" | _ => {
+                    if scroll_h <= 16_000.0 {
+                        capture_fullpage_expanded_viewport(&tab, viewport_w, scroll_h)?
+                    } else {
+                        capture_fullpage_stitched(&tab, viewport_w, viewport_h, scroll_h)?
+                    }
+                }
             };
 
             std::fs::write(&dst, png_data)
                 .map_err(|e| format!("Failed to save image at {:?}: {}", dst, e))?;
         }
-        
+
         // Drop the browser in a separate thread to avoid blocking the main thread
         std::thread::spawn(move || {
             drop(browser);
