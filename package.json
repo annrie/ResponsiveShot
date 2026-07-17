@@ -14,24 +14,24 @@
     "lloco": "OCO_AI_PROVIDER='ollama' opencommit"
   },
   "dependencies": {
-    "@tauri-apps/api": "^2.10.1",
-    "@tauri-apps/plugin-dialog": "^2.6.0",
-    "vue": "^3.5.30"
+    "@tauri-apps/api": "^2.11.1",
+    "@tauri-apps/plugin-dialog": "^2.7.1",
+    "vue": "^3.5.40"
   },
   "devDependencies": {
-    "@iconify-json/carbon": "^1.2.19",
-    "@tauri-apps/cli": "^2.10.1",
-    "@types/node": "^24.12.0",
-    "@unocss/preset-icons": "^66.6.7",
-    "@unocss/preset-typography": "^66.6.7",
-    "@unocss/preset-uno": "^66.6.7",
-    "@vitejs/plugin-vue": "^6.0.5",
-    "@vue/tsconfig": "^0.9.0",
-    "@vueuse/core": "^14.2.1",
+    "@iconify-json/carbon": "^1.2.24",
+    "@tauri-apps/cli": "^2.11.4",
+    "@types/node": "^24.13.3",
+    "@unocss/preset-icons": "^66.7.5",
+    "@unocss/preset-typography": "^66.7.5",
+    "@unocss/preset-uno": "^66.7.5",
+    "@vitejs/plugin-vue": "^6.0.8",
+    "@vue/tsconfig": "^0.9.1",
+    "@vueuse/core": "^14.3.0",
     "esbuild": "^0.27.4",
     "typescript": "~5.9.3",
-    "unocss": "^66.6.7",
-    "vite": "^8.0.1",
-    "vue-tsc": "^3.2.5"
+    "unocss": "^66.7.5",
+    "vite": "^8.1.5",
+    "vue-tsc": "^3.3.7"
   }
 }
