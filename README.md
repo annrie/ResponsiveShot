@@ -1,5 +1,28 @@
 # ResponsiveShot
 
+<p align="center">
+  <!-- License -->
+  <a href="LICENSE">
+    <img src="https://img.shields.io/github/license/annrie/ResponsiveShot.svg" alt="License">
+  </a>
+  <!-- Latest release -->
+  <a href="https://github.com/annrie/ResponsiveShot/releases/latest">
+    <img src="https://img.shields.io/github/v/release/annrie/ResponsiveShot.svg" alt="Latest release">
+  </a>
+  <!-- Downloads total -->
+  <a href="https://github.com/annrie/ResponsiveShot/releases">
+    <img src="https://img.shields.io/github/downloads/annrie/ResponsiveShot/total.svg" alt="Total downloads">
+  </a>
+  <!-- Downloads latest release -->
+  <a href="https://github.com/annrie/ResponsiveShot/releases/latest">
+    <img src="https://img.shields.io/github/downloads/annrie/ResponsiveShot/latest/total.svg" alt="Latest release downloads">
+  </a>
+  <!-- Stars -->
+  <a href="https://github.com/annrie/ResponsiveShot/stargazers">
+    <img src="https://img.shields.io/github/stars/annrie/ResponsiveShot.svg" alt="Stars">
+  </a>
+</p>
+
 ResponsiveShot is a macOS desktop app for capturing responsive screenshots in bulk.
 
 It is built with Tauri, Vue 3, TypeScript, and Rust. The app launches Chrome, opens a target URL, and saves screenshots for multiple viewport widths.
