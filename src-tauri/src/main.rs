@@ -24,12 +24,14 @@ fn set_viewport_metrics(
     tab: &headless_chrome::browser::tab::Tab,
     width: u32,
     height: u32,
+    device_scale_factor: f64,
+    mobile: bool,
 ) -> Result<(), String> {
     tab.call_method(Emulation::SetDeviceMetricsOverride {
         width,
         height,
-        device_scale_factor: 1.0,
-        mobile: false,
+        device_scale_factor,
+        mobile,
         scale: None,
         screen_width: Some(width),
         screen_height: Some(height),
@@ -227,7 +229,7 @@ fn capture_fullpage_expanded_viewport(
         width: Some(width_px as f64),
         height: Some(height_px as f64),
     });
-    set_viewport_metrics(tab, width_px, height_px)?;
+    set_viewport_metrics(tab, width_px, height_px, 1.0, false)?;
     let _ = tab.evaluate("window.scrollTo(0, 0)", false);
     wait_for_paint(tab)?;
 
@@ -348,6 +350,24 @@ fn abort_capture() {
     ABORT_FLAG.store(true, Ordering::Relaxed);
 }
 
+/// フレーム合成の指示。Some のターゲットは viewport 固定・PNG 固定で、保存前に合成する
+struct FrameJob {
+    frame_png: PathBuf,
+    screen: frames::Rect,
+    shadow: bool,
+}
+
+/// 1 回のブラウザ起動で撮る対象。幅指定は dpr 1.0 / mobile false、デバイスはカタログの値
+struct CaptureTarget {
+    width: u32,
+    height: u32,
+    dpr: f64,
+    mobile: bool,
+    /// ファイル名用ラベル。幅指定は従来どおり "1440px" / "1440x810"
+    label: String,
+    frame: Option<FrameJob>,
+}
+
 #[command]
 fn capture_screenshots(
     url: String,
@@ -364,8 +384,26 @@ fn capture_screenshots(
     let save_path = PathBuf::from(save_dir);
     ABORT_FLAG.store(false, Ordering::Relaxed);
     let capture_height = viewport_height.unwrap_or(VIEWPORT_HEIGHT).max(1);
+    let targets: Vec<CaptureTarget> = widths
+        .iter()
+        .map(|&w| CaptureTarget {
+            width: w,
+            height: capture_height,
+            dpr: 1.0,
+            mobile: false,
+            label: if viewport_height.is_some() {
+                format!("{}x{}", w, capture_height)
+            } else {
+                format!("{}px", w)
+            },
+            frame: None,
+        })
+        .collect();
 
-    for w in widths {
+    for target in targets {
+        // 既存のループ本体は w / capture_height を参照しているので、同名で束縛し直して差分を最小にする
+        let w = target.width;
+        let capture_height = target.height;
         if ABORT_FLAG.load(Ordering::Relaxed) {
             return Err("ユーザーによってキャプチャが中止されました".to_string());
         }
@@ -384,7 +422,7 @@ fn capture_screenshots(
         let browser = Browser::new(launch_opts).map_err(|e| e.to_string())?;
         let tab = browser.new_tab().map_err(|e| e.to_string())?;
 
-        set_viewport_metrics(&tab, w, capture_height)?;
+        set_viewport_metrics(&tab, w, capture_height, target.dpr, target.mobile)?;
         tab.navigate_to(&url).map_err(|e| e.to_string())?;
         tab.wait_until_navigated().map_err(|e| e.to_string())?;
 
@@ -583,15 +621,11 @@ fn capture_screenshots(
             width: Some(w as f64),
             height: Some(capture_height as f64),
         });
-        set_viewport_metrics(&tab, w, capture_height)?;
+        set_viewport_metrics(&tab, w, capture_height, target.dpr, target.mobile)?;
 
         std::thread::sleep(Duration::from_millis(500)); // wait for final layout snap
 
-        let size_label = if viewport_height.is_some() {
-            format!("{}x{}", w, capture_height)
-        } else {
-            format!("{}px", w)
-        };
+        let size_label = &target.label;
         let file_name = if duration > 0 {
             format!("capture_{}_{}.gif", size_label, mode)
         } else {
