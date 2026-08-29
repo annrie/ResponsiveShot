@@ -1,6 +1,6 @@
 //! フレーム画像の保存場所の解決と、UI 向けの状態（同梱 / 取り込み済み / 未取り込み）。
 
-use std::path::{Path, PathBuf};
+use std::path::PathBuf;
 
 use serde::Serialize;
 
@@ -104,6 +104,7 @@ pub fn resolve_frame_png(
 #[cfg(test)]
 mod tests {
     use super::*;
+    use std::path::Path;
     use crate::frames::catalog::parse_catalog;
 
     const SAMPLE: &str = r#"[
