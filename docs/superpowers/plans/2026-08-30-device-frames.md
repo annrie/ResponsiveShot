@@ -633,9 +633,9 @@ pixel_9: 1198x2531 (mask at +55+58)
 pixel_9_pro: 1408x2974 (mask at +60+61)
 pixel_9_pro_xl: 1466x3101 (mask at +57+56)
 pixel_9a: 1224x2570 (mask at +69+73)
-pixel_10: 1198x2531 (mask at +59+55)
-pixel_10_pro: 1408x2965 (mask at +59+60)
-pixel_10_pro_xl: 1466x3101 (mask at +60+55)
+pixel_10: 1205x2535 (mask at +59+55)
+pixel_10_pro: 1410x2968 (mask at +59+60)
+pixel_10_pro_xl: 1472x3111 (mask at +60+55)
 pixel_10a: 1218x2553 (mask at +65+64)
 pixel_tablet: 2798x1837 (mask at +119+117)
 ```
@@ -725,7 +725,7 @@ Expected: `center=srgba(0,0,0,0)`、`hole` と `bezel` は alpha 1
     "id": "google-pixel-10",
     "vendor": "google", "category": "phone", "name": "Pixel 10", "orientation": "portrait",
     "css": { "width": 412, "height": 923, "dpr": 2.625, "mobile": true },
-    "frame": { "width": 1198, "height": 2531 },
+    "frame": { "width": 1205, "height": 2535 },
     "screen": { "x": 59, "y": 55, "width": 1080, "height": 2424 },
     "source": { "kind": "bundled", "file": "google/pixel_10.png" }
   },
@@ -733,7 +733,7 @@ Expected: `center=srgba(0,0,0,0)`、`hole` と `bezel` は alpha 1
     "id": "google-pixel-10-pro",
     "vendor": "google", "category": "phone", "name": "Pixel 10 Pro", "orientation": "portrait",
     "css": { "width": 427, "height": 952, "dpr": 3.0, "mobile": true },
-    "frame": { "width": 1408, "height": 2965 },
+    "frame": { "width": 1410, "height": 2968 },
     "screen": { "x": 59, "y": 60, "width": 1280, "height": 2856 },
     "source": { "kind": "bundled", "file": "google/pixel_10_pro.png" }
   },
@@ -741,7 +741,7 @@ Expected: `center=srgba(0,0,0,0)`、`hole` と `bezel` は alpha 1
     "id": "google-pixel-10-pro-xl",
     "vendor": "google", "category": "phone", "name": "Pixel 10 Pro XL", "orientation": "portrait",
     "css": { "width": 448, "height": 997, "dpr": 3.0, "mobile": true },
-    "frame": { "width": 1466, "height": 3101 },
+    "frame": { "width": 1472, "height": 3111 },
     "screen": { "x": 60, "y": 55, "width": 1344, "height": 2992 },
     "source": { "kind": "bundled", "file": "google/pixel_10_pro_xl.png" }
   },

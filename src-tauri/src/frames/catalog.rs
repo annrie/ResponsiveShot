@@ -149,4 +149,20 @@ mod tests {
     fn reports_invalid_json() {
         assert!(parse_catalog("[{").unwrap_err().starts_with("カタログの読み込みに失敗"));
     }
+
+    /// 同梱カタログそのもの: 13 件、不変条件を満たし、bundled の PNG が存在して frame 寸法と一致する
+    #[test]
+    fn bundled_catalog_is_valid_and_bundled_pngs_match_frame_size() {
+        let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("frames");
+        let entries = load_catalog(&root.join("catalog.json")).expect("frames/catalog.json");
+        assert_eq!(entries.len(), 13);
+        for e in &entries {
+            if let Source::Bundled { file } = &e.source {
+                let path = root.join(file);
+                let (w, h) = image::image_dimensions(&path)
+                    .unwrap_or_else(|err| panic!("{}: {}", path.display(), err));
+                assert_eq!((w, h), (e.frame.width, e.frame.height), "{}", e.id);
+            }
+        }
+    }
 }
