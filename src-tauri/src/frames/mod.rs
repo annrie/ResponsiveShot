@@ -3,6 +3,7 @@
 
 pub mod compose;
 pub mod catalog;
+pub mod store;
 
 use serde::{Deserialize, Serialize};
 
