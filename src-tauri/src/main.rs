@@ -15,6 +15,8 @@ use std::sync::atomic::{AtomicBool, Ordering};
 use std::time::Duration;
 use tauri::command;
 
+mod frames;
+
 static ABORT_FLAG: AtomicBool = AtomicBool::new(false);
 const VIEWPORT_HEIGHT: u32 = 1080;
 
