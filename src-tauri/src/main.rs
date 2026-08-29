@@ -16,6 +16,8 @@ use std::time::Duration;
 use tauri::command;
 
 mod frames;
+use frames::{catalog, compose, store};
+use tauri::Manager;
 
 static ABORT_FLAG: AtomicBool = AtomicBool::new(false);
 const VIEWPORT_HEIGHT: u32 = 1080;
@@ -350,6 +352,60 @@ fn abort_capture() {
     ABORT_FLAG.store(true, Ordering::Relaxed);
 }
 
+/// 同梱フレーム（resource）と取り込みフレーム（app_data）のルート。
+/// `tauri dev` で resources が解決できない場合は開発ビルドに限り src-tauri/frames を直接読む。
+fn frame_roots(app: &tauri::AppHandle) -> Result<store::Roots, String> {
+    let bundled = app
+        .path()
+        .resolve("frames", tauri::path::BaseDirectory::Resource)
+        .map_err(|e| e.to_string())?;
+    #[cfg(debug_assertions)]
+    let bundled = if bundled.join("catalog.json").is_file() {
+        bundled
+    } else {
+        PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("frames")
+    };
+    let user = app
+        .path()
+        .app_data_dir()
+        .map_err(|e| e.to_string())?
+        .join("frames");
+    Ok(store::Roots { bundled, user })
+}
+
+fn load_catalog(roots: &store::Roots) -> Result<Vec<catalog::DeviceEntry>, String> {
+    catalog::load_catalog(&roots.bundled.join("catalog.json"))
+}
+
+#[command]
+fn list_frames(app: tauri::AppHandle) -> Result<Vec<store::FrameStatus>, String> {
+    let roots = frame_roots(&app)?;
+    let entries = load_catalog(&roots)?;
+    Ok(entries.iter().map(|e| store::status_for(e, &roots)).collect())
+}
+
+#[derive(serde::Deserialize)]
+struct DeviceSelection {
+    id: String,
+    variant: Option<String>,
+}
+
+/// 撮影した PNG をフレームに合成して PNG バイト列を返す
+fn compose_png(shot_png: &[u8], job: &FrameJob) -> Result<Vec<u8>, String> {
+    let shot = image::load_from_memory(shot_png)
+        .map_err(|e| format!("スクリーンショットの読み込みに失敗: {}", e))?
+        .to_rgba8();
+    let frame = image::open(&job.frame_png)
+        .map_err(|e| format!("フレーム画像の読み込みに失敗 {}: {}", job.frame_png.display(), e))?
+        .to_rgba8();
+    let out = compose::compose_frame(&shot, &frame, job.screen, job.shadow);
+    let mut buf = Cursor::new(Vec::new());
+    image::DynamicImage::ImageRgba8(out)
+        .write_to(&mut buf, ImageOutputFormat::Png)
+        .map_err(|e| format!("PNG エンコードに失敗: {}", e))?;
+    Ok(buf.into_inner())
+}
+
 /// フレーム合成の指示。Some のターゲットは viewport 固定・PNG 固定で、保存前に合成する
 struct FrameJob {
     frame_png: PathBuf,
@@ -370,6 +426,7 @@ struct CaptureTarget {
 
 #[command]
 fn capture_screenshots(
+    app: tauri::AppHandle,
     url: String,
     widths: Vec<u32>,
     mode: String,
@@ -380,11 +437,13 @@ fn capture_screenshots(
     delay: u32,
     manual_interaction: bool,
     viewport_height: Option<u32>,
+    devices: Vec<DeviceSelection>,
+    frame_shadow: bool,
 ) -> Result<(), String> {
     let save_path = PathBuf::from(save_dir);
     ABORT_FLAG.store(false, Ordering::Relaxed);
     let capture_height = viewport_height.unwrap_or(VIEWPORT_HEIGHT).max(1);
-    let targets: Vec<CaptureTarget> = widths
+    let mut targets: Vec<CaptureTarget> = widths
         .iter()
         .map(|&w| CaptureTarget {
             width: w,
@@ -400,10 +459,46 @@ fn capture_screenshots(
         })
         .collect();
 
+    if !devices.is_empty() {
+        if duration > 0 {
+            return Err("デバイスフレームは PNG 出力のみ対応しています".to_string());
+        }
+        let roots = frame_roots(&app)?;
+        let entries = load_catalog(&roots)?;
+        for sel in &devices {
+            let entry = catalog::find(&entries, &sel.id)
+                .ok_or_else(|| format!("カタログに無いデバイスです: {}", sel.id))?;
+            // フレームが無ければここで止める（撮影を始めない）
+            let frame_png = store::resolve_frame_png(entry, sel.variant.as_deref(), &roots)?;
+            let label = match &sel.variant {
+                Some(v) => format!("{}_{}", entry.id, store::slugify(v)),
+                None => entry.id.clone(),
+            };
+            targets.push(CaptureTarget {
+                width: entry.css.width,
+                height: entry.css.height,
+                dpr: entry.css.dpr,
+                mobile: entry.css.mobile,
+                label,
+                frame: Some(FrameJob {
+                    frame_png,
+                    screen: entry.screen,
+                    shadow: frame_shadow,
+                }),
+            });
+        }
+    }
+
     for target in targets {
         // 既存のループ本体は w / capture_height を参照しているので、同名で束縛し直して差分を最小にする
         let w = target.width;
         let capture_height = target.height;
+        // デバイスターゲットは常に viewport 撮影（spec §8）
+        let mode = if target.frame.is_some() {
+            "viewport".to_string()
+        } else {
+            mode.clone()
+        };
         if ABORT_FLAG.load(Ordering::Relaxed) {
             return Err("ユーザーによってキャプチャが中止されました".to_string());
         }
@@ -626,10 +721,11 @@ fn capture_screenshots(
         std::thread::sleep(Duration::from_millis(500)); // wait for final layout snap
 
         let size_label = &target.label;
-        let file_name = if duration > 0 {
-            format!("capture_{}_{}.gif", size_label, mode)
-        } else {
-            format!("capture_{}_{}.png", size_label, mode)
+        let file_name = match &target.frame {
+            Some(job) if job.shadow => format!("capture_{}_framed-shadow.png", size_label),
+            Some(_) => format!("capture_{}_framed.png", size_label),
+            None if duration > 0 => format!("capture_{}_{}.gif", size_label, mode),
+            None => format!("capture_{}_{}.png", size_label, mode),
         };
         let dst = save_path.join(file_name);
 
@@ -801,6 +897,10 @@ fn capture_screenshots(
                 }
             };
 
+            let png_data = match &target.frame {
+                Some(job) => compose_png(&png_data, job)?,
+                None => png_data,
+            };
             std::fs::write(&dst, png_data)
                 .map_err(|e| format!("Failed to save image at {:?}: {}", dst, e))?;
         }
@@ -821,7 +921,8 @@ fn main() {
             get_default_save_dir,
             select_element,
             capture_screenshots,
-            abort_capture
+            abort_capture,
+            list_frames
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
