@@ -2,6 +2,7 @@
 //! 設計: docs/superpowers/specs/2026-08-30-device-frame-design.md
 
 pub mod compose;
+pub mod catalog;
 
 use serde::{Deserialize, Serialize};
 
