@@ -441,6 +441,8 @@ fn js_str(s: &str) -> String {
         .replace('\'', "\\'")
         .replace('\n', "\\n")
         .replace('\r', "\\r")
+        .replace('\u{2028}', "\\u2028")
+        .replace('\u{2029}', "\\u2029")
         .replace("</", "<\\/")
 }
 
@@ -973,4 +975,21 @@ fn main() {
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
+}
+
+#[cfg(test)]
+mod tests {
+    use super::js_str;
+
+    #[test]
+    fn js_str_escapes_javascript_string_delimiters_and_line_terminators() {
+        assert_eq!(js_str("plain"), "plain");
+        assert_eq!(js_str("it's"), "it\\'s");
+        assert_eq!(js_str("a\\b"), "a\\\\b");
+        assert_eq!(js_str("line\nbreak\r"), "line\\nbreak\\r");
+        assert_eq!(js_str("</script>"), "<\\/script>");
+        assert_eq!(js_str("a\u{2028}b\u{2029}c"), "a\\u2028b\\u2029c");
+        // 日本語・絵文字・{placeholder} はそのまま通る
+        assert_eq!(js_str("🔴 {label} ({seconds}秒後に開始)"), "🔴 {label} ({seconds}秒後に開始)");
+    }
 }
