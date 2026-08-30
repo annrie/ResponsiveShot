@@ -420,7 +420,7 @@ fn compose_png(shot_png: &[u8], job: &FrameJob, frame: &RgbaImage) -> Result<Vec
 }
 
 /// Chrome に注入する手動操作 UI の文言。フロントが翻訳して渡す（`{label}` `{seconds}` `{frames}` はテンプレート）
-#[derive(serde::Deserialize, Clone)]
+#[derive(serde::Deserialize)]
 #[serde(rename_all = "camelCase")]
 struct OverlayLabels {
     start_gif: String,
@@ -440,6 +440,7 @@ fn js_str(s: &str) -> String {
     s.replace('\\', "\\\\")
         .replace('\'', "\\'")
         .replace('\n', "\\n")
+        .replace('\r', "\\r")
         .replace("</", "<\\/")
 }
 

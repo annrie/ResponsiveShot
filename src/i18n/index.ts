@@ -50,6 +50,8 @@ export const i18n = createI18n({
   legacy: false,
   locale: detectLocale(),
   fallbackLocale: 'en',
+  // overlay.* は Chrome 側の innerHTML 用に HTML を含む（Vue では描画しない）ため、intlify の HTML 警告を抑止
+  warnHtmlMessage: false,
   messages: { ja, en, de, es, fr, ko, 'pt-BR': ptBR, 'zh-TW': zhTW },
 })
 

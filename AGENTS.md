@@ -12,7 +12,7 @@
 * **バックエンド**: Tauri (v2) + Rust
 * **ブラウザ制御**: `headless_chrome` クレート (表示あり・非ヘッドレス駆動)
 * **画像・動画処理**: `image` クレート, `gif` クレート
-* **i18n**: vue-i18n 11（`legacy: false`）。ロケールは `src/locales/*.json`（8言語: ja/en/de/es/fr/ko/pt-BR/zh-TW）、既定言語は localStorage → `navigator.language` → `en` の順で決定
+* **i18n**: vue-i18n 11（`legacy: false`）。ロケールは `src/locales/*.json`（8言語: ja/en/de/es/fr/ko/pt-BR/zh-TW）、既定言語は `localStorage` → `navigator.language` → `en` の順で決定
 
 ## 主要機能 (Core Features)
 1. **キャプチャモード (Capture Modes)**
