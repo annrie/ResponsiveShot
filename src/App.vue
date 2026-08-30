@@ -176,7 +176,7 @@ const captureScreenshots = async () => {
       viewportHeight: viewportHeight.value,
       devices,
       frameShadow: frameShadow.value,
-      frameBackground: frameBackground.value === 'transparent' ? null : frameBackground.value.trim()
+      frameBackground: devices.length > 0 && frameBackground.value !== 'transparent' ? frameBackground.value.trim() : null
     })
     
     statusMessage.value = "すべてのキャプチャが完了しました！"

@@ -439,10 +439,14 @@ fn capture_screenshots(
     let save_path = PathBuf::from(save_dir);
     ABORT_FLAG.store(false, Ordering::Relaxed);
     let capture_height = viewport_height.unwrap_or(VIEWPORT_HEIGHT).max(1);
-    // 背景色は撮影前に検証する（不正値でブラウザを起動しない）
-    let frame_background = match frame_background.as_deref().map(str::trim) {
-        Some("") | None => None,
-        Some(s) => Some(compose::parse_hex_color(s)?),
+    // 背景色はデバイス撮影があるときだけ検証する（幅指定 / GIF では無視。不正値でブラウザを起動しない）
+    let frame_background = if devices.is_empty() {
+        None
+    } else {
+        match frame_background.as_deref().map(str::trim) {
+            Some("") | None => None,
+            Some(s) => Some(compose::parse_hex_color(s)?),
+        }
     };
     let frames_ctx = if devices.is_empty() {
         None
