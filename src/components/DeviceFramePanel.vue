@@ -1,7 +1,9 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue'
 import { invoke } from '@tauri-apps/api/core'
-import type { DeviceSelection, FrameStatus } from '../types/frames'
+import { open } from '@tauri-apps/plugin-dialog'
+import { openUrl } from '@tauri-apps/plugin-opener'
+import type { DeviceSelection, FrameStatus, ImportReport } from '../types/frames'
 
 defineProps<{ disabled: boolean }>()
 const selected = defineModel<DeviceSelection[]>('selected', { required: true })
@@ -61,6 +63,60 @@ const toggle = (f: FrameStatus) => {
 }
 
 onMounted(refresh)
+
+const importing = ref(false)
+
+const openOfficial = async (url: string) => {
+  try {
+    await openUrl(url)
+  } catch (e) {
+    emit('status', `ブラウザを開けませんでした: ${e}`)
+  }
+}
+
+const runImport = async (path: string) => {
+  importing.value = true
+  emit('status', 'フレームを取り込んでいます...')
+  try {
+    const report = await invoke<ImportReport>('import_frames', { path })
+    await refresh()
+    const names = report.imported.map(i => `${i.id} (${i.variant})`).join(', ')
+    const skipped = report.skipped.length
+      ? ` / スキップ ${report.skipped.length} 件: ${report.skipped.map(s => s.reason).join('; ')}`
+      : ''
+    emit(
+      'status',
+      report.imported.length
+        ? `取り込み完了: ${names}${skipped}`
+        : `取り込めるフレームがありませんでした${skipped}`
+    )
+  } catch (e) {
+    emit('status', `取り込みエラー: ${e}`)
+  } finally {
+    importing.value = false
+  }
+}
+
+const importDmg = async () => {
+  const picked = await open({
+    multiple: false,
+    directory: false,
+    filters: [{ name: 'Apple Product Bezels', extensions: ['dmg', 'png'] }],
+  })
+  if (typeof picked === 'string') await runImport(picked)
+}
+
+const importFolder = async () => {
+  const picked = await open({ multiple: false, directory: true })
+  if (typeof picked === 'string') await runImport(picked)
+}
+
+const variantOf = (id: string) => selected.value.find(s => s.id === id)?.variant ?? null
+
+const setVariant = (id: string, variant: string) => {
+  selected.value = selected.value.map(s => (s.id === id ? { id, variant } : s))
+}
+
 defineExpose({ refresh })
 </script>
 
@@ -112,8 +168,48 @@ defineExpose({ refresh })
           >
             {{ stateLabels[f.state] }}
           </span>
+          <select
+            v-if="f.state === 'imported' && f.variants.length > 1 && isSelected(f.id)"
+            :value="variantOf(f.id)"
+            @change="setVariant(f.id, ($event.target as HTMLSelectElement).value)"
+            class="text-xs bg-gray-100 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded px-1 py-0.5"
+          >
+            <option v-for="v in f.variants" :key="v" :value="v">{{ v }}</option>
+          </select>
+          <button
+            v-if="f.state === 'missing' && f.source_url"
+            type="button"
+            @click.prevent="openOfficial(f.source_url ?? '')"
+            class="text-xs text-blue-500 hover:text-blue-600 dark:text-blue-400 underline"
+          >
+            公式
+          </button>
         </label>
       </div>
+      <div v-if="g.vendor === 'apple'" class="mt-3 flex flex-wrap items-center gap-2">
+        <span class="text-xs text-gray-500 dark:text-gray-400">
+          公式サイトの Product Bezels から DMG をダウンロードして取り込んでください。
+        </span>
+        <button
+          type="button"
+          @click="importDmg"
+          :disabled="importing"
+          class="px-3 py-1.5 text-xs font-medium rounded-md bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 disabled:opacity-50"
+        >
+          DMG / PNG を取り込む
+        </button>
+        <button
+          type="button"
+          @click="importFolder"
+          :disabled="importing"
+          class="px-3 py-1.5 text-xs font-medium rounded-md bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 disabled:opacity-50"
+        >
+          フォルダを取り込む
+        </button>
+      </div>
     </div>
+    <p class="mt-4 text-xs text-gray-500 dark:text-gray-400">
+      Apple のベゼルは Apple のライセンスに従いご自身の責任で使用してください。影の追加は Apple のガイドライン上は改変に当たります。Pixel のフレームは AOSP 由来（Apache 2.0）です。
+    </p>
   </section>
 </template>
