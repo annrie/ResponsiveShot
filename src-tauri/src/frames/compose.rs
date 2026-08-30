@@ -79,11 +79,50 @@ pub fn shadow_layer(frame: &RgbaImage, screen: Rect, p: &ShadowParams) -> RgbaIm
     layer
 }
 
+/// フレームの「穴」（画面中央から連結している非不透明画素）を screen 矩形内でフラッドフィルして求める。
+/// 戻り値は screen 矩形と同じ大きさの bool 配列（行優先）。中央が不透明なら全画素 true（クリップしない）。
+/// Apple のベゼルは角の丸みが大きく、画面矩形の角が本体の外（透明）に出るため、矩形のまま置くと
+/// スクショの角がはみ出す。穴の形でクリップすればフレームの種類に依らず正しく収まる。
+pub fn screen_mask(frame: &RgbaImage, screen: Rect) -> Vec<bool> {
+    let (w, h) = (screen.width as usize, screen.height as usize);
+    let mut mask = vec![false; w * h];
+    if w == 0 || h == 0 {
+        return mask;
+    }
+    let passable = |x: usize, y: usize| -> bool {
+        let px = screen.x + x as u32;
+        let py = screen.y + y as u32;
+        px < frame.width() && py < frame.height() && frame.get_pixel(px, py)[3] < 250
+    };
+    let (cx, cy) = (w / 2, h / 2);
+    if !passable(cx, cy) {
+        return vec![true; w * h];
+    }
+    let mut queue = std::collections::VecDeque::with_capacity(w.max(h) * 4);
+    mask[cy * w + cx] = true;
+    queue.push_back((cx, cy));
+    while let Some((x, y)) = queue.pop_front() {
+        let neighbors = [
+            (x.wrapping_sub(1), y),
+            (x + 1, y),
+            (x, y.wrapping_sub(1)),
+            (x, y + 1),
+        ];
+        for (nx, ny) in neighbors {
+            if nx < w && ny < h && !mask[ny * w + nx] && passable(nx, ny) {
+                mask[ny * w + nx] = true;
+                queue.push_back((nx, ny));
+            }
+        }
+    }
+    mask
+}
+
 /// スクショを `screen` に cover リサイズして置き、その上にフレームを重ねる。
 /// `shadow` が true ならキャンバスを `padding` 分広げ、影 → スクショ → フレーム の順に重ねる。
 /// `background` を指定するとキャンバスをその色（不透明）で初期化する。`None` は透明（従来どおり）。
 /// フレームの画面部分は透明である前提（Apple / Google の公式素材はどちらもそう）。
-/// 角丸クリップはしない: フレーム側の角が不透明でスクショの角を覆う。
+/// スクショはフレームの穴（`screen_mask`）でクリップするので、丸い角や本体の外にはみ出さない。
 pub fn compose_frame(
     shot: &RgbaImage,
     frame: &RgbaImage,
@@ -92,6 +131,14 @@ pub fn compose_frame(
     background: Option<Rgba<u8>>,
 ) -> RgbaImage {
     let fitted = cover_resize(shot, screen.width, screen.height);
+    // 穴の外に出るスクショ画素は透明にする（Apple ベゼルの丸い角対策）
+    let mask = screen_mask(frame, screen);
+    let mut fitted = fitted;
+    for (i, px) in fitted.pixels_mut().enumerate() {
+        if !mask[i] {
+            *px = Rgba([0, 0, 0, 0]);
+        }
+    }
     let params = ShadowParams::for_frame(frame.width(), frame.height());
     let pad = if shadow { params.padding } else { 0 };
 
@@ -214,6 +261,80 @@ mod tests {
             let err = parse_hex_color(s).unwrap_err();
             assert!(err.contains("背景色の形式が不正です"), "{s}: {err}");
         }
+    }
+
+    /// 標準的な角丸矩形判定: まず外接矩形内かを見て、角の正方形領域にいる場合だけ
+    /// 角の円弧中心までの距離を半径と比較する。
+    fn inside_rounded(x: f32, y: f32, r: &Rect, radius: f32) -> bool {
+        let (left, top) = (r.x as f32, r.y as f32);
+        let (right, bottom) = (r.right() as f32, r.bottom() as f32);
+        if x < left || x > right || y < top || y > bottom {
+            return false;
+        }
+        let corner_x = if x < left + radius {
+            left + radius
+        } else if x > right - radius {
+            right - radius
+        } else {
+            x
+        };
+        let corner_y = if y < top + radius {
+            top + radius
+        } else if y > bottom - radius {
+            bottom - radius
+        } else {
+            y
+        };
+        if corner_x == x || corner_y == y {
+            true
+        } else {
+            let (dx, dy) = (x - corner_x, y - corner_y);
+            dx * dx + dy * dy <= radius * radius
+        }
+    }
+
+    /// 100x200 のフレーム。透明地に、HOLE を囲む幅 6px の丸角リング（半径 26）だけが不透明。
+    /// リングの内側（HOLE 自体、半径 20）と外側は透明のまま。
+    fn frame_with_rounded_ring() -> RgbaImage {
+        let mut f = solid(100, 200, [0, 0, 0, 0]);
+        let ring_outer =
+            Rect { x: HOLE.x - 6, y: HOLE.y - 6, width: HOLE.width + 12, height: HOLE.height + 12 };
+        for y in 0..200u32 {
+            for x in 0..100u32 {
+                let (xf, yf) = (x as f32 + 0.5, y as f32 + 0.5);
+                let in_ring = inside_rounded(xf, yf, &ring_outer, 26.0)
+                    && !inside_rounded(xf, yf, &HOLE, 20.0);
+                if in_ring {
+                    f.put_pixel(x, y, Rgba(BEZEL));
+                }
+            }
+        }
+        f
+    }
+
+    #[test]
+    fn screen_mask_follows_rounded_hole() {
+        let frame = frame_with_rounded_ring();
+        let m = screen_mask(&frame, HOLE);
+        assert!(m[(70 * 60) + 30], "画面中央は true");
+        assert!(!m[0], "外接矩形の左上角（弧の外）は false");
+        assert!(m[(70 * 60) + 0], "左辺中央は true");
+    }
+
+    #[test]
+    fn screenshot_corners_are_clipped_to_the_hole() {
+        let frame = frame_with_rounded_ring();
+        let shot = solid(60, 140, [200, 0, 0, 255]);
+        let out = compose_frame(&shot, &frame, HOLE, false, None);
+        assert_eq!(out.get_pixel(HOLE.x, HOLE.y)[3], 0, "穴の外接矩形の角はクリップされ透明");
+        assert_eq!(out.get_pixel(HOLE.x + 30, HOLE.y + 70).0, [200, 0, 0, 255], "中央は赤のまま");
+        assert_eq!(out.get_pixel(HOLE.x - 3, HOLE.y + 70).0, BEZEL, "リング部分はリングの色");
+    }
+
+    #[test]
+    fn screen_mask_is_full_rect_when_hole_is_square() {
+        let m = screen_mask(&frame_with_hole(), HOLE);
+        assert!(m.iter().all(|&v| v), "四角い穴なら全画素 true（クリップしない）");
     }
 
     #[test]

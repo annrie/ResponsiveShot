@@ -230,7 +230,7 @@ pub fn compose_frame(shot: &RgbaImage, frame: &RgbaImage, screen: Rect, shadow: 
 5. リサイズ済み `shot` を `(pad + screen.x, pad + screen.y)` に overlay
 6. `frame` を `(pad, pad)` に overlay
 
-角丸クリップは行わない（Apple・Google ともフレーム側の角が不透明でスクショの角を覆う）。
+スクショはフレームの「穴」でクリップする（`screen_mask`：画面矩形の中央画素から非不透明画素をフラッドフィルして到達範囲を求め、到達しない画素は透明にする）。v1.1.1 での修正: 当初は「フレーム側の角が不透明でスクショの角を覆う」ためクリップ不要という前提だったが、Apple のベゼルは角の丸みが大きく画面矩形の角が本体の外（透明）に出るため誤りだった。
 
 ### 9.1 ドロップシャドウ
 
