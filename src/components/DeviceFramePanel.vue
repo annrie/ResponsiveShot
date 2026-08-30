@@ -262,7 +262,7 @@ defineExpose({ refresh })
         <button
           type="button"
           @click="openOfficial(APPLE_DESIGN_RESOURCES)"
-          class="px-3 py-1.5 text-xs font-medium rounded-md bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600"
+          class="px-3 py-1.5 text-xs font-medium rounded-md bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-100 border-0"
         >
           公式サイトを開く
         </button>
@@ -270,7 +270,7 @@ defineExpose({ refresh })
           type="button"
           @click="importDmg"
           :disabled="importing"
-          class="px-3 py-1.5 text-xs font-medium rounded-md bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 disabled:opacity-50"
+          class="px-3 py-1.5 text-xs font-medium rounded-md bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-100 border-0 disabled:opacity-50"
         >
           DMG / PNG を取り込む
         </button>
@@ -278,7 +278,7 @@ defineExpose({ refresh })
           type="button"
           @click="importFolder"
           :disabled="importing"
-          class="px-3 py-1.5 text-xs font-medium rounded-md bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 disabled:opacity-50"
+          class="px-3 py-1.5 text-xs font-medium rounded-md bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-100 border-0 disabled:opacity-50"
         >
           フォルダを取り込む
         </button>
