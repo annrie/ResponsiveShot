@@ -28,7 +28,7 @@
 
 - iPad / MacBook / iMac / Studio Display（DMG の形式が iPhone と同じことを実測してから追加。手順は §5.4）
 - 横向き iPhone、縦向き Pixel Tablet、折りたたみ機（`closed` / `default` の 2 構成）、Watch、TV
-- Dynamic Island の黒塗り（Apple のベゼル PNG は Island 部分も透明のため、ページ内容が透けて見える。v1 はそのまま）
+- Dynamic Island の黒塗り（Apple のベゼル PNG は Island 部分も透明のため、ページ内容が透けて見える。v1 はそのまま）→ **v1.1 §3 で実装済み**（`2026-08-30-device-frame-v1.1-design.md`）
 - GIF へのフレーム合成
 - 未知のフレーム画像の持ち込み（画面矩形の自動検出は §9 の方法で可能だが v1 では使わない）
 - 素のスクリーンショットの同時保存（幅指定で別途撮影できる）
