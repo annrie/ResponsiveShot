@@ -23,6 +23,10 @@ pub struct FrameJob {
     pub shadow: bool,
     /// フレーム外の背景色。None = 透明
     pub background: Option<Rgba<u8>>,
+    /// Dynamic Island の黒塗り領域（CSS px）。None なら塗らない
+    pub island: Option<catalog::Island>,
+    /// island を実寸に換算するための CSS 幅（倍率 = shot.width / css_width）
+    pub css_width: u32,
 }
 
 /// 1 回のブラウザ起動で撮る対象。幅指定は dpr 1.0 / mobile false、デバイスはカタログの値
@@ -91,6 +95,8 @@ pub fn build_targets(
                     screen: entry.screen,
                     shadow: frame_shadow,
                     background: frame_background,
+                    island: entry.island,
+                    css_width: entry.css.width,
                 }),
             });
         }
@@ -227,5 +233,29 @@ mod tests {
         let devices = [DeviceSelection { id: "nope".into(), variant: None }];
         let err = build_targets(&[], None, 1080, &devices, false, None, 0, Some((&entries, &r))).unwrap_err();
         assert!(err.contains("Unknown device id"), "{}", err);
+    }
+
+    #[test]
+    fn frame_job_carries_island_and_css_width() {
+        let mut entries = catalog::parse_catalog(SAMPLE).unwrap();
+        let island = catalog::Island { x: 143.0, y: 11.0, width: 126.0, height: 37.33, radius: 18.67 };
+        entries[0].island = Some(island); // google-pixel-9（css.width 412）に付ける
+        let r = roots("island");
+        touch(&r.bundled.join("google/pixel_9.png"), 1198, 2531);
+        let devices = [DeviceSelection { id: "google-pixel-9".into(), variant: None }];
+        let targets = build_targets(&[], None, 1080, &devices, false, None, 0, Some((&entries, &r))).unwrap();
+        let job = targets[0].frame.as_ref().unwrap();
+        assert_eq!(job.css_width, 412);
+        assert_eq!(job.island, Some(island));
+    }
+
+    #[test]
+    fn frame_job_has_no_island_when_catalog_omits_it() {
+        let entries = catalog::parse_catalog(SAMPLE).unwrap();
+        let r = roots("no-island");
+        touch(&r.bundled.join("google/pixel_9.png"), 1198, 2531);
+        let devices = [DeviceSelection { id: "google-pixel-9".into(), variant: None }];
+        let targets = build_targets(&[], None, 1080, &devices, false, None, 0, Some((&entries, &r))).unwrap();
+        assert_eq!(targets[0].frame.as_ref().unwrap().island, None);
     }
 }

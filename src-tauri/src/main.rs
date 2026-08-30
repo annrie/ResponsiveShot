@@ -8,7 +8,7 @@ use headless_chrome::protocol::cdp::Page::Viewport;
 use headless_chrome::protocol::cdp::{Emulation, Page};
 use headless_chrome::types::Bounds;
 use headless_chrome::{Browser, LaunchOptionsBuilder};
-use image::{imageops, ImageOutputFormat, RgbaImage};
+use image::{imageops, ImageOutputFormat, Rgba, RgbaImage};
 use std::io::Cursor;
 use std::path::PathBuf;
 use std::sync::atomic::{AtomicBool, Ordering};
@@ -408,9 +408,22 @@ async fn import_frames(app: tauri::AppHandle, path: String) -> Result<import::Im
 
 /// 撮影した PNG をフレームに合成して PNG バイト列を返す。フレーム画像は呼び出し側で事前デコード済み（AGENTS.md §1）
 fn compose_png(shot_png: &[u8], job: &FrameJob, frame: &RgbaImage) -> Result<Vec<u8>, String> {
-    let shot = image::load_from_memory(shot_png)
+    let mut shot = image::load_from_memory(shot_png)
         .map_err(|e| format!("Failed to decode the screenshot: {}", e))?
         .to_rgba8();
+    if let Some(i) = job.island {
+        // 撮影画像は css.width × dpr px。dpr の丸めに依存しないよう実寸の幅から倍率を求める
+        let s = shot.width() as f32 / job.css_width.max(1) as f32;
+        compose::fill_rounded_rect(
+            &mut shot,
+            i.x as f32 * s,
+            i.y as f32 * s,
+            i.width as f32 * s,
+            i.height as f32 * s,
+            i.radius as f32 * s,
+            Rgba([0, 0, 0, 255]),
+        );
+    }
     let out = compose::compose_frame(&shot, frame, job.screen, job.shadow, job.background);
     let mut buf = Cursor::new(Vec::new());
     image::DynamicImage::ImageRgba8(out)
