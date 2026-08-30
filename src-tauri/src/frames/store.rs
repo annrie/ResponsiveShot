@@ -86,21 +86,21 @@ pub fn resolve_frame_png(
     let path = match &entry.source {
         Source::Bundled { file } => roots.bundled.join(file),
         Source::Import { .. } => {
-            let v = variant.ok_or_else(|| format!("{} の色が選択されていません", entry.name))?;
+            let v = variant.ok_or_else(|| format!("No color variant selected for {}", entry.name))?;
             roots.user.join(&entry.id).join(format!("{}.png", slugify(v)))
         }
     };
     if !path.is_file() {
-        let label = variant.map(slugify).unwrap_or_else(|| "同梱".to_string());
+        let label = variant.map(slugify).unwrap_or_else(|| "bundled".to_string());
         return Err(format!(
-            "フレームが見つかりません: {} ({})。取り込みをやり直してください",
+            "Frame not found: {} ({}). Import the frames again",
             entry.name, label
         ));
     }
     match image::image_dimensions(&path) {
         Ok((w, h)) if (w, h) == (entry.frame.width, entry.frame.height) => Ok(path),
         Ok((w, h)) => Err(format!(
-            "フレーム画像の寸法が不一致 (期待 {}x{}, 実際 {}x{}): {}。取り込みをやり直してください",
+            "Frame image size mismatch (expected {}x{}, got {}x{}): {}. Import the frames again",
             entry.frame.width,
             entry.frame.height,
             w,
@@ -108,7 +108,7 @@ pub fn resolve_frame_png(
             path.display()
         )),
         Err(e) => Err(format!(
-            "フレーム画像を読めません {}: {}。取り込みをやり直してください",
+            "Cannot read the frame image {}: {}. Import the frames again",
             path.display(),
             e
         )),
@@ -203,10 +203,10 @@ mod tests {
             resolve_frame_png(&entries[1], Some("Black Titanium"), &r).unwrap(),
             r.user.join("apple-iphone-16-pro/black-titanium.png")
         );
-        assert!(resolve_frame_png(&entries[1], None, &r).unwrap_err().contains("色が選択されていません"));
+        assert!(resolve_frame_png(&entries[1], None, &r).unwrap_err().contains("No color variant"));
         assert_eq!(
             resolve_frame_png(&entries[1], Some("pink"), &r).unwrap_err(),
-            "フレームが見つかりません: iPhone 16 Pro (pink)。取り込みをやり直してください"
+            "Frame not found: iPhone 16 Pro (pink). Import the frames again"
         );
     }
 
@@ -216,6 +216,6 @@ mod tests {
         let r = roots("wrong-dims");
         touch(&r.user.join("apple-iphone-16-pro/black-titanium.png"), 10, 10);
         let err = resolve_frame_png(&entries[1], Some("Black Titanium"), &r).unwrap_err();
-        assert!(err.contains("寸法が不一致 (期待 1350x2760, 実際 10x10)"), "{}", err);
+        assert!(err.contains("Frame image size mismatch (expected 1350x2760, got 10x10)"), "{}", err);
     }
 }

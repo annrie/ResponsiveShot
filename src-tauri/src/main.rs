@@ -169,7 +169,7 @@ fn capture_fullpage_stitched(
 
     loop {
         if ABORT_FLAG.load(Ordering::Relaxed) {
-            return Err("ユーザーによってキャプチャが中止されました".to_string());
+            return Err("Capture cancelled by the user".to_string());
         }
 
         let measured_total_height =
@@ -391,7 +391,7 @@ fn list_frames(app: tauri::AppHandle) -> Result<Vec<store::FrameStatus>, String>
 fn get_frames_dir(app: tauri::AppHandle) -> Result<String, String> {
     let roots = frame_roots(&app)?;
     std::fs::create_dir_all(&roots.user)
-        .map_err(|e| format!("保存先を作成できません {}: {}", roots.user.display(), e))?;
+        .map_err(|e| format!("Failed to create the frames directory {}: {}", roots.user.display(), e))?;
     Ok(roots.user.to_string_lossy().into_owned())
 }
 
@@ -403,19 +403,19 @@ async fn import_frames(app: tauri::AppHandle, path: String) -> Result<import::Im
         import::import_frames(Path::new(&path), &entries, &roots.user)
     })
     .await
-    .map_err(|e| format!("取り込み処理のスレッドが失敗しました: {}", e))?
+    .map_err(|e| format!("Import task failed: {}", e))?
 }
 
 /// 撮影した PNG をフレームに合成して PNG バイト列を返す。フレーム画像は呼び出し側で事前デコード済み（AGENTS.md §1）
 fn compose_png(shot_png: &[u8], job: &FrameJob, frame: &RgbaImage) -> Result<Vec<u8>, String> {
     let shot = image::load_from_memory(shot_png)
-        .map_err(|e| format!("スクリーンショットの読み込みに失敗: {}", e))?
+        .map_err(|e| format!("Failed to decode the screenshot: {}", e))?
         .to_rgba8();
     let out = compose::compose_frame(&shot, frame, job.screen, job.shadow, job.background);
     let mut buf = Cursor::new(Vec::new());
     image::DynamicImage::ImageRgba8(out)
         .write_to(&mut buf, ImageOutputFormat::Png)
-        .map_err(|e| format!("PNG エンコードに失敗: {}", e))?;
+        .map_err(|e| format!("Failed to encode PNG: {}", e))?;
     Ok(buf.into_inner())
 }
 
@@ -506,14 +506,14 @@ fn capture_screenshots(
         let frame_image: Option<RgbaImage> = match &target.frame {
             Some(job) => Some(
                 image::open(&job.frame_png)
-                    .map_err(|e| format!("フレーム画像の読み込みに失敗 {}: {}", job.frame_png.display(), e))?
+                    .map_err(|e| format!("Failed to load the frame image {}: {}", job.frame_png.display(), e))?
                     .to_rgba8(),
             ),
             None => None,
         };
 
         if ABORT_FLAG.load(Ordering::Relaxed) {
-            return Err("ユーザーによってキャプチャが中止されました".to_string());
+            return Err("Capture cancelled by the user".to_string());
         }
 
         // Launch a new context or resize for each to be safe and avoid stale states
@@ -656,7 +656,7 @@ fn capture_screenshots(
 
             loop {
                 if ABORT_FLAG.load(Ordering::Relaxed) {
-                    return Err("ユーザーによってキャプチャが中止されました".to_string());
+                    return Err("Capture cancelled by the user".to_string());
                 }
 
                 let status = tab
@@ -670,7 +670,7 @@ fn capture_screenshots(
                     break;
                 }
                 if status == "cancel" {
-                    return Err("ユーザーによってキャプチャが中止されました".to_string());
+                    return Err("Capture cancelled by the user".to_string());
                 }
                 std::thread::sleep(Duration::from_millis(200));
             }
@@ -678,7 +678,7 @@ fn capture_screenshots(
             // Use user-defined delay to allow page rendering or lazy-load processing silently
             for _ in 0..(delay * 5) {
                 if ABORT_FLAG.load(Ordering::Relaxed) {
-                    return Err("ユーザーによってキャプチャが中止されました".to_string());
+                    return Err("Capture cancelled by the user".to_string());
                 }
                 std::thread::sleep(Duration::from_millis(200));
             }
@@ -760,7 +760,7 @@ fn capture_screenshots(
         let dst = save_path.join(file_name);
 
         if ABORT_FLAG.load(Ordering::Relaxed) {
-            return Err("ユーザーによってキャプチャが中止されました".to_string());
+            return Err("Capture cancelled by the user".to_string());
         }
 
         if duration > 0 {
@@ -810,7 +810,7 @@ fn capture_screenshots(
 
             loop {
                 if ABORT_FLAG.load(Ordering::Relaxed) {
-                    return Err(format!("Line {}: ユーザーによって中止されました", line!()));
+                    return Err(format!("Cancelled by the user (line {})", line!()));
                 }
 
                 let elapsed_total = start_time_total.elapsed().as_secs();

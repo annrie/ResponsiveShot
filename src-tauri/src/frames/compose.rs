@@ -7,7 +7,7 @@ use super::Rect;
 
 /// `#rgb` / `#rrggbb` を不透明色に変換する。前後の空白は無視。それ以外は Err
 pub fn parse_hex_color(s: &str) -> Result<Rgba<u8>, String> {
-    let err = || format!("背景色の形式が不正です: {:?}（#rrggbb 形式で指定してください）", s);
+    let err = || format!("Invalid background color: {:?} (use #rrggbb)", s);
     let t = s.trim();
     let hex = t.strip_prefix('#').ok_or_else(err)?;
     if !hex.chars().all(|c| c.is_ascii_hexdigit()) {
@@ -344,7 +344,7 @@ mod tests {
     fn parse_hex_color_rejects_invalid() {
         for s in ["fff", "#ggg", "#12345", "", "#", "#1234567", "white"] {
             let err = parse_hex_color(s).unwrap_err();
-            assert!(err.contains("背景色の形式が不正です"), "{s}: {err}");
+            assert!(err.contains("Invalid background color"), "{s}: {err}");
         }
     }
 

@@ -131,7 +131,7 @@ mod tests {
 
         assert!(report.imported.is_empty());
         assert_eq!(report.skipped.len(), 1);
-        assert_eq!(report.skipped[0].reason, "寸法が不一致 (期待 100x200, 実際 90x200)");
+        assert_eq!(report.skipped[0].reason, "Size mismatch (expected 100x200, got 90x200)");
         assert!(!user.join("apple-iphone-16-pro").exists());
     }
 
@@ -173,7 +173,7 @@ mod tests {
 
         let err = import_frames(&root.join("nope.dmg"), &[pro()], &user).unwrap_err();
         assert!(
-            err.contains("DMG のマウントに失敗") || err.contains("hdiutil を起動できません"),
+            err.contains("Failed to mount the DMG") || err.contains("Failed to run hdiutil"),
             "{}",
             err
         );
@@ -310,7 +310,7 @@ pub fn import_pngs(
         let (w, h) = match image::image_dimensions(file) {
             Ok(d) => d,
             Err(e) => {
-                report.skipped.push(SkippedFile { file: candidate, reason: format!("画像として読めません: {}", e) });
+                report.skipped.push(SkippedFile { file: candidate, reason: format!("Not a readable image: {}", e) });
                 continue;
             }
         };
@@ -318,7 +318,7 @@ pub fn import_pngs(
             report.skipped.push(SkippedFile {
                 file: candidate,
                 reason: format!(
-                    "寸法が不一致 (期待 {}x{}, 実際 {}x{})",
+                    "Size mismatch (expected {}x{}, got {}x{})",
                     entry.frame.width, entry.frame.height, w, h
                 ),
             });
@@ -328,16 +328,16 @@ pub fn import_pngs(
         let slug = slugify(&variant);
         let dest_dir = user_dir.join(&entry.id);
         std::fs::create_dir_all(&dest_dir)
-            .map_err(|e| format!("保存先を作成できません {}: {}", dest_dir.display(), e))?;
+            .map_err(|e| format!("Failed to create the frames directory {}: {}", dest_dir.display(), e))?;
         let dest = dest_dir.join(format!("{}.png", slug));
         let tmp = dest_dir.join(format!("{}.png.tmp", slug));
         if let Err(e) = std::fs::copy(file, &tmp) {
             let _ = std::fs::remove_file(&tmp);
-            return Err(format!("コピーに失敗 {} → {}: {}", file.display(), dest.display(), e));
+            return Err(format!("Failed to copy {} → {}: {}", file.display(), dest.display(), e));
         }
         if let Err(e) = std::fs::rename(&tmp, &dest) {
             let _ = std::fs::remove_file(&tmp);
-            return Err(format!("コピーに失敗 {} → {}: {}", file.display(), dest.display(), e));
+            return Err(format!("Failed to copy {} → {}: {}", file.display(), dest.display(), e));
         }
         report.imported.push(ImportedFrame { id: entry.id.clone(), variant: slug });
     }
@@ -374,7 +374,7 @@ impl DmgMount {
             Ok(child) => child,
             Err(e) => {
                 let _ = std::fs::remove_dir(&mountpoint);
-                return Err(format!("hdiutil を起動できません: {}", e));
+                return Err(format!("Failed to run hdiutil: {}", e));
             }
         };
         if let Some(mut stdin) = child.stdin.take() {
@@ -391,7 +391,7 @@ impl DmgMount {
         if !output.status.success() {
             let _ = std::fs::remove_dir(&mountpoint);
             return Err(format!(
-                "DMG のマウントに失敗: {}。Finder で既にマウント済みの場合は取り出してから再試行するか、「フォルダを取り込む」で /Volumes 内のボリュームを選んでください",
+                "Failed to mount the DMG: {}. If it is already mounted in Finder, eject it first, or use \"Import folder\" and pick the volume under /Volumes",
                 String::from_utf8_lossy(&output.stderr).trim()
             ));
         }
@@ -435,6 +435,6 @@ pub fn import_frames(path: &Path, entries: &[DeviceEntry], user_dir: &Path) -> R
         let root = path.parent().unwrap_or(path);
         import_pngs(&[path.to_path_buf()], root, true, entries, user_dir)
     } else {
-        Err(format!("取り込み元が見つかりません: {}", path.display()))
+        Err(format!("Import source not found: {}", path.display()))
     }
 }
