@@ -1,9 +1,12 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { invoke } from '@tauri-apps/api/core'
 import { open } from '@tauri-apps/plugin-dialog'
 import { openUrl } from '@tauri-apps/plugin-opener'
 import type { DeviceSelection, FrameStatus, ImportReport } from '../types/frames'
+
+const { t } = useI18n()
 
 defineProps<{ disabled: boolean }>()
 const selected = defineModel<DeviceSelection[]>('selected', { required: true })
@@ -35,31 +38,21 @@ const emit = defineEmits<{ status: [message: string] }>()
 
 const frames = ref<FrameStatus[]>([])
 const framesDir = ref('')
-const vendorLabels: Record<FrameStatus['vendor'], string> = { apple: 'Apple', google: 'Google' }
+const vendorLabel = (v: FrameStatus['vendor']) => t(`frames.vendor.${v}`)
 const categoryOrder: FrameStatus['category'][] = ['phone', 'tablet', 'laptop', 'desktop', 'display']
-const categoryLabels: Record<FrameStatus['category'], string> = {
-  phone: 'スマートフォン',
-  tablet: 'タブレット',
-  laptop: 'ノート PC',
-  desktop: 'デスクトップ',
-  display: 'ディスプレイ',
-}
+const categoryLabel = (c: FrameStatus['category']) => t(`frames.category.${c}`)
 const APPLE_DESIGN_RESOURCES = 'https://developer.apple.com/design/resources/#product-bezels'
-const stateLabels: Record<FrameStatus['state'], string> = {
-  bundled: '同梱',
-  imported: '取り込み済み',
-  missing: '未取り込み',
-}
+const stateLabel = (s: FrameStatus['state']) => t(`frames.state.${s}`)
 
 const groups = computed(() =>
   (['apple', 'google'] as const)
     .map(vendor => ({
       vendor,
-      label: vendorLabels[vendor],
+      label: vendorLabel(vendor),
       sections: categoryOrder
         .map(category => ({
           category,
-          label: categoryLabels[category],
+          label: categoryLabel(category),
           items: frames.value.filter(f => f.vendor === vendor && f.category === category),
         }))
         .filter(s => s.items.length > 0),
@@ -83,13 +76,13 @@ const refresh = async () => {
     frames.value = await invoke<FrameStatus[]>('list_frames')
     reconcile()
   } catch (e) {
-    emit('status', `フレーム一覧の取得に失敗: ${e}`)
+    emit('status', t('frames.status.listFailed', { error: e }))
   }
   try {
     framesDir.value = await invoke<string>('get_frames_dir')
   } catch (e) {
     framesDir.value = ''
-    emit('status', `取り込み先の取得に失敗: ${e}`)
+    emit('status', t('frames.status.dirFailed', { error: e }))
   }
 }
 
@@ -115,28 +108,31 @@ const openOfficial = async (url: string) => {
   try {
     await openUrl(url)
   } catch (e) {
-    emit('status', `ブラウザを開けませんでした: ${e}`)
+    emit('status', t('frames.status.openFailed', { error: e }))
   }
 }
 
 const runImport = async (path: string) => {
   importing.value = true
-  emit('status', 'フレームを取り込んでいます...')
+  emit('status', t('frames.status.importing'))
   try {
     const report = await invoke<ImportReport>('import_frames', { path })
     await refresh()
     const names = report.imported.map(i => `${i.id} (${i.variant})`).join(', ')
     const skipped = report.skipped.length
-      ? ` / スキップ ${report.skipped.length} 件: ${report.skipped.map(s => s.reason).join('; ')}`
+      ? t('frames.status.skipped', {
+          count: report.skipped.length,
+          reasons: report.skipped.map(s => s.reason).join('; '),
+        })
       : ''
     emit(
       'status',
       report.imported.length
-        ? `取り込み完了: ${names}${skipped}（保存先: ${framesDir.value}）`
-        : `取り込めるフレームがありませんでした${skipped}`
+        ? t('frames.status.imported', { names, skipped, dir: framesDir.value })
+        : t('frames.status.nothingImported', { skipped })
     )
   } catch (e) {
-    emit('status', `取り込みエラー: ${e}`)
+    emit('status', t('frames.status.importError', { error: e }))
   } finally {
     importing.value = false
   }
@@ -167,26 +163,26 @@ defineExpose({ refresh })
     :class="{ 'opacity-45 pointer-events-none': disabled }"
   >
     <div class="flex justify-between items-center mb-1">
-      <h2 class="text-sm font-medium">デバイスフレーム</h2>
+      <h2 class="text-sm font-medium">{{ t('frames.heading') }}</h2>
       <div class="flex items-center gap-4 text-sm">
         <label class="flex items-center gap-1">
-          <span class="text-xs text-gray-500 dark:text-gray-400">背景</span>
+          <span class="text-xs text-gray-500 dark:text-gray-400">{{ t('frames.background.label') }}</span>
           <select
             :value="bgMode"
             @change="setBgMode(($event.target as HTMLSelectElement).value as BgMode)"
             class="text-xs text-gray-800 dark:text-gray-100 bg-gray-100 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded px-1 py-0.5"
           >
-            <option value="transparent">透明</option>
-            <option value="white">白</option>
-            <option value="black">黒</option>
-            <option value="custom">任意</option>
+            <option value="transparent">{{ t('frames.background.transparent') }}</option>
+            <option value="white">{{ t('frames.background.white') }}</option>
+            <option value="black">{{ t('frames.background.black') }}</option>
+            <option value="custom">{{ t('frames.background.custom') }}</option>
           </select>
           <input
             v-if="bgMode === 'custom'"
             :value="background"
             @input="background = ($event.target as HTMLInputElement).value"
             type="text"
-            placeholder="#rrggbb"
+            :placeholder="t('frames.background.customPlaceholder')"
             spellcheck="false"
             class="w-24 text-xs font-mono text-gray-800 dark:text-gray-100 bg-gray-100 dark:bg-gray-900 border rounded px-1 py-0.5"
             :class="backgroundInvalid ? 'border-red-400' : 'border-gray-200 dark:border-gray-700'"
@@ -194,12 +190,12 @@ defineExpose({ refresh })
         </label>
         <label class="flex items-center gap-2 cursor-pointer">
           <input type="checkbox" v-model="shadow" class="text-blue-500 rounded" />
-          ドロップシャドウ
+          {{ t('frames.shadow') }}
         </label>
       </div>
     </div>
     <p class="text-xs text-gray-500 dark:text-gray-400 mb-4">
-      選んだ端末の解像度で撮影し、フレームにはめ込んだ PNG を保存します（PNG 出力のみ。GIF では使えません）。
+      {{ t('frames.intro') }}
     </p>
 
     <div v-for="g in groups" :key="g.vendor" class="mb-4 last:mb-0">
@@ -234,7 +230,7 @@ defineExpose({ refresh })
                   : 'bg-green-100 dark:bg-green-900/40 text-green-700 dark:text-green-300'
               "
             >
-              {{ stateLabels[f.state] }}
+              {{ stateLabel(f.state) }}
             </span>
             <select
               v-if="f.state === 'imported' && f.variants.length > 1 && isSelected(f.id)"
@@ -250,21 +246,21 @@ defineExpose({ refresh })
               @click.prevent="openOfficial(f.source_url ?? '')"
               class="text-xs text-blue-500 hover:text-blue-600 dark:text-blue-400 underline"
             >
-              公式
+              {{ t('frames.official') }}
             </button>
           </label>
         </div>
       </div>
       <div v-if="g.vendor === 'apple'" class="mt-3 flex flex-wrap items-center gap-2">
         <span class="text-xs text-gray-500 dark:text-gray-400 w-full basis-full">
-          ① 「公式サイトを開く」で Apple Design Resources をブラウザで開き、② ブラウザで対応機種（iPhone / iPad / MacBook / iMac / Studio Display）の Product Bezels（DMG）をダウンロードしてください（進行状況はブラウザのダウンロード欄に表示されます。アプリはダウンロードしません）。③ ダウンロードした DMG ファイルを「DMG / PNG を取り込む」で選ぶと取り込まれます。
+          {{ t('frames.hint') }}
         </span>
         <button
           type="button"
           @click="openOfficial(APPLE_DESIGN_RESOURCES)"
           class="px-3 py-1.5 text-xs font-medium rounded-md bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600"
         >
-          公式サイトを開く
+          {{ t('frames.openOfficial') }}
         </button>
         <button
           type="button"
@@ -272,7 +268,7 @@ defineExpose({ refresh })
           :disabled="importing"
           class="px-3 py-1.5 text-xs font-medium rounded-md bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 disabled:opacity-50"
         >
-          DMG / PNG を取り込む
+          {{ t('frames.importDmg') }}
         </button>
         <button
           type="button"
@@ -280,12 +276,12 @@ defineExpose({ refresh })
           :disabled="importing"
           class="px-3 py-1.5 text-xs font-medium rounded-md bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 disabled:opacity-50"
         >
-          フォルダを取り込む
+          {{ t('frames.importFolder') }}
         </button>
       </div>
     </div>
     <p class="mt-4 text-xs text-gray-500 dark:text-gray-400">
-      Apple のベゼルは Apple のライセンスに従いご自身の責任で使用してください。影の追加は Apple のガイドライン上は改変に当たります。Pixel のフレームは AOSP 由来（Apache 2.0）です。
+      {{ t('frames.license') }}
     </p>
   </section>
 </template>
