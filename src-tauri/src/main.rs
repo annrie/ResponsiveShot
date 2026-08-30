@@ -1020,22 +1020,35 @@ mod tests {
     }
 
     /// スクショ幅が css 幅の s 倍のとき、island（CSS px）が s 倍の位置に黒く塗られる
+    /// スクショ幅が css 幅の s 倍のとき、island（CSS px）が s 倍の位置に黒く塗られる。
+    /// フレームは画面原点 (20, 30·s) にベゼル付きで用意し、「合成後に生座標で塗る」退行も検出する
+    /// （生座標の島中心 (50s, 10s) は常に画面より上のベゼル部分に落ちる）
     fn assert_island_scaled(s: u32) {
+        const BEZEL: [u8; 4] = [10, 20, 30, 255];
         let (w, h) = (100 * s, 200 * s);
+        let screen = Rect { x: 20, y: 30 * s, width: w, height: h };
         let shot = RgbaImage::from_pixel(w, h, Rgba([200, 0, 0, 255]));
-        let frame = RgbaImage::from_pixel(w, h, Rgba([0, 0, 0, 0])); // 全面透明 = 穴だけのフレーム
+        let mut frame = RgbaImage::from_pixel(w + 40, h + 30 * s + 20, Rgba(BEZEL));
+        for y in screen.y..screen.bottom() {
+            for x in screen.x..screen.right() {
+                frame.put_pixel(x, y, Rgba([0, 0, 0, 0])); // 穴
+            }
+        }
         let job = FrameJob {
             frame_png: PathBuf::new(),
-            screen: Rect { x: 0, y: 0, width: w, height: h },
+            screen,
             shadow: false,
             background: None,
             island: Some(Island { x: 30.0, y: 5.0, width: 40.0, height: 10.0, radius: 5.0 }),
             css_width: 100,
         };
         let out = image::load_from_memory(&compose_png(&png_bytes(&shot), &job, &frame).unwrap()).unwrap().to_rgba8();
-        assert_eq!(out.get_pixel(50 * s, 10 * s).0, [0, 0, 0, 255], "s={}: 島の中心は黒", s);
-        assert_eq!(out.get_pixel(50 * s, 30 * s).0, [200, 0, 0, 255], "s={}: 島の下は元の色", s);
-        assert_eq!(out.get_pixel(10 * s, 10 * s).0, [200, 0, 0, 255], "s={}: 島の左は元の色", s);
+        let (ox, oy) = (screen.x, screen.y);
+        assert_eq!(out.get_pixel(ox + 50 * s, oy + 10 * s).0, [0, 0, 0, 255], "s={}: 島の中心は黒", s);
+        assert_eq!(out.get_pixel(ox + 50 * s, oy + 30 * s).0, [200, 0, 0, 255], "s={}: 島の下は元の色", s);
+        assert_eq!(out.get_pixel(ox + 10 * s, oy + 10 * s).0, [200, 0, 0, 255], "s={}: 島の左は元の色", s);
+        assert_eq!(out.get_pixel(5, 5).0, BEZEL, "s={}: ベゼルはそのまま", s);
+        assert_eq!(out.get_pixel(50 * s, 10 * s).0, BEZEL, "s={}: 画面原点を無視した生座標には塗られない", s);
     }
 
     #[test]

@@ -10,6 +10,8 @@
 
 **Spec:** `docs/superpowers/specs/2026-08-30-device-frame-v1.1-design.md` §3（§4 は別計画）
 
+> **追記（2026-08-31、`2811f61`）**: 最終レビューで Apple のベゼル PNG が Dynamic Island を**不透明に描いている**ことが判明し、本計画の「公開 pt 値を採用」（Global Constraints・Task 1 の表・Task 4 の文言）は **ベゼル PNG からの実測値**（16 = 134/11/125×37.33/r18.67、16 Plus = 152.33/11.33/125.67×36.67/r18.33、16 Pro = 138.67/14.33/124.67×36/r18、16 Pro Max = 157.67/14.33/124.67×36/r18）に差し替えた。最終状態は spec §3「採用値」と `catalog.json` を正とする。
+
 ## Global Constraints
 
 - `island` は **iPhone 16 / 16 Plus / 16 Pro / 16 Pro Max の 4 件だけ**に付ける。他機種は省略（`None`）で出力は従来と完全に同じ
