@@ -17,6 +17,7 @@ use tauri::command;
 
 mod frames;
 use frames::{catalog, compose, import, store};
+use frames::targets::{build_targets, DeviceSelection, FrameJob};
 use std::path::Path;
 use tauri::Manager;
 
@@ -392,12 +393,6 @@ fn import_frames(app: tauri::AppHandle, path: String) -> Result<import::ImportRe
     import::import_frames(Path::new(&path), &entries, &roots.user)
 }
 
-#[derive(serde::Deserialize)]
-struct DeviceSelection {
-    id: String,
-    variant: Option<String>,
-}
-
 /// 撮影した PNG をフレームに合成して PNG バイト列を返す
 fn compose_png(shot_png: &[u8], job: &FrameJob) -> Result<Vec<u8>, String> {
     let shot = image::load_from_memory(shot_png)
@@ -412,24 +407,6 @@ fn compose_png(shot_png: &[u8], job: &FrameJob) -> Result<Vec<u8>, String> {
         .write_to(&mut buf, ImageOutputFormat::Png)
         .map_err(|e| format!("PNG エンコードに失敗: {}", e))?;
     Ok(buf.into_inner())
-}
-
-/// フレーム合成の指示。Some のターゲットは viewport 固定・PNG 固定で、保存前に合成する
-struct FrameJob {
-    frame_png: PathBuf,
-    screen: frames::Rect,
-    shadow: bool,
-}
-
-/// 1 回のブラウザ起動で撮る対象。幅指定は dpr 1.0 / mobile false、デバイスはカタログの値
-struct CaptureTarget {
-    width: u32,
-    height: u32,
-    dpr: f64,
-    mobile: bool,
-    /// ファイル名用ラベル。幅指定は従来どおり "1440px" / "1440x810"
-    label: String,
-    frame: Option<FrameJob>,
 }
 
 #[command]
@@ -451,51 +428,22 @@ fn capture_screenshots(
     let save_path = PathBuf::from(save_dir);
     ABORT_FLAG.store(false, Ordering::Relaxed);
     let capture_height = viewport_height.unwrap_or(VIEWPORT_HEIGHT).max(1);
-    let mut targets: Vec<CaptureTarget> = widths
-        .iter()
-        .map(|&w| CaptureTarget {
-            width: w,
-            height: capture_height,
-            dpr: 1.0,
-            mobile: false,
-            label: if viewport_height.is_some() {
-                format!("{}x{}", w, capture_height)
-            } else {
-                format!("{}px", w)
-            },
-            frame: None,
-        })
-        .collect();
-
-    if !devices.is_empty() {
-        if duration > 0 {
-            return Err("デバイスフレームは PNG 出力のみ対応しています".to_string());
-        }
+    let frames_ctx = if devices.is_empty() {
+        None
+    } else {
         let roots = frame_roots(&app)?;
         let entries = load_catalog(&roots)?;
-        for sel in &devices {
-            let entry = catalog::find(&entries, &sel.id)
-                .ok_or_else(|| format!("カタログに無いデバイスです: {}", sel.id))?;
-            // フレームが無ければここで止める（撮影を始めない）
-            let frame_png = store::resolve_frame_png(entry, sel.variant.as_deref(), &roots)?;
-            let label = match &sel.variant {
-                Some(v) => format!("{}_{}", entry.id, store::slugify(v)),
-                None => entry.id.clone(),
-            };
-            targets.push(CaptureTarget {
-                width: entry.css.width,
-                height: entry.css.height,
-                dpr: entry.css.dpr,
-                mobile: entry.css.mobile,
-                label,
-                frame: Some(FrameJob {
-                    frame_png,
-                    screen: entry.screen,
-                    shadow: frame_shadow,
-                }),
-            });
-        }
-    }
+        Some((entries, roots))
+    };
+    let targets = build_targets(
+        &widths,
+        viewport_height,
+        capture_height,
+        &devices,
+        frame_shadow,
+        duration,
+        frames_ctx.as_ref().map(|(e, r)| (e.as_slice(), r)),
+    )?;
 
     for target in targets {
         // 既存のループ本体は w / capture_height を参照しているので、同名で束縛し直して差分を最小にする
