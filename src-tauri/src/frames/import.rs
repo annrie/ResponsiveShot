@@ -113,6 +113,18 @@ mod tests {
     }
 
     #[test]
+    fn scan_pngs_skips_symlinks_and_terminates() {
+        let root = temp_root("symlink");
+        let real_png = root.join("real.png");
+        write_png(&real_png, 10, 10);
+        std::os::unix::fs::symlink(&root, root.join("loop")).unwrap();
+        std::os::unix::fs::symlink(&real_png, root.join("alias.png")).unwrap();
+
+        let files = scan_pngs(&root);
+        assert_eq!(files, vec![real_png]);
+    }
+
+    #[test]
     fn import_frames_dispatches_on_folder_file_and_missing() {
         let root = temp_root("dispatch");
         let user = root.join("user");
@@ -168,7 +180,9 @@ pub fn match_variant(parts: &PatternParts, candidate: &str, by_file_name: bool) 
     Some(middle.to_string())
 }
 
-/// `root` 以下の PNG を再帰的に集める（`.` で始まる名前 = macOS の `._` リソースフォークや `.fseventsd` は除外）
+/// `root` 以下の PNG を再帰的に集める（`.` で始まる名前 = macOS の `._` リソースフォークや `.fseventsd` は除外）。
+/// シンボリックリンクは辿らない（例: macOS の `/Volumes/Macintosh HD` は `/` へのシンボリックリンクで、
+/// 辿ると無限に再帰してしまう）
 pub fn scan_pngs(root: &Path) -> Vec<PathBuf> {
     let mut out = Vec::new();
     let mut stack = vec![root.to_path_buf()];
@@ -178,14 +192,23 @@ pub fn scan_pngs(root: &Path) -> Vec<PathBuf> {
             Err(_) => continue,
         };
         for entry in rd.flatten() {
-            let path = entry.path();
             let name = entry.file_name().to_string_lossy().into_owned();
             if name.starts_with('.') {
                 continue;
             }
-            if path.is_dir() {
+            let file_type = match entry.file_type() {
+                Ok(ft) => ft,
+                Err(_) => continue,
+            };
+            if file_type.is_symlink() {
+                continue;
+            }
+            let path = entry.path();
+            if file_type.is_dir() {
                 stack.push(path);
-            } else if path.extension().map_or(false, |x| x.eq_ignore_ascii_case("png")) {
+            } else if file_type.is_file()
+                && path.extension().map_or(false, |x| x.eq_ignore_ascii_case("png"))
+            {
                 out.push(path);
             }
         }
@@ -315,7 +338,7 @@ impl DmgMount {
         if !output.status.success() {
             let _ = std::fs::remove_dir(&mountpoint);
             return Err(format!(
-                "DMG のマウントに失敗: {}",
+                "DMG のマウントに失敗: {}。Finder で既にマウント済みの場合は取り出してから再試行するか、「フォルダを取り込む」で /Volumes 内のボリュームを選んでください",
                 String::from_utf8_lossy(&output.stderr).trim()
             ));
         }
@@ -329,10 +352,18 @@ impl DmgMount {
 
 impl Drop for DmgMount {
     fn drop(&mut self) {
-        let _ = std::process::Command::new("hdiutil")
+        let detached = std::process::Command::new("hdiutil")
             .args(["detach", "-quiet"])
             .arg(&self.mountpoint)
-            .output();
+            .status()
+            .map_or(false, |s| s.success());
+        if !detached {
+            // 失敗した場合は一度だけ強制 detach を試す。それでもダメなら諦める（drop でパニックしない）
+            let _ = std::process::Command::new("hdiutil")
+                .args(["detach", "-force", "-quiet"])
+                .arg(&self.mountpoint)
+                .status();
+        }
         let _ = std::fs::remove_dir(&self.mountpoint);
     }
 }
