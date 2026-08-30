@@ -406,15 +406,12 @@ async fn import_frames(app: tauri::AppHandle, path: String) -> Result<import::Im
     .map_err(|e| format!("取り込み処理のスレッドが失敗しました: {}", e))?
 }
 
-/// 撮影した PNG をフレームに合成して PNG バイト列を返す
-fn compose_png(shot_png: &[u8], job: &FrameJob) -> Result<Vec<u8>, String> {
+/// 撮影した PNG をフレームに合成して PNG バイト列を返す。フレーム画像は呼び出し側で事前デコード済み（AGENTS.md §1）
+fn compose_png(shot_png: &[u8], job: &FrameJob, frame: &RgbaImage) -> Result<Vec<u8>, String> {
     let shot = image::load_from_memory(shot_png)
         .map_err(|e| format!("スクリーンショットの読み込みに失敗: {}", e))?
         .to_rgba8();
-    let frame = image::open(&job.frame_png)
-        .map_err(|e| format!("フレーム画像の読み込みに失敗 {}: {}", job.frame_png.display(), e))?
-        .to_rgba8();
-    let out = compose::compose_frame(&shot, &frame, job.screen, job.shadow);
+    let out = compose::compose_frame(&shot, frame, job.screen, job.shadow);
     let mut buf = Cursor::new(Vec::new());
     image::DynamicImage::ImageRgba8(out)
         .write_to(&mut buf, ImageOutputFormat::Png)
@@ -468,6 +465,17 @@ fn capture_screenshots(
         } else {
             mode.clone()
         };
+
+        // フレーム画像は Chrome 起動前にデコードする（失敗をブラウザ起動前に返す。AGENTS.md §1）
+        let frame_image: Option<RgbaImage> = match &target.frame {
+            Some(job) => Some(
+                image::open(&job.frame_png)
+                    .map_err(|e| format!("フレーム画像の読み込みに失敗 {}: {}", job.frame_png.display(), e))?
+                    .to_rgba8(),
+            ),
+            None => None,
+        };
+
         if ABORT_FLAG.load(Ordering::Relaxed) {
             return Err("ユーザーによってキャプチャが中止されました".to_string());
         }
@@ -866,12 +874,21 @@ fn capture_screenshots(
                 }
             };
 
-            let png_data = match &target.frame {
-                Some(job) => compose_png(&png_data, job)?,
-                None => png_data,
-            };
-            std::fs::write(&dst, png_data)
-                .map_err(|e| format!("Failed to save image at {:?}: {}", dst, e))?;
+            let saved = match (&target.frame, &frame_image) {
+                (Some(job), Some(frame)) => compose_png(&png_data, job, frame),
+                _ => Ok(png_data),
+            }
+            .and_then(|data| {
+                std::fs::write(&dst, data)
+                    .map_err(|e| format!("Failed to save image at {:?}: {}", dst, e))
+            });
+            if let Err(e) = saved {
+                // エラー時もブラウザは別スレッドで drop する（AGENTS.md §1）
+                std::thread::spawn(move || {
+                    drop(browser);
+                });
+                return Err(e);
+            }
         }
 
         // Drop the browser in a separate thread to avoid blocking the main thread
