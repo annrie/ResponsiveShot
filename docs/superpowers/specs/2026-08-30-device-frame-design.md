@@ -251,6 +251,7 @@ pub fn compose_frame(shot: &RgbaImage, frame: &RgbaImage, screen: Rect, shadow: 
 - 各行: デバイス名、状態バッジ（`同梱` / `取り込み済み` / `未取り込み`）、取り込み済みで色が複数ある場合は色セレクタ
 - 未取り込みの Apple 行: 「公式サイトを開く」（`openUrl(source_url)`）と「DMG / フォルダを取り込む」（`open()` ダイアログ → `import_frames`）。取り込み結果は `ImportReport` をステータス欄に要約表示（取り込めた数、スキップ理由）
 - 取り込み完了メッセージに保存先パスを含め、Apple グループに「取り込み先を Finder で開く」ボタン（opener の `revealItemInDir`）を置く
+- Apple グループの説明文は①公式サイトを開く→②ブラウザで DMG をダウンロード（進行状況はブラウザのダウンロード欄に表示され、アプリはダウンロードしない旨を明記）→③その DMG を「DMG / PNG を取り込む」で選ぶ、の3ステップで案内する。ボタン列の先頭にグループ共通の「公式サイトを開く」ボタン（カタログ中の Apple エントリの `source_url` を使用）を置く
 - 「ドロップシャドウ」トグル（section 共通）
 - 永続化: `useStorage('rs-devices', [] as { id: string; variant: string | null }[])`、`useStorage('rs-frame-shadow', false)`。`list_frames` の結果に無い variant は先頭の variant に置き換える
 - GIF 選択時は section を `opacity-45 pointer-events-none` にし「フレームは PNG 出力のみ」を注記（既存の比率 UI と同じ流儀）

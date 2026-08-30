@@ -76,6 +76,10 @@ const openOfficial = async (url: string) => {
   }
 }
 
+const officialUrl = computed(
+  () => frames.value.find(f => f.vendor === 'apple' && f.source_url)?.source_url ?? ''
+)
+
 const runImport = async (path: string) => {
   importing.value = true
   emit('status', 'フレームを取り込んでいます...')
@@ -193,9 +197,17 @@ defineExpose({ refresh })
         </label>
       </div>
       <div v-if="g.vendor === 'apple'" class="mt-3 flex flex-wrap items-center gap-2">
-        <span class="text-xs text-gray-500 dark:text-gray-400">
-          公式サイトの Product Bezels から DMG をダウンロードし、その DMG ファイル（または展開した PNG のフォルダ）を取り込んでください。
+        <span class="text-xs text-gray-500 dark:text-gray-400 w-full basis-full">
+          ① 「公式サイトを開く」で Apple Design Resources をブラウザで開き、② ブラウザで iPhone 16 の Product Bezels（DMG）をダウンロードしてください（進行状況はブラウザのダウンロード欄に表示されます。アプリはダウンロードしません）。③ ダウンロードした DMG ファイルを「DMG / PNG を取り込む」で選ぶと取り込まれます。
         </span>
+        <button
+          type="button"
+          @click="openOfficial(officialUrl)"
+          :disabled="!officialUrl"
+          class="px-3 py-1.5 text-xs font-medium rounded-md bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 disabled:opacity-50"
+        >
+          公式サイトを開く
+        </button>
         <button
           type="button"
           @click="importDmg"
