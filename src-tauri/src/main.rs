@@ -992,7 +992,14 @@ fn main() {
 
 #[cfg(test)]
 mod tests {
+    use super::compose_png;
     use super::js_str;
+    use crate::frames::catalog::Island;
+    use crate::frames::targets::FrameJob;
+    use crate::frames::Rect;
+    use image::{ImageOutputFormat, Rgba, RgbaImage};
+    use std::io::Cursor;
+    use std::path::PathBuf;
 
     #[test]
     fn js_str_escapes_javascript_string_delimiters_and_line_terminators() {
@@ -1004,5 +1011,36 @@ mod tests {
         assert_eq!(js_str("a\u{2028}b\u{2029}c"), "a\\u2028b\\u2029c");
         // 日本語・絵文字・{placeholder} はそのまま通る
         assert_eq!(js_str("🔴 {label} ({seconds}秒後に開始)"), "🔴 {label} ({seconds}秒後に開始)");
+    }
+
+    fn png_bytes(img: &RgbaImage) -> Vec<u8> {
+        let mut buf = Cursor::new(Vec::new());
+        image::DynamicImage::ImageRgba8(img.clone()).write_to(&mut buf, ImageOutputFormat::Png).unwrap();
+        buf.into_inner()
+    }
+
+    /// スクショ幅が css 幅の s 倍のとき、island（CSS px）が s 倍の位置に黒く塗られる
+    fn assert_island_scaled(s: u32) {
+        let (w, h) = (100 * s, 200 * s);
+        let shot = RgbaImage::from_pixel(w, h, Rgba([200, 0, 0, 255]));
+        let frame = RgbaImage::from_pixel(w, h, Rgba([0, 0, 0, 0])); // 全面透明 = 穴だけのフレーム
+        let job = FrameJob {
+            frame_png: PathBuf::new(),
+            screen: Rect { x: 0, y: 0, width: w, height: h },
+            shadow: false,
+            background: None,
+            island: Some(Island { x: 30.0, y: 5.0, width: 40.0, height: 10.0, radius: 5.0 }),
+            css_width: 100,
+        };
+        let out = image::load_from_memory(&compose_png(&png_bytes(&shot), &job, &frame).unwrap()).unwrap().to_rgba8();
+        assert_eq!(out.get_pixel(50 * s, 10 * s).0, [0, 0, 0, 255], "s={}: 島の中心は黒", s);
+        assert_eq!(out.get_pixel(50 * s, 30 * s).0, [200, 0, 0, 255], "s={}: 島の下は元の色", s);
+        assert_eq!(out.get_pixel(10 * s, 10 * s).0, [200, 0, 0, 255], "s={}: 島の左は元の色", s);
+    }
+
+    #[test]
+    fn compose_png_scales_island_from_css_to_shot_pixels() {
+        assert_island_scaled(1);
+        assert_island_scaled(2);
     }
 }

@@ -240,10 +240,16 @@ mod tests {
         let entries = load_catalog(Path::new(concat!(env!("CARGO_MANIFEST_DIR"), "/frames/catalog.json"))).unwrap();
         let with: Vec<&str> = entries.iter().filter(|e| e.island.is_some()).map(|e| e.id.as_str()).collect();
         assert_eq!(with, ["apple-iphone-16", "apple-iphone-16-plus", "apple-iphone-16-pro", "apple-iphone-16-pro-max"]);
-        for e in entries.iter().filter(|e| e.island.is_some()) {
-            let i = e.island.unwrap();
-            assert!((i.x + i.width / 2.0 - e.css.width as f64 / 2.0).abs() < 0.01, "{}: island is centered", e.id);
-            assert_eq!((i.y, i.width, i.height, i.radius), (11.0, 126.0, 37.33, 18.67), "{}", e.id);
+
+        // ベゼル PNG の穴内側にある非透明画素の外接矩形から実測した値（2026-08-31）
+        let expected = [
+            ("apple-iphone-16", Island { x: 134.0, y: 11.0, width: 125.0, height: 37.33, radius: 18.67 }),
+            ("apple-iphone-16-plus", Island { x: 152.33, y: 11.33, width: 125.67, height: 36.67, radius: 18.33 }),
+            ("apple-iphone-16-pro", Island { x: 138.67, y: 14.33, width: 124.67, height: 36.0, radius: 18.0 }),
+            ("apple-iphone-16-pro-max", Island { x: 157.67, y: 14.33, width: 124.67, height: 36.0, radius: 18.0 }),
+        ];
+        for (id, island) in expected {
+            assert_eq!(find(&entries, id).unwrap().island, Some(island), "{}", id);
         }
     }
 

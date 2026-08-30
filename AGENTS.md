@@ -63,7 +63,7 @@ MacのRetinaディスプレイでは、1440x1080pxの要求に対して実際の
 - **シャドウのパラメータは固定**: `sigma = 0.015 × 幅`、`offset_y = 0.015 × 高さ`、不透明度 0.35、パディング `3σ + offset_y`。ぼかしは 1/4 縮小で行う（フルサイズだと 1470×3000 で数秒かかる）
 - **幅指定の出力は変えない。** `CaptureTarget` の幅ターゲットは `dpr 1.0 / mobile false` 固定で、ファイル名も従来どおり
 - **デバイスターゲットは viewport / PNG 固定。** GIF と同時指定は Rust 側で `Err` にする（フロントは GIF 選択時に `devices: []` を送る）
-- Apple の Product Bezels PNG は Dynamic Island 部分も透明。v1 ではページ内容が透けて見えていたが、v1.1 §3 で iPhone 16 系は下記の黒塗りで埋める
+- Apple の Product Bezels PNG の Dynamic Island は不透明に描かれている（v1.0 spec の「透明」は誤り）。v1.1 §3 の黒塗りはその内側に収まる実測値で、縁の滲み消しと別版素材への保険
 - iPad は縦・横を別エントリ（`-portrait` / `-landscape`）にしてある。Apple の DMG は iPhone 16 以外 `PNG/` 直下にファイルが並び、Mac 系は色の前の区切りが空白のみ。`pattern` の prefix/suffix 照合で吸収している
 - iMac 24" (M4) の画面矩形は 7 色の穴の和集合（Orange だけ 2px 右にずれる）。余分な 2px はベゼルの下に隠れる
 - 背景色（`frame_background`）はフレーム付き出力のみに適用し、`compose_frame` のキャンバス初期色として実装している。hex の検証は撮影前（`parse_hex_color`）と UI の両方で行う

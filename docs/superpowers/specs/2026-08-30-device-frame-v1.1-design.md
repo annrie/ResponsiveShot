@@ -60,8 +60,8 @@ DMG の URL はすべて `https://devimages-cdn.apple.com/design/resources/downl
 
 - カタログに任意フィールド `island: { x, y, width, height, radius }`（CSS px、画面左上原点）。iPhone 16 / 16 Plus / 16 Pro / 16 Pro Max に付ける。他機種は省略
 - 値の求め方: **この Mac の iOS シミュレータで実測**。`xcrun simctl boot <iPhone 16 系>` → `simctl openurl` で白いページ（`https://example.com`）を Safari で開く → `simctl io <udid> screenshot` → 上端中央付近の黒（RGB 各 ≤ 16）画素の外接矩形を求め、幅・高さ・位置を device px ÷ 3 で CSS px に換算。`radius` は高さ ÷ 2。シミュレータが使えない場合は公開されている pt 値を使い、spec にその旨を記す
-- **採用値（2026-08-31）**: この Mac の iOS シミュレータ（x86 版 SimLaunchHost）は 15 分経っても起動が終わらなかったため実測は断念し、公開されている pt 値を採用した。iPhone 16 / 16 Plus / 16 Pro / 16 Pro Max 共通で幅 126pt・高さ 37.33pt・上端 11pt・水平中央（x = (css.width − 126) / 2）、radius = 18.67。実機と数 px ずれる可能性があるので、気になれば実測値で `catalog.json` の `island` を更新する
-- 合成器: cover リサイズ後のスクショに対し、`island` を `screen.width / css.width` 倍して黒の角丸矩形を描く（`compose::fill_rounded_rect(img, rect, radius, color)`、距離関数で 1px アンチエイリアス）。`island` が無ければ何もしない。**トグルは設けない**（データがあれば常時適用）
+- **採用値（2026-08-31）**: iOS シミュレータは起動が終わらず実測できなかったが、取り込み済みの Apple ベゼル PNG を確認したところ **Dynamic Island は透明ではなく不透明なピルとして描かれていた**（v1.0 spec の前提が誤り）。そこで値はベゼル PNG の穴内側にある非透明画素の外接矩形（screen 原点、÷3）から実測した: iPhone 16 = x 134 / y 11 / 125 × 37.33 / r 18.67、16 Plus = 152.33 / 11.33 / 125.67 × 36.67 / r 18.33、16 Pro = 138.67 / 14.33 / 124.67 × 36 / r 18、16 Pro Max = 157.67 / 14.33 / 124.67 × 36 / r 18。黒塗りはフレームの島の内側に収まるため出力は v1 とほぼ同じで、島の縁のアンチエイリアス部分に白いページが滲むのを消す効果と、別版の素材で島が透明だった場合の保険になる
+- 合成器: cover リサイズ**前**のスクショ（撮影直後の画像）に対し、`island` を `shot.width / css.width` 倍して黒の角丸矩形を描く（`compose::fill_rounded_rect(img, rect, radius, color)`、距離関数で 1px アンチエイリアス）。`island` が無ければ何もしない。**トグルは設けない**（データがあれば常時適用）
 - `compose_frame` の引数に `island: Option<Rect 相当 (f32)>` を追加するのではなく、`compose_png` 側で `shot` に描いてから `compose_frame` に渡す（合成器の署名を増やさない）。描画関数は `compose.rs` に置きテストする
 - テスト: `fill_rounded_rect` で矩形内が黒・角の外側が元色・境界が中間値、`island` 付きエントリのデシリアライズ
 

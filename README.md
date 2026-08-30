@@ -132,7 +132,7 @@ Select devices in the "デバイスフレーム" panel to capture the page at th
 - **Google Pixel** (Pixel 9 / 9 Pro / 9 Pro XL / 9a / 10 / 10 Pro / 10 Pro XL / 10a / Pixel Tablet) frames are bundled. They are derived from the Android Open Source Project (Apache License 2.0, see `src-tauri/frames/google/NOTICE`). Regenerate with `scripts/build-pixel-frames.sh` (requires ImageMagick).
 - **Apple iPhone 16 family, iPad Pro (M5) / iPad Air (M4) / iPad mini (A17 Pro) in portrait and landscape, MacBook Air / MacBook Pro (M5), iMac (M4), Studio Display (2026)** bezels are not bundled because Apple's license does not allow redistribution. Download the "Product Bezels" DMG from [Apple Design Resources](https://developer.apple.com/design/resources/#product-bezels) yourself and use "DMG / PNG を取り込む" in the panel; the PNGs are copied to `~/Library/Application Support/com.responsiveshot.app/frames/`. Use them under Apple's [marketing guidelines](https://developer.apple.com/app-store/marketing/guidelines/) at your own responsibility (adding a shadow counts as a modification under those guidelines). If the DMG is already mounted in Finder, eject it first, or use 「フォルダを取り込む」 and pick the mounted volume under /Volumes. Each device lists which DMG to download; one DMG import covers every model, color and orientation it contains.
 - **Background**: framed output is transparent by default; choose white, black or any `#rrggbb` in the panel to bake an opaque background (useful for viewers like Preview.app that render transparency as black).
-- iPhone 16 / 16 Plus / 16 Pro / 16 Pro Max: the Dynamic Island area is painted black (published size 126 × 37.33 pt, 11 pt from the top; may differ from the device by a few px). No toggle.
+- iPhone 16 / 16 Plus / 16 Pro / 16 Pro Max: the Dynamic Island area is painted black underneath the bezel (values measured from Apple's bezel PNGs). No toggle.
 
 **日本語**
 
@@ -141,7 +141,7 @@ Select devices in the "デバイスフレーム" panel to capture the page at th
 - **Google Pixel**（Pixel 9 / 9 Pro / 9 Pro XL / 9a / 10 / 10 Pro / 10 Pro XL / 10a / Pixel Tablet）のフレームは同梱しています。Android Open Source Project 由来（Apache License 2.0、`src-tauri/frames/google/NOTICE` 参照）。`scripts/build-pixel-frames.sh` で再生成できます（ImageMagick が必要）。
 - **Apple iPhone 16 系、iPad Pro (M5) / iPad Air (M4) / iPad mini (A17 Pro) の縦・横、MacBook Air / MacBook Pro (M5)、iMac (M4)、Studio Display (2026)** のベゼルは Apple のライセンス上再配布できないため同梱していません。[Apple Design Resources](https://developer.apple.com/design/resources/#product-bezels) から「Product Bezels」の DMG をご自身でダウンロードし、パネルの「DMG / PNG を取り込む」で取り込んでください。PNG は `~/Library/Application Support/com.responsiveshot.app/frames/` にコピーされます。Apple の[マーケティングガイドライン](https://developer.apple.com/app-store/marketing/guidelines/)に従いご自身の責任で使用してください（影の追加はガイドライン上の改変に当たります）。DMG を Finder で既にマウントしている場合は取り出してから取り込むか、「フォルダを取り込む」で /Volumes 内のボリュームを選んでください。各機種の行にダウンロードする DMG が示されます。DMG を 1 つ取り込むと、その中の全機種・色・向きがまとめて取り込まれます。
 - **背景**: フレーム付き出力は既定で透明です。パネルで 白 / 黒 / 任意の `#rrggbb` を選ぶと不透明な背景が焼き込まれます（透明を黒く表示するプレビュー.app などで確認する場合に便利です）。
-- iPhone 16 / 16 Plus / 16 Pro / 16 Pro Max は Dynamic Island の位置を黒で塗ります（公開されている寸法 126 × 37.33pt、上端 11pt。実機と数 px ずれる場合があります）。トグルはありません
+- iPhone 16 / 16 Plus / 16 Pro / 16 Pro Max は Dynamic Island の位置をベゼルの下で黒く塗ります（Apple のベゼル PNG から実測した値）。トグルはありません。
 
 ## Notes
 
