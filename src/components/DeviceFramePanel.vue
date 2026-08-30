@@ -43,10 +43,15 @@ const reconcile = () => {
 const refresh = async () => {
   try {
     frames.value = await invoke<FrameStatus[]>('list_frames')
-    framesDir.value = await invoke<string>('get_frames_dir')
     reconcile()
   } catch (e) {
     emit('status', `フレーム一覧の取得に失敗: ${e}`)
+  }
+  try {
+    framesDir.value = await invoke<string>('get_frames_dir')
+  } catch (e) {
+    framesDir.value = ''
+    emit('status', `取り込み先の取得に失敗: ${e}`)
   }
 }
 
