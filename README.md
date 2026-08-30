@@ -49,6 +49,7 @@ It is built with Tauri, Vue 3, TypeScript, and Rust. The app launches Chrome, op
   - 9:16
   - Custom ratio
 - macOS universal app build support
+- 8 UI languages (ja / en / de / es / fr / ko / pt-BR / zh-TW); switch from the header
 
 ## Requirements
 
@@ -111,6 +112,16 @@ The universal app is generated under:
 ```text
 src-tauri/target/universal-apple-darwin/release/bundle/macos/ResponsiveShot.app
 ```
+
+## Languages / 対応言語
+
+**English**
+
+The UI is available in Japanese, English, German, Spanish, French, Korean, Portuguese (Brazil) and Traditional Chinese. Switch languages from the select in the header. The language follows your saved choice (header selector), otherwise the system language, otherwise English. The manual-interaction overlay injected into Chrome also follows the app language. Messages returned by the capture engine (errors, import results) are always in English, regardless of the UI language. Translations other than Japanese and English are machine-assisted; corrections are welcome.
+
+**日本語**
+
+UI は日本語 / 英語 / ドイツ語 / スペイン語 / フランス語 / 韓国語 / ポルトガル語（ブラジル）/ 繁体字中国語に対応しています。ヘッダーのセレクトで言語を切り替えられます。言語はヘッダーで保存した選択 → システムの言語 → 英語 の順で決まります。Chrome に注入される手動操作オーバーレイもアプリの言語に追従します。キャプチャエンジンが返すメッセージ（エラー、取り込み結果）は UI の言語に関わらず常に英語です。日本語・英語以外の翻訳は機械翻訳ベースのため、修正歓迎です。
 
 ## Device frames / デバイスフレーム
 

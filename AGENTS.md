@@ -12,6 +12,7 @@
 * **バックエンド**: Tauri (v2) + Rust
 * **ブラウザ制御**: `headless_chrome` クレート (表示あり・非ヘッドレス駆動)
 * **画像・動画処理**: `image` クレート, `gif` クレート
+* **i18n**: vue-i18n 11（`legacy: false`）。ロケールは `src/locales/*.json`（8言語: ja/en/de/es/fr/ko/pt-BR/zh-TW）、既定言語は localStorage → `navigator.language` → `en` の順で決定
 
 ## 主要機能 (Core Features)
 1. **キャプチャモード (Capture Modes)**
@@ -26,6 +27,8 @@
 4. **デバイスフレーム (Device Frames)**
    - カタログ `src-tauri/frames/catalog.json` に登録した端末（Apple iPhone 16 系 / iPad Pro・Air・mini（縦・横）/ MacBook Air・Pro / iMac / Studio Display（いずれも取り込み）・Google Pixel 9/10 系 + Pixel Tablet（同梱））を選ぶと、その CSS 寸法・DPR・mobile で viewport 撮影し、Rust 側 `frames::compose` でベゼル PNG に合成して保存する。ドロップシャドウはアプリが生成する
    - Google 分は同梱（AOSP, Apache 2.0）、Apple 分はユーザーが公式 DMG を取り込む（`frames::import`、`hdiutil attach` を使用）
+5. **多言語対応 (i18n)**
+   - UI は 8 言語（ja/en/de/es/fr/ko/pt-BR/zh-TW）に対応。ヘッダーのセレクトで切り替え、選択は `localStorage`（キー `responsiveshot_language`）に保存される
 
 ## 【重要】 AIエージェント開発者向けの既知の制約と特筆すべき設計
 コードを編集する前に、必ず以下の**意図的な制限・アーキテクチャ設計**を理解してください。
@@ -64,6 +67,13 @@ MacのRetinaディスプレイでは、1440x1080pxの要求に対して実際の
 - iPad は縦・横を別エントリ（`-portrait` / `-landscape`）にしてある。Apple の DMG は iPhone 16 以外 `PNG/` 直下にファイルが並び、Mac 系は色の前の区切りが空白のみ。`pattern` の prefix/suffix 照合で吸収している
 - iMac 24" (M4) の画面矩形は 7 色の穴の和集合（Orange だけ 2px 右にずれる）。余分な 2px はベゼルの下に隠れる
 - 背景色（`frame_background`）はフレーム付き出力のみに適用し、`compose_frame` のキャンバス初期色として実装している。hex の検証は撮影前（`parse_hex_color`）と UI の両方で行う
+
+### 8. 多言語対応（i18n）の設計制約
+- **UI 文字列は必ず `t()` を通す。** `useI18n()` から取得した `t` を使い、キーは `section.key` のネスト形式（`ja.json` 等の JSON 階層に対応）にする
+- **キー集合とプレースホルダの整合性は `scripts/check-locales.mjs` が検証する。** `en.json` を基準に、8 ロケール全ファイルが同じキー集合・同じ `{placeholder}` 集合を持つことをチェックする。この検証は `pnpm test` の先頭（`node scripts/check-locales.mjs && pnpm run build && cd src-tauri && cargo test`）で実行され、不整合があるとテストが失敗する
+- **新しい文字列は 8 ファイル全てに追加すること。** 1 ロケールだけへの追加はビルド前に `check-locales.mjs` で弾かれる
+- **Chrome に注入する手動操作オーバーレイの文言はフロントエンドから渡す。** `capture_screenshots` の `overlay` 引数（`OverlayLabels`）でフロントの `t()` 結果を受け取り、Rust 側は `js_str` で JS 文字列リテラルとしてエスケープするだけで翻訳は持たない。`{seconds}` などのプレースホルダは文字列のまま JS に渡され、実行時（Chrome 側の JS）で置換される
+- **Rust のユーザー向けメッセージ（エラー・取り込み結果など）は英語固定。** Rust 側に翻訳テーブルは無く、i18n の対象外
 
 ---
 *Updated after GIF recording stabilization: frame rate fix, max width cap, browser drop threading, and UI improvements.*
