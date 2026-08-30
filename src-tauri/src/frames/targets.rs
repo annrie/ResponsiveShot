@@ -123,9 +123,10 @@ mod tests {
         dir
     }
 
-    fn touch(path: &Path) {
+    /// 指定サイズの実 PNG を書き出す（`resolve_frame_png` の寸法検証を通すため）
+    fn touch(path: &Path, w: u32, h: u32) {
         std::fs::create_dir_all(path.parent().unwrap()).unwrap();
-        std::fs::write(path, b"png").unwrap();
+        image::RgbaImage::new(w, h).save(path).unwrap();
     }
 
     fn roots(tag: &str) -> Roots {
@@ -172,7 +173,7 @@ mod tests {
     fn bundled_device_target_uses_catalog_css_and_screen() {
         let entries = catalog::parse_catalog(SAMPLE).unwrap();
         let r = roots("bundled");
-        touch(&r.bundled.join("google/pixel_9.png"));
+        touch(&r.bundled.join("google/pixel_9.png"), 1198, 2531);
         let devices = [DeviceSelection { id: "google-pixel-9".into(), variant: None }];
         let targets = build_targets(&[], None, 1080, &devices, true, 0, Some((&entries, &r))).unwrap();
         assert_eq!(targets.len(), 1);
@@ -191,7 +192,7 @@ mod tests {
     fn import_device_label_includes_variant_slug() {
         let entries = catalog::parse_catalog(SAMPLE).unwrap();
         let r = roots("import");
-        touch(&r.user.join("apple-iphone-16-pro/black-titanium.png"));
+        touch(&r.user.join("apple-iphone-16-pro/black-titanium.png"), 1350, 2760);
         let devices = [DeviceSelection {
             id: "apple-iphone-16-pro".into(),
             variant: Some("Black Titanium".into()),

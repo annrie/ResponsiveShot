@@ -83,6 +83,11 @@ mod tests {
         assert_eq!(report.imported, vec![ImportedFrame { id: "apple-iphone-16-pro".into(), variant: "black-titanium".into() }]);
         assert!(report.skipped.is_empty(), "Pro Max はどのエントリにも合わないので黙って無視");
         assert!(user.join("apple-iphone-16-pro/black-titanium.png").is_file());
+        let has_tmp = std::fs::read_dir(user.join("apple-iphone-16-pro"))
+            .unwrap()
+            .filter_map(|e| e.ok())
+            .any(|e| e.path().extension().map_or(false, |x| x == "tmp"));
+        assert!(!has_tmp, "tmp ファイルが残っている");
     }
 
     #[test]
@@ -112,6 +117,7 @@ mod tests {
         assert_eq!(report.imported[0].variant, "natural-titanium");
     }
 
+    #[cfg(unix)]
     #[test]
     fn scan_pngs_skips_symlinks_and_terminates() {
         let root = temp_root("symlink");
@@ -296,8 +302,15 @@ pub fn import_pngs(
         std::fs::create_dir_all(&dest_dir)
             .map_err(|e| format!("保存先を作成できません {}: {}", dest_dir.display(), e))?;
         let dest = dest_dir.join(format!("{}.png", slug));
-        std::fs::copy(file, &dest)
-            .map_err(|e| format!("コピーに失敗 {} → {}: {}", file.display(), dest.display(), e))?;
+        let tmp = dest_dir.join(format!("{}.png.tmp", slug));
+        if let Err(e) = std::fs::copy(file, &tmp) {
+            let _ = std::fs::remove_file(&tmp);
+            return Err(format!("コピーに失敗 {} → {}: {}", file.display(), dest.display(), e));
+        }
+        if let Err(e) = std::fs::rename(&tmp, &dest) {
+            let _ = std::fs::remove_file(&tmp);
+            return Err(format!("コピーに失敗 {} → {}: {}", file.display(), dest.display(), e));
+        }
         report.imported.push(ImportedFrame { id: entry.id.clone(), variant: slug });
     }
     Ok(report)
@@ -321,20 +334,32 @@ impl DmgMount {
             std::env::temp_dir().join(format!("responsiveshot-dmg-{}-{}", std::process::id(), nanos));
         std::fs::create_dir_all(&mountpoint).map_err(|e| e.to_string())?;
 
-        let mut child = Command::new("hdiutil")
+        let spawned = Command::new("hdiutil")
             .args(["attach", "-nobrowse", "-readonly", "-mountpoint"])
             .arg(&mountpoint)
             .arg(dmg)
             .stdin(Stdio::piped())
             .stdout(Stdio::piped())
             .stderr(Stdio::piped())
-            .spawn()
-            .map_err(|e| format!("hdiutil を起動できません: {}", e))?;
+            .spawn();
+        let mut child = match spawned {
+            Ok(child) => child,
+            Err(e) => {
+                let _ = std::fs::remove_dir(&mountpoint);
+                return Err(format!("hdiutil を起動できません: {}", e));
+            }
+        };
         if let Some(mut stdin) = child.stdin.take() {
             // Apple の DMG は使用許諾への同意を求める。非対話なので stdin で Y を返す
             let _ = stdin.write_all(b"Y\nY\nY\nY\n");
         }
-        let output = child.wait_with_output().map_err(|e| e.to_string())?;
+        let output = match child.wait_with_output() {
+            Ok(output) => output,
+            Err(e) => {
+                let _ = std::fs::remove_dir(&mountpoint);
+                return Err(e.to_string());
+            }
+        };
         if !output.status.success() {
             let _ = std::fs::remove_dir(&mountpoint);
             return Err(format!(

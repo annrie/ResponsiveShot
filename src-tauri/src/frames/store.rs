@@ -90,14 +90,28 @@ pub fn resolve_frame_png(
             roots.user.join(&entry.id).join(format!("{}.png", slugify(v)))
         }
     };
-    if path.is_file() {
-        Ok(path)
-    } else {
+    if !path.is_file() {
         let label = variant.map(slugify).unwrap_or_else(|| "同梱".to_string());
-        Err(format!(
+        return Err(format!(
             "フレームが見つかりません: {} ({})。取り込みをやり直してください",
             entry.name, label
-        ))
+        ));
+    }
+    match image::image_dimensions(&path) {
+        Ok((w, h)) if (w, h) == (entry.frame.width, entry.frame.height) => Ok(path),
+        Ok((w, h)) => Err(format!(
+            "フレーム画像の寸法が不一致 (期待 {}x{}, 実際 {}x{}): {}。取り込みをやり直してください",
+            entry.frame.width,
+            entry.frame.height,
+            w,
+            h,
+            path.display()
+        )),
+        Err(e) => Err(format!(
+            "フレーム画像を読めません {}: {}。取り込みをやり直してください",
+            path.display(),
+            e
+        )),
     }
 }
 
@@ -132,9 +146,10 @@ mod tests {
         dir
     }
 
-    fn touch(path: &Path) {
+    /// 指定サイズの実 PNG を書き出す（`resolve_frame_png` の寸法検証を通すため）
+    fn touch(path: &Path, w: u32, h: u32) {
         std::fs::create_dir_all(path.parent().unwrap()).unwrap();
-        std::fs::write(path, b"png").unwrap();
+        image::RgbaImage::new(w, h).save(path).unwrap();
     }
 
     fn roots(tag: &str) -> Roots {
@@ -154,7 +169,7 @@ mod tests {
         let entries = parse_catalog(SAMPLE).unwrap();
         let r = roots("bundled");
         assert_eq!(status_for(&entries[0], &r).state, "missing");
-        touch(&r.bundled.join("google/pixel_9.png"));
+        touch(&r.bundled.join("google/pixel_9.png"), 1198, 2531);
         let s = status_for(&entries[0], &r);
         assert_eq!(s.state, "bundled");
         assert!(s.variants.is_empty());
@@ -166,9 +181,10 @@ mod tests {
         let entries = parse_catalog(SAMPLE).unwrap();
         let r = roots("import");
         assert_eq!(status_for(&entries[1], &r).state, "missing");
-        touch(&r.user.join("apple-iphone-16-pro/white-titanium.png"));
-        touch(&r.user.join("apple-iphone-16-pro/black-titanium.png"));
-        touch(&r.user.join("apple-iphone-16-pro/notes.txt"));
+        touch(&r.user.join("apple-iphone-16-pro/white-titanium.png"), 1350, 2760);
+        touch(&r.user.join("apple-iphone-16-pro/black-titanium.png"), 1350, 2760);
+        // notes.txt は拡張子フィルタで除外される想定なので、PNG である必要はない
+        std::fs::write(r.user.join("apple-iphone-16-pro/notes.txt"), b"notes").unwrap();
         let s = status_for(&entries[1], &r);
         assert_eq!(s.state, "imported");
         assert_eq!(s.variants, vec!["black-titanium", "white-titanium"]);
@@ -179,8 +195,8 @@ mod tests {
     fn resolve_bundled_and_import_paths() {
         let entries = parse_catalog(SAMPLE).unwrap();
         let r = roots("resolve");
-        touch(&r.bundled.join("google/pixel_9.png"));
-        touch(&r.user.join("apple-iphone-16-pro/black-titanium.png"));
+        touch(&r.bundled.join("google/pixel_9.png"), 1198, 2531);
+        touch(&r.user.join("apple-iphone-16-pro/black-titanium.png"), 1350, 2760);
 
         assert_eq!(resolve_frame_png(&entries[0], None, &r).unwrap(), r.bundled.join("google/pixel_9.png"));
         assert_eq!(
@@ -192,5 +208,14 @@ mod tests {
             resolve_frame_png(&entries[1], Some("pink"), &r).unwrap_err(),
             "フレームが見つかりません: iPhone 16 Pro (pink)。取り込みをやり直してください"
         );
+    }
+
+    #[test]
+    fn resolve_rejects_wrong_dimensions() {
+        let entries = parse_catalog(SAMPLE).unwrap();
+        let r = roots("wrong-dims");
+        touch(&r.user.join("apple-iphone-16-pro/black-titanium.png"), 10, 10);
+        let err = resolve_frame_png(&entries[1], Some("Black Titanium"), &r).unwrap_err();
+        assert!(err.contains("寸法が不一致 (期待 1350x2760, 実際 10x10)"), "{}", err);
     }
 }
