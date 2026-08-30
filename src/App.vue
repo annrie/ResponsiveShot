@@ -153,7 +153,9 @@ const captureScreenshots = async () => {
     statusMessage.value = "キャプチャする幅かデバイスを一つ以上選択してください。"
     return
   }
-  if (devices.length > 0 && frameBackground.value !== 'transparent' && !/^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/.test(frameBackground.value.trim())) {
+  const bg = frameBackground.value.trim()
+  const bgIsTransparent = bg === '' || bg.toLowerCase() === 'transparent'
+  if (devices.length > 0 && !bgIsTransparent && !/^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/.test(bg)) {
     statusMessage.value = "背景色は #rrggbb 形式で指定してください。"
     return
   }
@@ -176,7 +178,7 @@ const captureScreenshots = async () => {
       viewportHeight: viewportHeight.value,
       devices,
       frameShadow: frameShadow.value,
-      frameBackground: devices.length > 0 && frameBackground.value !== 'transparent' ? frameBackground.value.trim() : null
+      frameBackground: devices.length > 0 && !bgIsTransparent ? bg : null
     })
     
     statusMessage.value = "すべてのキャプチャが完了しました！"
