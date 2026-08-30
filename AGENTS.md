@@ -24,7 +24,7 @@
 3. **手動インタラクション (Manual Interaction)**
    - Chrome側に専用のUIコンテナを直接注入（Inject）し、ユーザーが手動で画面上のボタンなどを操作してから「録画開始」を押せる待機機構
 4. **デバイスフレーム (Device Frames)**
-   - カタログ `src-tauri/frames/catalog.json` に登録した端末（Apple iPhone 16 系 4 機種・Google Pixel 9/10 系 + Pixel Tablet）を選ぶと、その CSS 寸法・DPR・mobile で viewport 撮影し、Rust 側 `frames::compose` でベゼル PNG に合成して保存する。ドロップシャドウはアプリが生成する
+   - カタログ `src-tauri/frames/catalog.json` に登録した端末（Apple iPhone 16 系 / iPad Pro・Air・mini（縦・横）/ MacBook Air・Pro / iMac / Studio Display（いずれも取り込み）・Google Pixel 9/10 系 + Pixel Tablet（同梱））を選ぶと、その CSS 寸法・DPR・mobile で viewport 撮影し、Rust 側 `frames::compose` でベゼル PNG に合成して保存する。ドロップシャドウはアプリが生成する
    - Google 分は同梱（AOSP, Apache 2.0）、Apple 分はユーザーが公式 DMG を取り込む（`frames::import`、`hdiutil attach` を使用）
 
 ## 【重要】 AIエージェント開発者向けの既知の制約と特筆すべき設計
