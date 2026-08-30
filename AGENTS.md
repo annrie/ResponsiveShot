@@ -23,6 +23,9 @@
    - `GIF`: 3fps固定での動画録画。操作が必要なアクションを残すためのモード。出力は最大800px幅に制限される（エンコード速度とファイルサイズの最適化のため）
 3. **手動インタラクション (Manual Interaction)**
    - Chrome側に専用のUIコンテナを直接注入（Inject）し、ユーザーが手動で画面上のボタンなどを操作してから「録画開始」を押せる待機機構
+4. **デバイスフレーム (Device Frames)**
+   - カタログ `src-tauri/frames/catalog.json` に登録した端末（Apple iPhone 16 系 4 機種・Google Pixel 9/10 系 + Pixel Tablet）を選ぶと、その CSS 寸法・DPR・mobile で viewport 撮影し、Rust 側 `frames::compose` でベゼル PNG に合成して保存する。ドロップシャドウはアプリが生成する
+   - Google 分は同梱（AOSP, Apache 2.0）、Apple 分はユーザーが公式 DMG を取り込む（`frames::import`、`hdiutil attach` を使用）
 
 ## 【重要】 AIエージェント開発者向けの既知の制約と特筆すべき設計
 コードを編集する前に、必ず以下の**意図的な制限・アーキテクチャ設計**を理解してください。
@@ -49,6 +52,15 @@ MacのRetinaディスプレイでは、1440x1080pxの要求に対して実際の
 
 ### 6. GIF録画中の進捗表示
 録画中はChrome側に注入したUIコンテナ（`id="rs-recorder-ui"`）の最初の`div`要素のテキストを直接更新し、残り秒数と完了コマ数を表示します。XSS防止のため `textContent` を使用しています。
+
+### 7. デバイスフレーム合成の設計制約
+- **Apple のベゼル画像はリポジトリにもアプリにも含めない。** App Store Marketing Artwork License が再配布を認めていないため。カタログにはメタデータ（画面矩形・公式 DL URL・ファイル名パターン）だけを持ち、画像はユーザーが取り込む
+- **カタログの不変条件**（`frames::catalog::validate` とテストで検証）: `id` は一意で英小文字・数字・ハイフンのみ、`screen` は `frame` に内包、`import` の `pattern` は `{variant}` をちょうど 1 回含む、`bundled` の PNG は存在して `frame` 寸法と一致
+- **合成器は常に画面矩形へ cover リサイズする。** Pixel 9 の DPR 2.625 のような端数（412×2.625 = 1081.5）や Retina での返却倍率のブレを吸収するため。角丸クリップはしない（フレーム側の角が不透明でスクショの角を覆う）
+- **シャドウのパラメータは固定**: `sigma = 0.015 × 幅`、`offset_y = 0.015 × 高さ`、不透明度 0.35、パディング `3σ + offset_y`。ぼかしは 1/4 縮小で行う（フルサイズだと 1470×3000 で数秒かかる）
+- **幅指定の出力は変えない。** `CaptureTarget` の幅ターゲットは `dpr 1.0 / mobile false` 固定で、ファイル名も従来どおり
+- **デバイスターゲットは viewport / PNG 固定。** GIF と同時指定は Rust 側で `Err` にする（フロントは GIF 選択時に `devices: []` を送る）
+- Apple の Product Bezels PNG は Dynamic Island 部分も透明なので、ページ内容が透けて見える（v1 仕様。黒塗りは将来拡張）
 
 ---
 *Updated after GIF recording stabilization: frame rate fix, max width cap, browser drop threading, and UI improvements.*
