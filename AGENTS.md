@@ -61,6 +61,8 @@ MacのRetinaディスプレイでは、1440x1080pxの要求に対して実際の
 - **幅指定の出力は変えない。** `CaptureTarget` の幅ターゲットは `dpr 1.0 / mobile false` 固定で、ファイル名も従来どおり
 - **デバイスターゲットは viewport / PNG 固定。** GIF と同時指定は Rust 側で `Err` にする（フロントは GIF 選択時に `devices: []` を送る）
 - Apple の Product Bezels PNG は Dynamic Island 部分も透明なので、ページ内容が透けて見える（v1 仕様。黒塗りは将来拡張）
+- iPad は縦・横を別エントリ（`-portrait` / `-landscape`）にしてある。Apple の DMG は iPhone 16 以外 `PNG/` 直下にファイルが並び、Mac 系は色の前の区切りが空白のみ。`pattern` の prefix/suffix 照合で吸収している
+- iMac 24" (M4) の画面矩形は 7 色の穴の和集合（Orange だけ 2px 右にずれる）。余分な 2px はベゼルの下に隠れる
 
 ---
 *Updated after GIF recording stabilization: frame rate fix, max width cap, browser drop threading, and UI improvements.*
