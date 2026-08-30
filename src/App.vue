@@ -143,6 +143,10 @@ const captureScreenshots = async () => {
     statusMessage.value = "保存先フォルダを選択してください。"
     return
   }
+  if (outputFormat.value === 'gif' && selectedWidths.value.length === 0) {
+    statusMessage.value = "GIF では幅を一つ以上選択してください。"
+    return
+  }
   const devices = outputFormat.value === 'gif' ? [] : selectedDevices.value
   if (selectedWidths.value.length === 0 && devices.length === 0) {
     statusMessage.value = "キャプチャする幅かデバイスを一つ以上選択してください。"

@@ -33,6 +33,10 @@
 - 未知のフレーム画像の持ち込み（画面矩形の自動検出は §9 の方法で可能だが v1 では使わない）
 - 素のスクリーンショットの同時保存（幅指定で別途撮影できる）
 - Samsung / Dell / LG 等: 公式のフレーム素材が確認できないため対象外
+- mobile UA / タッチのエミュレーション（現状は `mobile: true` のみ）
+- Apple DMG 内のディレクトリ構成が変わった場合の耐性（現状は `PNG/<機種>/…` 固定、変更時はカタログ更新）
+- 出力の背景色オプション（透明 / 白 / 任意色。Preview.app は透明を黒で描くため）
+- 手動操作オーバーレイの狭い viewport（393px）での横幅調整
 
 ## 3. 確認済みの事実（設計の根拠）
 
@@ -284,7 +288,7 @@ pub fn compose_frame(shot: &RgbaImage, frame: &RgbaImage, screen: Rect, shadow: 
 
 ## 14. 依存関係とビルド設定の変更
 
-- 追加: `tauri-plugin-opener`（Rust crate + `@tauri-apps/plugin-opener`）。`capabilities/migrated.json` に `opener:allow-open-url` を追加（承認済み）
+- 追加: `tauri-plugin-opener`（Rust crate + `@tauri-apps/plugin-opener`）。`capabilities/migrated.json` に `opener:default`（`allow-open-url` 単体には URL スコープが無く `default` に含まれる `allow-default-urls` が必要）を追加（承認済み）
 - `image` crate は既存の 0.24.4 のまま（PNG 読み書き・リサイズ・blur・overlay はすべて含まれる）。正規表現は `regex` crate を追加せず、`{variant}` の前後を `starts_with` / `ends_with` で判定する
 - `tauri.conf.json`: `bundle.resources: ["frames/**/*"]`
 - `package.json`: `"test": "cd src-tauri && cargo test"` を追加
