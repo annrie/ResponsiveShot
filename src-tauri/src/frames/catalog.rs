@@ -58,7 +58,8 @@ pub fn load_catalog(path: &Path) -> Result<Vec<DeviceEntry>, String> {
     parse_catalog(&json)
 }
 
-/// spec §5.1 の不変条件。同梱ファイルの存在と寸法はカタログ自体のテスト（Task 4）で確認する
+/// spec §5.1 の不変条件。同梱ファイルの存在と寸法はカタログ自体のテスト（Task 4）で確認する。
+/// vendor は `apple` / `google`、category は `phone` / `tablet` / `laptop` / `desktop` / `display` のみ許容する
 pub fn validate(entries: &[DeviceEntry]) -> Result<(), String> {
     let mut seen = HashSet::new();
     for e in entries {
@@ -69,6 +70,14 @@ pub fn validate(entries: &[DeviceEntry]) -> Result<(), String> {
             || !e.id.chars().all(|c| c.is_ascii_lowercase() || c.is_ascii_digit() || c == '-')
         {
             return Err(format!("カタログ id は英小文字・数字・ハイフンのみ: {:?}", e.id));
+        }
+        const VENDORS: [&str; 2] = ["apple", "google"];
+        const CATEGORIES: [&str; 5] = ["phone", "tablet", "laptop", "desktop", "display"];
+        if !VENDORS.contains(&e.vendor.as_str()) {
+            return Err(format!("{}: vendor が不正です: {:?}", e.id, e.vendor));
+        }
+        if !CATEGORIES.contains(&e.category.as_str()) {
+            return Err(format!("{}: category が不正です: {:?}", e.id, e.category));
         }
         if e.screen.right() > e.frame.width || e.screen.bottom() > e.frame.height {
             return Err(format!("{}: screen が frame の外に出ています", e.id));
@@ -129,6 +138,20 @@ mod tests {
         let mut e = parse_catalog(SAMPLE).unwrap();
         e[0].id = "Pixel 9".into();
         assert!(validate(&e).unwrap_err().contains("英小文字"));
+    }
+
+    #[test]
+    fn rejects_unknown_vendor() {
+        let mut e = parse_catalog(SAMPLE).unwrap();
+        e[0].vendor = "samsung".into();
+        assert!(validate(&e).unwrap_err().contains("vendor が不正"));
+    }
+
+    #[test]
+    fn rejects_unknown_category() {
+        let mut e = parse_catalog(SAMPLE).unwrap();
+        e[1].category = "watch".into();
+        assert!(validate(&e).unwrap_err().contains("category が不正"));
     }
 
     #[test]
