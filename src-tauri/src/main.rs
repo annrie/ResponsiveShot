@@ -16,7 +16,8 @@ use std::time::Duration;
 use tauri::command;
 
 mod frames;
-use frames::{catalog, compose, store};
+use frames::{catalog, compose, import, store};
+use std::path::Path;
 use tauri::Manager;
 
 static ABORT_FLAG: AtomicBool = AtomicBool::new(false);
@@ -382,6 +383,13 @@ fn list_frames(app: tauri::AppHandle) -> Result<Vec<store::FrameStatus>, String>
     let roots = frame_roots(&app)?;
     let entries = load_catalog(&roots)?;
     Ok(entries.iter().map(|e| store::status_for(e, &roots)).collect())
+}
+
+#[command]
+fn import_frames(app: tauri::AppHandle, path: String) -> Result<import::ImportReport, String> {
+    let roots = frame_roots(&app)?;
+    let entries = load_catalog(&roots)?;
+    import::import_frames(Path::new(&path), &entries, &roots.user)
 }
 
 #[derive(serde::Deserialize)]
@@ -917,12 +925,14 @@ fn capture_screenshots(
 fn main() {
     tauri::Builder::default()
         .plugin(tauri_plugin_dialog::init())
+        .plugin(tauri_plugin_opener::init())
         .invoke_handler(tauri::generate_handler![
             get_default_save_dir,
             select_element,
             capture_screenshots,
             abort_capture,
-            list_frames
+            list_frames,
+            import_frames
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

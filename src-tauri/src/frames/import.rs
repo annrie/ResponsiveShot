@@ -111,6 +111,27 @@ mod tests {
         let report = import_pngs(&files, &root, true, &[pro()], &user).unwrap();
         assert_eq!(report.imported[0].variant, "natural-titanium");
     }
+
+    #[test]
+    fn import_frames_dispatches_on_folder_file_and_missing() {
+        let root = temp_root("dispatch");
+        let user = root.join("user");
+        let png = root.join("iPhone 16 Pro - Desert Titanium - Portrait.png");
+        write_png(&png, 100, 200);
+
+        let by_dir = import_frames(&root, &[pro()], &user).unwrap();
+        assert_eq!(by_dir.imported[0].variant, "desert-titanium");
+
+        let by_file = import_frames(&png, &[pro()], &user).unwrap();
+        assert_eq!(by_file.imported.len(), 1);
+
+        let err = import_frames(&root.join("nope.dmg"), &[pro()], &user).unwrap_err();
+        assert!(
+            err.contains("DMG のマウントに失敗") || err.contains("hdiutil を起動できません"),
+            "{}",
+            err
+        );
+    }
 }
 
 /// `pattern` を `{variant}` の前後で分けたもの
@@ -257,4 +278,79 @@ pub fn import_pngs(
         report.imported.push(ImportedFrame { id: entry.id.clone(), variant: slug });
     }
     Ok(report)
+}
+
+/// `hdiutil attach` したボリューム。Drop で必ず detach する（エラー経路含む）
+pub struct DmgMount {
+    mountpoint: PathBuf,
+}
+
+impl DmgMount {
+    pub fn attach(dmg: &Path) -> Result<Self, String> {
+        use std::io::Write;
+        use std::process::{Command, Stdio};
+
+        let nanos = std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)
+            .map(|d| d.as_nanos())
+            .unwrap_or(0);
+        let mountpoint =
+            std::env::temp_dir().join(format!("responsiveshot-dmg-{}-{}", std::process::id(), nanos));
+        std::fs::create_dir_all(&mountpoint).map_err(|e| e.to_string())?;
+
+        let mut child = Command::new("hdiutil")
+            .args(["attach", "-nobrowse", "-readonly", "-mountpoint"])
+            .arg(&mountpoint)
+            .arg(dmg)
+            .stdin(Stdio::piped())
+            .stdout(Stdio::piped())
+            .stderr(Stdio::piped())
+            .spawn()
+            .map_err(|e| format!("hdiutil を起動できません: {}", e))?;
+        if let Some(mut stdin) = child.stdin.take() {
+            // Apple の DMG は使用許諾への同意を求める。非対話なので stdin で Y を返す
+            let _ = stdin.write_all(b"Y\nY\nY\nY\n");
+        }
+        let output = child.wait_with_output().map_err(|e| e.to_string())?;
+        if !output.status.success() {
+            let _ = std::fs::remove_dir(&mountpoint);
+            return Err(format!(
+                "DMG のマウントに失敗: {}",
+                String::from_utf8_lossy(&output.stderr).trim()
+            ));
+        }
+        Ok(Self { mountpoint })
+    }
+
+    pub fn path(&self) -> &Path {
+        &self.mountpoint
+    }
+}
+
+impl Drop for DmgMount {
+    fn drop(&mut self) {
+        let _ = std::process::Command::new("hdiutil")
+            .args(["detach", "-quiet"])
+            .arg(&self.mountpoint)
+            .output();
+        let _ = std::fs::remove_dir(&self.mountpoint);
+    }
+}
+
+/// 取り込みの入口。`.dmg` / フォルダ / 単一 PNG のいずれかを受け付ける
+pub fn import_frames(path: &Path, entries: &[DeviceEntry], user_dir: &Path) -> Result<ImportReport, String> {
+    let is_dmg = path.extension().map_or(false, |x| x.eq_ignore_ascii_case("dmg"));
+    if is_dmg {
+        let mount = DmgMount::attach(path)?;
+        let files = scan_pngs(mount.path());
+        import_pngs(&files, mount.path(), false, entries, user_dir)
+    } else if path.is_dir() {
+        let files = scan_pngs(path);
+        import_pngs(&files, path, true, entries, user_dir)
+    } else if path.is_file() {
+        let root = path.parent().unwrap_or(path);
+        import_pngs(&[path.to_path_buf()], root, true, entries, user_dir)
+    } else {
+        Err(format!("取り込み元が見つかりません: {}", path.display()))
+    }
 }
