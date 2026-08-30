@@ -39,14 +39,14 @@
     "startDelayHint": "Waits this many seconds after starting before capture begins.",
     "startDelayUnit": "{seconds}s",
     "gifDuration": "Recording length:",
-    "gifDurationHint": "Records the target for the given duration at a smooth 10 fps.",
+    "gifDurationHint": "Records the target for the given duration at about 3 fps.",
     "gifDurationUnit": "{seconds}s"
   },
   "widths": {
     "heading": "Screen widths to capture",
     "toggleAll": "Select all / Clear",
     "heightAuto": "Auto height",
-    "heightAutoHint": "Captures at the natural height. When on, the aspect ratio below is not used.",
+    "heightAutoHint": "Uses the default viewport height (1080 px). When on, the aspect ratio below is not used.",
     "ratioHeading": "Aspect ratio",
     "ratio": {
       "r16x9": { "label": "16:9", "description": "Standard widescreen" },

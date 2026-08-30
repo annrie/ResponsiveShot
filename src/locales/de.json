@@ -39,14 +39,14 @@
     "startDelayHint": "Wartet nach dem Start diese Anzahl Sekunden, bevor die Aufnahme beginnt.",
     "startDelayUnit": "{seconds} s",
     "gifDuration": "Aufnahmedauer:",
-    "gifDurationHint": "Nimmt das Ziel für die angegebene Dauer mit gleichmäßigen 10 fps auf.",
+    "gifDurationHint": "Nimmt das Ziel für die angegebene Dauer mit etwa 3 fps auf.",
     "gifDurationUnit": "{seconds} s"
   },
   "widths": {
     "heading": "Aufzunehmende Bildschirmbreiten",
     "toggleAll": "Alle auswählen / abwählen",
     "heightAuto": "Automatische Höhe",
-    "heightAutoHint": "Nimmt in der natürlichen Höhe auf. Wenn aktiviert, wird das Seitenverhältnis unten nicht verwendet.",
+    "heightAutoHint": "Verwendet die Standard-Viewport-Höhe (1080 px). Wenn aktiviert, wird das Seitenverhältnis unten nicht verwendet.",
     "ratioHeading": "Seitenverhältnis",
     "ratio": {
       "r16x9": { "label": "16:9", "description": "Standard-Breitbild" },

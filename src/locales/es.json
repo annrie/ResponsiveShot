@@ -39,14 +39,14 @@
     "startDelayHint": "Espera esta cantidad de segundos tras iniciar antes de comenzar la captura.",
     "startDelayUnit": "{seconds} s",
     "gifDuration": "Duración de la grabación:",
-    "gifDurationHint": "Graba el objetivo durante la duración indicada con una fluidez de 10 fps.",
+    "gifDurationHint": "Graba el objetivo durante la duración indicada a unos 3 fps.",
     "gifDurationUnit": "{seconds} s"
   },
   "widths": {
     "heading": "Anchos de pantalla a capturar",
     "toggleAll": "Seleccionar todo / Deseleccionar",
     "heightAuto": "Altura automática",
-    "heightAutoHint": "Captura con la altura natural. Si está activado, no se usa la relación de aspecto de abajo.",
+    "heightAutoHint": "Usa la altura de viewport predeterminada (1080 px). Si está activado, no se usa la relación de aspecto de abajo.",
     "ratioHeading": "Relación de aspecto",
     "ratio": {
       "r16x9": { "label": "16:9", "description": "Panorámico estándar" },

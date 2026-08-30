@@ -39,14 +39,14 @@
     "startDelayHint": "캡처 실행 후 설정한 시간만큼 대기한 다음 캡처를 시작합니다.",
     "startDelayUnit": "{seconds}초",
     "gifDuration": "녹화 길이:",
-    "gifDurationHint": "지정 요소나 영역을 지정한 초 동안 초당 10프레임의 부드러움으로 녹화합니다.",
+    "gifDurationHint": "지정 요소나 영역을 지정한 초 동안 초당 약 3프레임으로 녹화합니다.",
     "gifDurationUnit": "{seconds}초"
   },
   "widths": {
     "heading": "캡처할 화면 너비",
     "toggleAll": "전체 선택 / 해제",
     "heightAuto": "높이 자동 설정",
-    "heightAutoHint": "페이지 본래 높이로 캡처합니다. 켜면 아래의 비율 지정은 사용하지 않습니다.",
+    "heightAutoHint": "기본 뷰포트 높이(1080px)를 사용합니다. 켜면 아래의 비율 지정은 사용하지 않습니다.",
     "ratioHeading": "화면 비율",
     "ratio": {
       "r16x9": { "label": "16:9", "description": "표준 와이드" },

@@ -39,14 +39,14 @@
     "startDelayHint": "キャプチャ実行後、この秒数待機してからキャプチャを開始します。",
     "startDelayUnit": "{seconds} 秒",
     "gifDuration": "動画の長さ:",
-    "gifDurationHint": "指定要素や領域を指定秒数、10コマ/秒の滑らかさで録画します。",
+    "gifDurationHint": "指定要素や領域を指定秒数、約3コマ/秒で録画します。",
     "gifDurationUnit": "{seconds} 秒"
   },
   "widths": {
     "heading": "キャプチャする画面幅",
     "toggleAll": "全選択 / 解除",
     "heightAuto": "高さを自動にする",
-    "heightAutoHint": "現在の仕様で撮影します。オンの場合、下の比率指定は使いません。",
+    "heightAutoHint": "ビューポートの高さを既定の 1080px にします。オンの場合、下の比率指定は使いません。",
     "ratioHeading": "画面比率",
     "ratio": {
       "r16x9": { "label": "16:9", "description": "標準ワイド" },

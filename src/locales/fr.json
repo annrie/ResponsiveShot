@@ -39,14 +39,14 @@
     "startDelayHint": "Attend ce nombre de secondes après le démarrage avant que la capture ne commence.",
     "startDelayUnit": "{seconds} s",
     "gifDuration": "Durée d'enregistrement :",
-    "gifDurationHint": "Enregistre la cible pendant la durée indiquée à une fluidité de 10 im/s.",
+    "gifDurationHint": "Enregistre la cible pendant la durée indiquée à environ 3 im/s.",
     "gifDurationUnit": "{seconds} s"
   },
   "widths": {
     "heading": "Largeurs d'écran à capturer",
     "toggleAll": "Tout sélectionner / Tout désélectionner",
     "heightAuto": "Hauteur automatique",
-    "heightAutoHint": "Capture à la hauteur naturelle. Si activé, le rapport d'aspect ci-dessous n'est pas utilisé.",
+    "heightAutoHint": "Utilise la hauteur de viewport par défaut (1080 px). Si activé, le rapport d'aspect ci-dessous n'est pas utilisé.",
     "ratioHeading": "Rapport d'aspect",
     "ratio": {
       "r16x9": { "label": "16:9", "description": "Grand écran standard" },

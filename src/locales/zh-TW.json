@@ -39,14 +39,14 @@
     "startDelayHint": "執行擷取後，等待此秒數再開始擷取。",
     "startDelayUnit": "{seconds} 秒",
     "gifDuration": "錄製時長：",
-    "gifDurationHint": "以每秒 10 幀的流暢度，錄製指定對象達指定秒數。",
+    "gifDurationHint": "以每秒約 3 幀錄製指定對象達指定秒數。",
     "gifDurationUnit": "{seconds} 秒"
   },
   "widths": {
     "heading": "要擷取的畫面寬度",
     "toggleAll": "全選／取消全選",
     "heightAuto": "高度自動",
-    "heightAutoHint": "以頁面原本的高度擷取。開啟時，下方的比例設定將不會使用。",
+    "heightAutoHint": "使用預設的可視區域高度（1080 px）。開啟時，下方的比例設定將不會使用。",
     "ratioHeading": "畫面比例",
     "ratio": {
       "r16x9": { "label": "16:9", "description": "標準寬螢幕" },
