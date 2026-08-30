@@ -2,6 +2,7 @@
 
 use std::path::PathBuf;
 
+use image::Rgba;
 use serde::Deserialize;
 
 use super::catalog::{self, DeviceEntry};
@@ -20,6 +21,8 @@ pub struct FrameJob {
     pub frame_png: PathBuf,
     pub screen: Rect,
     pub shadow: bool,
+    /// フレーム外の背景色。None = 透明
+    pub background: Option<Rgba<u8>>,
 }
 
 /// 1 回のブラウザ起動で撮る対象。幅指定は dpr 1.0 / mobile false、デバイスはカタログの値
@@ -42,6 +45,7 @@ pub fn build_targets(
     capture_height: u32,
     devices: &[DeviceSelection],
     frame_shadow: bool,
+    frame_background: Option<Rgba<u8>>,
     duration: u32,
     frames: Option<(&[DeviceEntry], &Roots)>,
 ) -> Result<Vec<CaptureTarget>, String> {
@@ -86,6 +90,7 @@ pub fn build_targets(
                     frame_png,
                     screen: entry.screen,
                     shadow: frame_shadow,
+                    background: frame_background,
                 }),
             });
         }
@@ -138,7 +143,7 @@ mod tests {
     fn width_targets_match_legacy_labels() {
         let widths = [375, 1440];
 
-        let targets = build_targets(&widths, None, 1080, &[], false, 0, None).unwrap();
+        let targets = build_targets(&widths, None, 1080, &[], false, None, 0, None).unwrap();
         assert_eq!(targets.len(), 2);
         assert_eq!(targets[0].label, "375px");
         assert_eq!(targets[1].label, "1440px");
@@ -148,7 +153,7 @@ mod tests {
             assert!(t.frame.is_none());
         }
 
-        let targets = build_targets(&widths, Some(810), 810, &[], false, 0, None).unwrap();
+        let targets = build_targets(&widths, Some(810), 810, &[], false, None, 0, None).unwrap();
         assert_eq!(targets[0].label, "375x810");
         assert_eq!(targets[1].label, "1440x810");
     }
@@ -156,7 +161,7 @@ mod tests {
     #[test]
     fn gif_with_devices_is_rejected_before_anything_else() {
         let devices = [DeviceSelection { id: "google-pixel-9".into(), variant: None }];
-        let err = build_targets(&[], None, 1080, &devices, false, 3, None).unwrap_err();
+        let err = build_targets(&[], None, 1080, &devices, false, None, 3, None).unwrap_err();
         assert_eq!(err, "デバイスフレームは PNG 出力のみ対応しています");
     }
 
@@ -165,7 +170,7 @@ mod tests {
         let entries = catalog::parse_catalog(SAMPLE).unwrap();
         let r = roots("missing");
         let devices = [DeviceSelection { id: "google-pixel-9".into(), variant: None }];
-        let err = build_targets(&[], None, 1080, &devices, false, 0, Some((&entries, &r))).unwrap_err();
+        let err = build_targets(&[], None, 1080, &devices, false, None, 0, Some((&entries, &r))).unwrap_err();
         assert!(err.contains("フレームが見つかりません"), "{}", err);
     }
 
@@ -175,7 +180,7 @@ mod tests {
         let r = roots("bundled");
         touch(&r.bundled.join("google/pixel_9.png"), 1198, 2531);
         let devices = [DeviceSelection { id: "google-pixel-9".into(), variant: None }];
-        let targets = build_targets(&[], None, 1080, &devices, true, 0, Some((&entries, &r))).unwrap();
+        let targets = build_targets(&[], None, 1080, &devices, true, None, 0, Some((&entries, &r))).unwrap();
         assert_eq!(targets.len(), 1);
         let t = &targets[0];
         assert_eq!(t.width, 412);
@@ -189,6 +194,19 @@ mod tests {
     }
 
     #[test]
+    fn device_target_carries_background() {
+        let entries = catalog::parse_catalog(SAMPLE).unwrap();
+        let r = roots("bg");
+        touch(&r.bundled.join("google/pixel_9.png"), 1198, 2531);
+        let devices = [DeviceSelection { id: "google-pixel-9".into(), variant: None }];
+        let white = image::Rgba([255, 255, 255, 255]);
+        let targets = build_targets(&[], None, 1080, &devices, false, Some(white), 0, Some((&entries, &r))).unwrap();
+        assert_eq!(targets[0].frame.as_ref().unwrap().background, Some(white));
+        let targets = build_targets(&[], None, 1080, &devices, false, None, 0, Some((&entries, &r))).unwrap();
+        assert_eq!(targets[0].frame.as_ref().unwrap().background, None);
+    }
+
+    #[test]
     fn import_device_label_includes_variant_slug() {
         let entries = catalog::parse_catalog(SAMPLE).unwrap();
         let r = roots("import");
@@ -197,7 +215,7 @@ mod tests {
             id: "apple-iphone-16-pro".into(),
             variant: Some("Black Titanium".into()),
         }];
-        let targets = build_targets(&[], None, 1080, &devices, false, 0, Some((&entries, &r))).unwrap();
+        let targets = build_targets(&[], None, 1080, &devices, false, None, 0, Some((&entries, &r))).unwrap();
         assert_eq!(targets[0].label, "apple-iphone-16-pro_black-titanium");
         assert_eq!(targets[0].dpr, 3.0);
     }
@@ -207,7 +225,7 @@ mod tests {
         let entries = catalog::parse_catalog(SAMPLE).unwrap();
         let r = roots("unknown");
         let devices = [DeviceSelection { id: "nope".into(), variant: None }];
-        let err = build_targets(&[], None, 1080, &devices, false, 0, Some((&entries, &r))).unwrap_err();
+        let err = build_targets(&[], None, 1080, &devices, false, None, 0, Some((&entries, &r))).unwrap_err();
         assert!(err.contains("カタログに無いデバイスです"), "{}", err);
     }
 }
