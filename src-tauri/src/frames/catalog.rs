@@ -16,6 +16,16 @@ pub struct CssSpec {
     pub mobile: bool,
 }
 
+/// Dynamic Island の黒塗り領域（CSS px、画面左上原点）。radius は角丸半径（高さ ÷ 2 でピル形）
+#[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
+pub struct Island {
+    pub x: f64,
+    pub y: f64,
+    pub width: f64,
+    pub height: f64,
+    pub radius: f64,
+}
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Size {
     pub width: u32,
@@ -43,6 +53,9 @@ pub struct DeviceEntry {
     pub frame: Size,
     pub screen: Rect,
     pub source: Source,
+    /// iPhone 16 系だけが持つ。無い機種は黒塗りしない
+    #[serde(default)]
+    pub island: Option<Island>,
 }
 
 pub fn parse_catalog(json: &str) -> Result<Vec<DeviceEntry>, String> {
@@ -81,6 +94,20 @@ pub fn validate(entries: &[DeviceEntry]) -> Result<(), String> {
         }
         if e.screen.right() > e.frame.width || e.screen.bottom() > e.frame.height {
             return Err(format!("{}: screen rect exceeds the frame", e.id));
+        }
+        if let Some(i) = e.island {
+            let fits = i.width > 0.0
+                && i.height > 0.0
+                && i.x >= 0.0
+                && i.y >= 0.0
+                && i.x + i.width <= e.css.width as f64
+                && i.y + i.height <= e.css.height as f64
+                && i.radius >= 0.0
+                // カタログ値は小数第2位で個別に丸められているため、height / 2 との差が丸め誤差の範囲(最大 0.01)に収まっていれば許容する
+                && i.radius <= i.height / 2.0 + 0.01;
+            if !fits {
+                return Err(format!("{}: island must fit inside the css viewport", e.id));
+            }
         }
         if let Source::Import { pattern, .. } = &e.source {
             if pattern.matches("{variant}").count() != 1 {
@@ -171,6 +198,53 @@ mod tests {
     #[test]
     fn reports_invalid_json() {
         assert!(parse_catalog("[{").unwrap_err().starts_with("Failed to load the frame catalog"));
+    }
+
+    #[test]
+    fn island_is_optional_and_deserializes() {
+        let json = r#"[{
+          "id": "apple-iphone-16", "vendor": "apple", "category": "phone", "name": "iPhone 16",
+          "orientation": "portrait",
+          "css": { "width": 393, "height": 852, "dpr": 3, "mobile": true },
+          "frame": { "width": 1359, "height": 2736 },
+          "screen": { "x": 90, "y": 90, "width": 1179, "height": 2556 },
+          "source": { "kind": "import", "url": "https://example.com/x.dmg", "pattern": "PNG/{variant}.png" },
+          "island": { "x": 133.5, "y": 11, "width": 126, "height": 37.33, "radius": 18.67 }
+        }, {
+          "id": "google-pixel-9", "vendor": "google", "category": "phone", "name": "Pixel 9",
+          "orientation": "portrait",
+          "css": { "width": 412, "height": 923, "dpr": 2.625, "mobile": true },
+          "frame": { "width": 1200, "height": 2500 },
+          "screen": { "x": 60, "y": 60, "width": 1080, "height": 2400 },
+          "source": { "kind": "bundled", "file": "google/pixel-9.png" }
+        }]"#;
+        let entries = parse_catalog(json).unwrap();
+        let island = entries[0].island.expect("iPhone 16 has an island");
+        assert_eq!(island, Island { x: 133.5, y: 11.0, width: 126.0, height: 37.33, radius: 18.67 });
+        assert_eq!(entries[1].island, None, "island を省略した機種は None");
+    }
+
+    #[test]
+    fn rejects_island_outside_css_viewport() {
+        let mut e = parse_catalog(SAMPLE).unwrap(); // e[1] は iPhone 16 Pro(css.width 402)
+        e[1].island = Some(Island { x: 300.0, y: 11.0, width: 126.0, height: 37.33, radius: 18.67 }); // 300 + 126 > 402
+        assert!(validate(&e).unwrap_err().contains("island must fit inside the css viewport"));
+        e[1].island = Some(Island { x: 138.0, y: 11.0, width: 126.0, height: 37.33, radius: 30.0 }); // radius > height / 2
+        assert!(validate(&e).unwrap_err().contains("island must fit inside the css viewport"));
+        e[1].island = Some(Island { x: 138.0, y: 11.0, width: 126.0, height: 37.33, radius: 18.67 });
+        assert!(validate(&e).is_ok(), "収まっていれば合格");
+    }
+
+    #[test]
+    fn bundled_catalog_has_islands_only_on_iphone_16_family() {
+        let entries = load_catalog(Path::new(concat!(env!("CARGO_MANIFEST_DIR"), "/frames/catalog.json"))).unwrap();
+        let with: Vec<&str> = entries.iter().filter(|e| e.island.is_some()).map(|e| e.id.as_str()).collect();
+        assert_eq!(with, ["apple-iphone-16", "apple-iphone-16-plus", "apple-iphone-16-pro", "apple-iphone-16-pro-max"]);
+        for e in entries.iter().filter(|e| e.island.is_some()) {
+            let i = e.island.unwrap();
+            assert!((i.x + i.width / 2.0 - e.css.width as f64 / 2.0).abs() < 0.01, "{}: island is centered", e.id);
+            assert_eq!((i.y, i.width, i.height, i.radius), (11.0, 126.0, 37.33, 18.67), "{}", e.id);
+        }
     }
 
     /// 同梱カタログそのもの: 30 件、不変条件を満たし、bundled の PNG が存在して frame 寸法と一致する

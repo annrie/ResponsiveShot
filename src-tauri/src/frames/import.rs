@@ -25,6 +25,7 @@ mod tests {
             frame: Size { width: w, height: h },
             screen: Rect { x: 1, y: 1, width: w - 2, height: h - 2 },
             source: Source::Import { url: "https://example.com/x.dmg".into(), pattern: pattern.into() },
+            island: None,
         }
     }
 

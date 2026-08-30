@@ -7,7 +7,8 @@
     "screen": { "x": 90, "y": 90, "width": 1179, "height": 2556 },
     "source": { "kind": "import",
       "url": "https://devimages-cdn.apple.com/design/resources/download/Bezel-iPhone-16.dmg",
-      "pattern": "PNG/iPhone 16/iPhone 16 - {variant} - Portrait.png" }
+      "pattern": "PNG/iPhone 16/iPhone 16 - {variant} - Portrait.png" },
+    "island": { "x": 133.5, "y": 11, "width": 126, "height": 37.33, "radius": 18.67 }
   },
   {
     "id": "apple-iphone-16-plus",
@@ -17,7 +18,8 @@
     "screen": { "x": 90, "y": 87, "width": 1290, "height": 2796 },
     "source": { "kind": "import",
       "url": "https://devimages-cdn.apple.com/design/resources/download/Bezel-iPhone-16.dmg",
-      "pattern": "PNG/iPhone 16 Plus/iPhone 16 Plus - {variant} - Portrait.png" }
+      "pattern": "PNG/iPhone 16 Plus/iPhone 16 Plus - {variant} - Portrait.png" },
+    "island": { "x": 152, "y": 11, "width": 126, "height": 37.33, "radius": 18.67 }
   },
   {
     "id": "apple-iphone-16-pro",
@@ -27,7 +29,8 @@
     "screen": { "x": 72, "y": 69, "width": 1206, "height": 2622 },
     "source": { "kind": "import",
       "url": "https://devimages-cdn.apple.com/design/resources/download/Bezel-iPhone-16.dmg",
-      "pattern": "PNG/iPhone 16 Pro/iPhone 16 Pro - {variant} - Portrait.png" }
+      "pattern": "PNG/iPhone 16 Pro/iPhone 16 Pro - {variant} - Portrait.png" },
+    "island": { "x": 138, "y": 11, "width": 126, "height": 37.33, "radius": 18.67 }
   },
   {
     "id": "apple-iphone-16-pro-max",
@@ -37,7 +40,8 @@
     "screen": { "x": 75, "y": 66, "width": 1320, "height": 2868 },
     "source": { "kind": "import",
       "url": "https://devimages-cdn.apple.com/design/resources/download/Bezel-iPhone-16.dmg",
-      "pattern": "PNG/iPhone 16 Pro Max/iPhone 16 Pro Max - {variant} - Portrait.png" }
+      "pattern": "PNG/iPhone 16 Pro Max/iPhone 16 Pro Max - {variant} - Portrait.png" },
+    "island": { "x": 157, "y": 11, "width": 126, "height": 37.33, "radius": 18.67 }
   },
   {
     "id": "apple-ipad-pro-11-m5-portrait",
