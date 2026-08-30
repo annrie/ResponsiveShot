@@ -35,6 +35,40 @@ pub fn cover_resize(src: &RgbaImage, w: u32, h: u32) -> RgbaImage {
     imageops::crop_imm(&resized, (rw - w) / 2, (rh - h) / 2, w, h).to_image()
 }
 
+/// `img` に角丸矩形を `color` で塗る（Dynamic Island の黒塗り用）。
+/// 画素中心から角丸矩形への符号付き距離で被覆率を求め、境界を 1px で補間する。
+/// 画像外にはみ出す部分は切り詰め、`w <= 0` または `h <= 0` なら何もしない。
+pub fn fill_rounded_rect(img: &mut RgbaImage, x: f32, y: f32, w: f32, h: f32, radius: f32, color: Rgba<u8>) {
+    if w <= 0.0 || h <= 0.0 {
+        return;
+    }
+    let r = radius.max(0.0).min(w / 2.0).min(h / 2.0);
+    let (cx, cy) = (x + w / 2.0, y + h / 2.0);
+    // 角丸を除いた「芯」の半サイズ
+    let (hx, hy) = (w / 2.0 - r, h / 2.0 - r);
+    let x0 = (x.floor() - 1.0).max(0.0) as u32;
+    let y0 = (y.floor() - 1.0).max(0.0) as u32;
+    let x1 = ((x + w).ceil() + 1.0).max(0.0).min(img.width() as f32) as u32;
+    let y1 = ((y + h).ceil() + 1.0).max(0.0).min(img.height() as f32) as u32;
+    for py in y0..y1 {
+        for px in x0..x1 {
+            let dx = (px as f32 + 0.5 - cx).abs() - hx;
+            let dy = (py as f32 + 0.5 - cy).abs() - hy;
+            // 角丸矩形の符号付き距離（外側が正）
+            let dist = (dx.max(0.0).powi(2) + dy.max(0.0).powi(2)).sqrt() + dx.max(dy).min(0.0) - r;
+            let cover = (0.5 - dist).clamp(0.0, 1.0);
+            if cover <= 0.0 {
+                continue;
+            }
+            let p = img.get_pixel_mut(px, py);
+            for c in 0..3 {
+                p[c] = (color[c] as f32 * cover + p[c] as f32 * (1.0 - cover)).round() as u8;
+            }
+            p[3] = p[3].max((color[3] as f32 * cover).round() as u8);
+        }
+    }
+}
+
 /// ドロップシャドウのパラメータ。フレーム寸法に対する比率で決める（spec §9.1）
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct ShadowParams {
@@ -472,5 +506,37 @@ mod tests {
         let below = out.get_pixel(p.padding + 50, p.padding + 200 + 1);
         assert_eq!(below[3], 255, "背景ありなら不透明");
         assert!(below[0] < 250 && below[0] == below[1] && below[1] == below[2], "白の上に黒の影 → 灰色: {:?}", below);
+    }
+
+    #[test]
+    fn fill_rounded_rect_paints_inside_and_keeps_rounded_corners() {
+        let mut img = solid(100, 60, [200, 0, 0, 255]);
+        fill_rounded_rect(&mut img, 10.0, 10.0, 60.0, 30.0, 15.0, Rgba([0, 0, 0, 255]));
+        assert_eq!(img.get_pixel(40, 25).0, [0, 0, 0, 255], "内側は黒");
+        assert_eq!(img.get_pixel(15, 25).0, [0, 0, 0, 255], "左端中央（半円の内側）も黒");
+        assert_eq!(img.get_pixel(10, 10).0, [200, 0, 0, 255], "外接矩形の角は角丸の外なので元の色");
+        assert_eq!(img.get_pixel(5, 5).0, [200, 0, 0, 255], "矩形の外は元の色");
+        assert_eq!(img.get_pixel(40, 45).0, [200, 0, 0, 255], "矩形の下も元の色");
+    }
+
+    #[test]
+    fn fill_rounded_rect_antialiases_fractional_edges() {
+        let mut img = solid(100, 60, [200, 0, 0, 255]);
+        // 上辺が y = 10.5 なので、行 10（画素中心 10.5）は半分だけ覆われる
+        fill_rounded_rect(&mut img, 10.0, 10.5, 60.0, 30.0, 0.0, Rgba([0, 0, 0, 255]));
+        let edge = img.get_pixel(40, 10).0;
+        assert!((95..=105).contains(&edge[0]) && edge[1] == 0 && edge[2] == 0, "境界は中間値 (got {:?})", edge);
+        assert_eq!(img.get_pixel(40, 9).0, [200, 0, 0, 255], "その 1 行上は元の色");
+        assert_eq!(img.get_pixel(40, 11).0, [0, 0, 0, 255], "その 1 行下は黒");
+    }
+
+    #[test]
+    fn fill_rounded_rect_clips_to_image_and_ignores_empty_rect() {
+        let mut img = solid(100, 60, [200, 0, 0, 255]);
+        fill_rounded_rect(&mut img, 90.0, 50.0, 40.0, 40.0, 5.0, Rgba([0, 0, 0, 255])); // 画像外にはみ出しても落ちない
+        assert_eq!(img.get_pixel(95, 55).0, [0, 0, 0, 255]);
+        let before = img.clone();
+        fill_rounded_rect(&mut img, 10.0, 10.0, 0.0, 30.0, 5.0, Rgba([0, 0, 0, 255]));
+        assert_eq!(img, before, "幅 0 は何もしない");
     }
 }
