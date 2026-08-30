@@ -5,7 +5,7 @@ import { invoke } from '@tauri-apps/api/core'
 import { open } from '@tauri-apps/plugin-dialog'
 import { useI18n } from 'vue-i18n'
 import DeviceFramePanel from './components/DeviceFramePanel.vue'
-import type { DeviceSelection } from './types/frames'
+import type { DeviceSelection, OverlayLabels } from './types/frames'
 import { LOCALE_NAMES, SUPPORTED_LOCALES, setLocale, type SupportedLocale } from './i18n'
 
 const { t, locale } = useI18n()
@@ -183,7 +183,21 @@ const captureScreenshots = async () => {
       viewportHeight: viewportHeight.value,
       devices,
       frameShadow: frameShadow.value,
-      frameBackground: devices.length > 0 && !bgIsTransparent ? bg : null
+      frameBackground: devices.length > 0 && !bgIsTransparent ? bg : null,
+      overlay: {
+        // vue-i18n は未指定の名前付きプレースホルダを空文字にするため、
+        // Rust / JS 側でテンプレートのまま使うキーはプレースホルダ自身を値として渡す
+        startGif: t('overlay.startGif'),
+        startPng: t('overlay.startPng'),
+        startButton: t('overlay.startButton', { label: '{label}', seconds: '{seconds}' }),
+        countdown: t('overlay.countdown', { seconds: '{seconds}' }),
+        cancel: t('overlay.cancel'),
+        intro: t('overlay.intro'),
+        ready: t('overlay.ready'),
+        recording: t('overlay.recording', { seconds: '{seconds}' }),
+        saving: t('overlay.saving'),
+        progress: t('overlay.progress', { seconds: '{seconds}', frames: '{frames}' }),
+      } satisfies OverlayLabels,
     })
     
     statusMessage.value = t('status.done')

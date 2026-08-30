@@ -22,3 +22,17 @@ export interface ImportReport {
   imported: { id: string; variant: string }[]
   skipped: { file: string; reason: string }[]
 }
+
+/** Chrome に注入する手動操作オーバーレイの文言（Rust は翻訳表を持たない）。{label} {seconds} {frames} はテンプレートのまま渡す */
+export interface OverlayLabels {
+  startGif: string
+  startPng: string
+  startButton: string
+  countdown: string
+  cancel: string
+  intro: string
+  ready: string
+  recording: string
+  saving: string
+  progress: string
+}

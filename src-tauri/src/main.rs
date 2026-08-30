@@ -419,6 +419,30 @@ fn compose_png(shot_png: &[u8], job: &FrameJob, frame: &RgbaImage) -> Result<Vec
     Ok(buf.into_inner())
 }
 
+/// Chrome に注入する手動操作 UI の文言。フロントが翻訳して渡す（`{label}` `{seconds}` `{frames}` はテンプレート）
+#[derive(serde::Deserialize, Clone)]
+#[serde(rename_all = "camelCase")]
+struct OverlayLabels {
+    start_gif: String,
+    start_png: String,
+    start_button: String,
+    countdown: String,
+    cancel: String,
+    intro: String,
+    ready: String,
+    recording: String,
+    saving: String,
+    progress: String,
+}
+
+/// JS のシングルクォート文字列リテラルに埋め込める形にする
+fn js_str(s: &str) -> String {
+    s.replace('\\', "\\\\")
+        .replace('\'', "\\'")
+        .replace('\n', "\\n")
+        .replace("</", "<\\/")
+}
+
 #[command]
 fn capture_screenshots(
     app: tauri::AppHandle,
@@ -435,6 +459,7 @@ fn capture_screenshots(
     devices: Vec<DeviceSelection>,
     frame_shadow: bool,
     frame_background: Option<String>,
+    overlay: OverlayLabels,
 ) -> Result<(), String> {
     let save_path = PathBuf::from(save_dir);
     ABORT_FLAG.store(false, Ordering::Relaxed);
@@ -510,11 +535,17 @@ fn capture_screenshots(
         tab.wait_until_navigated().map_err(|e| e.to_string())?;
 
         if manual_interaction {
-            let btn_text = if duration > 0 {
-                "録画開始"
+            let btn_text: &str = if duration > 0 {
+                overlay.start_gif.as_str()
             } else {
-                "撮影開始"
+                overlay.start_png.as_str()
             };
+            // {seconds}後に開始 の秒数は起動時点で確定している（delay は実行中に変わらない）ため、
+            // JS 側の .replace() を経由せず Rust で先に埋め込む
+            let start_button_text = overlay
+                .start_button
+                .replace("{label}", btn_text)
+                .replace("{seconds}", &delay.to_string());
             let inject_ui = format!(
                 r#"
                 (function() {{
@@ -522,23 +553,26 @@ fn capture_screenshots(
                     window.__rs_overlay_running = true;
                     window.__RS_REC_STATUS = 'waiting';
 
+                    const countdownTpl = '{}';
+                    const recordingTpl = '{}';
+
                     let container = document.createElement('div');
                     container.id = 'rs-recorder-ui';
                     container.style.cssText = 'position:fixed;bottom:20px;right:20px;z-index:2147483647;background:#fff;padding:20px;border-radius:12px;box-shadow:0 8px 30px rgba(0,0,0,0.2);font-family:sans-serif;text-align:center;border:1px solid #e5e7eb;display:flex;flex-direction:column;gap:12px;';
-                    
+
                     let msg = document.createElement('div');
                     msg.style.cssText = 'font-size:13px;color:#333;line-height:1.5;font-weight:500;';
-                    msg.innerHTML = '画面を操作して非表示の要素を表示したり、<br/>文字を入力してから下のボタンを押してください。';
+                    msg.innerHTML = '{}';
 
                     let btnArray = document.createElement('div');
                     btnArray.style.cssText = 'display:flex;gap:10px;justify-content:center;';
 
                     let btn = document.createElement('button');
-                    btn.innerText = '🔴 {} ({}秒後に開始)';
+                    btn.innerText = '{}';
                     btn.style.cssText = 'background:#ef4444;color:white;border:none;padding:12px 20px;border-radius:8px;font-weight:bold;cursor:pointer;font-size:14px;flex:1;';
-                    
+
                     let cancelBtn = document.createElement('button');
-                    cancelBtn.innerText = '中止';
+                    cancelBtn.innerText = '{}';
                     cancelBtn.style.cssText = 'background:#f3f4f6;color:#4b5563;border:1px solid #d1d5db;padding:12px 20px;border-radius:8px;font-weight:bold;cursor:pointer;font-size:14px;';
 
                     btn.onclick = () => {{
@@ -548,7 +582,7 @@ fn capture_screenshots(
                         btn.style.pointerEvents = 'none';
                         container.style.pointerEvents = 'none';
                         cancelBtn.style.display = 'none';
-                        msg.innerText = '操作可能になりました。画面を操作してください...';
+                        msg.innerText = '{}';
                         let intv = setInterval(() => {{
                             if (countdown <= 0) {{
                                 clearInterval(intv);
@@ -561,27 +595,27 @@ fn capture_screenshots(
                                     msg.style.color = '#fff';
                                     msg.style.fontSize = '15px';
                                     msg.style.fontWeight = 'bold';
-                                    msg.innerHTML = `<span style="color:#ef4444">●</span> 録画中... 残り ${{total_duration}}秒`;
-                                    
+                                    msg.innerHTML = recordingTpl.replace('{{seconds}}', total_duration);
+
                                     let recIntv = setInterval(() => {{
                                         total_duration--;
                                         if (total_duration <= 0) {{
                                             clearInterval(recIntv);
-                                            msg.innerHTML = '保存処理中...';
+                                            msg.innerHTML = '{}';
                                         }} else {{
-                                            msg.innerHTML = `<span style="color:#ef4444">●</span> 録画中... 残り ${{total_duration}}秒`;
+                                            msg.innerHTML = recordingTpl.replace('{{seconds}}', total_duration);
                                         }}
                                     }}, 1000);
                                 }} else {{
                                     container.style.display = 'none';
                                 }}
                             }} else {{
-                                btn.innerText = `⏳ 開始まで ${{countdown}}秒`;
+                                btn.innerText = countdownTpl.replace('{{seconds}}', countdown);
                             }}
                             countdown--;
                         }}, 1000);
                         btn.onclick = null;
-                        btn.innerText = `⏳ 開始まで ${{countdown}}秒`;
+                        btn.innerText = countdownTpl.replace('{{seconds}}', countdown);
                         countdown--;
                     }};
 
@@ -594,12 +628,12 @@ fn capture_screenshots(
                     btnArray.appendChild(btn);
                     container.appendChild(msg);
                     container.appendChild(btnArray);
-                    
+
                     let target = document.body || document.documentElement;
                     if (target) {{
                         target.appendChild(container);
                     }}
-                    
+
                     // Keep appending just in case a Vue/React app remounts and clears the DOM
                     setInterval(() => {{
                         if (window.__RS_REC_STATUS === 'waiting' && !document.getElementById('rs-recorder-ui')) {{
@@ -608,7 +642,15 @@ fn capture_screenshots(
                     }}, 800);
                 }})();
                 "#,
-                btn_text, delay, delay, duration
+                js_str(&overlay.countdown),
+                js_str(&overlay.recording),
+                js_str(&overlay.intro),
+                js_str(&start_button_text),
+                js_str(&overlay.cancel),
+                delay,
+                js_str(&overlay.ready),
+                duration,
+                js_str(&overlay.saving)
             );
             let _ = tab.evaluate(&inject_ui, false);
 
@@ -777,9 +819,13 @@ fn capture_screenshots(
                 }
 
                 let remaining = duration as u64 - elapsed_total;
+                let progress_text = overlay
+                    .progress
+                    .replace("{seconds}", &remaining.to_string())
+                    .replace("{frames}", &frame_count.to_string());
                 let progress_script = format!(
-                    "let ui = document.getElementById('rs-recorder-ui'); if (ui) {{ let msg = ui.querySelector('div'); if (msg) msg.textContent = '● 録画・保存中... 残り{}秒 ({}コマ完了)'; }}",
-                    remaining, frame_count
+                    "let ui = document.getElementById('rs-recorder-ui'); if (ui) {{ let msg = ui.querySelector('div'); if (msg) msg.textContent = '{}'; }}",
+                    js_str(&progress_text)
                 );
                 let _ = tab.evaluate(&progress_script, false);
 
