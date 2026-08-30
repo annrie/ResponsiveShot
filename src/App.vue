@@ -3,8 +3,13 @@ import { computed, ref, onMounted } from 'vue'
 import { useStorage, useColorMode } from '@vueuse/core'
 import { invoke } from '@tauri-apps/api/core'
 import { open } from '@tauri-apps/plugin-dialog'
+import { useI18n } from 'vue-i18n'
 import DeviceFramePanel from './components/DeviceFramePanel.vue'
 import type { DeviceSelection } from './types/frames'
+import { LOCALE_NAMES, SUPPORTED_LOCALES, setLocale, type SupportedLocale } from './i18n'
+
+const { t, locale } = useI18n()
+const changeLocale = (e: Event) => setLocale((e.target as HTMLSelectElement).value as SupportedLocale)
 
 const colorPreference = useStorage('vueuse-color-scheme', 'auto')
 useColorMode() // Activates UnoCSS dark listener
@@ -203,7 +208,10 @@ const abortCapture = async () => {
   <main class="min-h-screen bg-gray-50 dark:bg-gray-900 text-gray-800 dark:text-gray-100 p-8 font-sans">
     <div class="max-w-3xl mx-auto space-y-6">
       <header class="text-center mb-8 relative">
-        <div class="absolute right-0 top-0">
+        <div class="absolute right-0 top-0 flex gap-2">
+          <select :value="locale" @change="changeLocale" :aria-label="t('language.label')" class="bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-sm rounded-lg px-2 py-1 text-gray-700 dark:text-gray-300 focus:outline-none focus:ring-1 focus:ring-blue-500">
+            <option v-for="l in SUPPORTED_LOCALES" :key="l" :value="l">{{ LOCALE_NAMES[l] }}</option>
+          </select>
           <select v-model="colorPreference" class="bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-sm rounded-lg px-2 py-1 text-gray-700 dark:text-gray-300 focus:outline-none focus:ring-1 focus:ring-blue-500">
             <option value="auto">System</option>
             <option value="light">Light</option>

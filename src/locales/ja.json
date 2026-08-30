@@ -1,0 +1,149 @@
+{
+  "app": {
+    "tagline": "レスポンシブ検証用 一括スクリーンショットツール"
+  },
+  "theme": {
+    "system": "System",
+    "light": "Light",
+    "dark": "Dark"
+  },
+  "language": {
+    "label": "言語"
+  },
+  "url": {
+    "label": "対象URL",
+    "placeholder": "https://example.com",
+    "history": "履歴から選択:"
+  },
+  "target": {
+    "heading": "キャプチャ対象",
+    "fullpage": "フルページ",
+    "fullpageHint": "ページ全体の下部までスクロールして撮影",
+    "viewport": "ビューポート",
+    "viewportHint": "ファーストビューのみをそのまま横並びで撮影",
+    "element": "指定要素",
+    "elementHint": "任意のブロックの範囲ピッタリで切り抜き",
+    "selectElement": "ブラウザを開いて要素を選択",
+    "selectorLabel": "現在の選択: ",
+    "selectorEmpty": "未指定"
+  },
+  "output": {
+    "heading": "出力設定",
+    "png": "PNG (静止画)",
+    "pngHint": "選択対象を1枚の画像として書き出す",
+    "gif": "GIF動画録画",
+    "gifHint": "クリック操作などのアニメーションを記録する",
+    "manualInteraction": "画面手動操作（インタラクション待機）を有効にする",
+    "manualInteractionHint": "撮影前にブラウザ上に「準備完了」ボタンを表示します。非表示のモーダルを開いたり、文字を入力してから録画・撮影をスタートできます。",
+    "startDelay": "待機時間 (準備用):",
+    "startDelayHint": "キャプチャ実行後、この秒数待機してからキャプチャを開始します。",
+    "startDelayUnit": "{seconds} 秒",
+    "gifDuration": "動画の長さ:",
+    "gifDurationHint": "指定要素や領域を指定秒数、10コマ/秒の滑らかさで録画します。",
+    "gifDurationUnit": "{seconds} 秒"
+  },
+  "widths": {
+    "heading": "キャプチャする画面幅",
+    "toggleAll": "全選択 / 解除",
+    "heightAuto": "高さを自動にする",
+    "heightAutoHint": "現在の仕様で撮影します。オンの場合、下の比率指定は使いません。",
+    "ratioHeading": "画面比率",
+    "ratio": {
+      "r16x9": { "label": "16:9", "description": "標準ワイド" },
+      "r16x10": { "label": "16:10", "description": "PC/Mac" },
+      "r4x3": { "label": "4:3", "description": "旧来画面" },
+      "r3x2": { "label": "3:2", "description": "写真/Surface" },
+      "r1x1": { "label": "1:1", "description": "正方形" },
+      "r21x9": { "label": "21:9", "description": "超横長" },
+      "r9x16": { "label": "9:16", "description": "縦長" },
+      "custom": { "label": "その他", "description": "任意比率" }
+    },
+    "customRatio": "任意比率",
+    "preview": {
+      "fullpage": "フルページでは無効",
+      "auto": "高さ指定なし",
+      "selectWidth": "幅を選択してください"
+    }
+  },
+  "frames": {
+    "heading": "デバイスフレーム",
+    "intro": "選んだ端末の解像度で撮影し、フレームにはめ込んだ PNG を保存します（PNG 出力のみ。GIF では使えません）。",
+    "background": {
+      "label": "背景",
+      "transparent": "透明",
+      "white": "白",
+      "black": "黒",
+      "custom": "任意",
+      "customPlaceholder": "#rrggbb"
+    },
+    "shadow": "ドロップシャドウ",
+    "vendor": {
+      "apple": "Apple",
+      "google": "Google"
+    },
+    "category": {
+      "phone": "スマートフォン",
+      "tablet": "タブレット",
+      "laptop": "ノート PC",
+      "desktop": "デスクトップ",
+      "display": "ディスプレイ"
+    },
+    "state": {
+      "bundled": "同梱",
+      "imported": "取り込み済み",
+      "missing": "未取り込み"
+    },
+    "official": "公式",
+    "openOfficial": "公式サイトを開く",
+    "hint": "① 「公式サイトを開く」で Apple Design Resources をブラウザで開き、② ブラウザで対応機種（iPhone / iPad / MacBook / iMac / Studio Display）の Product Bezels（DMG）をダウンロードしてください（進行状況はブラウザのダウンロード欄に表示されます。アプリはダウンロードしません）。③ ダウンロードした DMG ファイルを「DMG / PNG を取り込む」で選ぶと取り込まれます。",
+    "importDmg": "DMG / PNG を取り込む",
+    "importFolder": "フォルダを取り込む",
+    "license": "Apple のベゼルは Apple のライセンスに従いご自身の責任で使用してください。影の追加は Apple のガイドライン上は改変に当たります。Pixel のフレームは AOSP 由来（Apache 2.0）です。",
+    "status": {
+      "listFailed": "フレーム一覧の取得に失敗: {error}",
+      "dirFailed": "取り込み先の取得に失敗: {error}",
+      "importing": "フレームを取り込んでいます...",
+      "imported": "取り込み完了: {names}{skipped}（保存先: {dir}）",
+      "skipped": " / スキップ {count} 件: {reasons}",
+      "nothingImported": "取り込めるフレームがありませんでした{skipped}",
+      "importError": "取り込みエラー: {error}",
+      "openFailed": "ブラウザを開けませんでした: {error}"
+    }
+  },
+  "saveDir": {
+    "label": "保存先フォルダ",
+    "placeholder": "選択されていません",
+    "browse": "フォルダ参照"
+  },
+  "actions": {
+    "capture": "一括キャプチャを実行",
+    "abort": "処理を中止する"
+  },
+  "status": {
+    "enterUrl": "URLを入力してください。",
+    "selectSaveDir": "保存先フォルダを選択してください。",
+    "selectWidthOrDevice": "キャプチャする幅かデバイスを一つ以上選択してください。",
+    "selectWidthForGif": "GIF では幅を一つ以上選択してください。",
+    "invalidBackground": "背景色は #rrggbb 形式で指定してください。",
+    "starting": "キャプチャを開始します...",
+    "done": "すべてのキャプチャが完了しました！",
+    "captureError": "キャプチャエラー: {error}",
+    "abortRequested": "キャプチャ処理の停止要求を送信しました...",
+    "elementSelected": "対象要素を選択しました: {selector}",
+    "elementSelectCancelled": "要素選択がキャンセルされました。",
+    "elementSelectError": "エラー: {error}",
+    "selectingElement": "ブラウザを起動しています... 要素をクリックして選択してください。"
+  },
+  "overlay": {
+    "startGif": "録画開始",
+    "startPng": "撮影開始",
+    "startButton": "🔴 {label} ({seconds}秒後に開始)",
+    "cancel": "中止",
+    "intro": "画面を操作して非表示の要素を表示したり、<br/>文字を入力してから下のボタンを押してください。",
+    "ready": "操作可能になりました。画面を操作してください...",
+    "recording": "<span style=\"color:#ef4444\">●</span> 録画中... 残り {seconds}秒",
+    "saving": "保存処理中...",
+    "countdown": "⏳ 開始まで {seconds}秒",
+    "progress": "● 録画・保存中... 残り{seconds}秒 ({frames}コマ完了)"
+  }
+}

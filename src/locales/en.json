@@ -1,0 +1,149 @@
+{
+  "app": {
+    "tagline": "Bulk screenshot tool for responsive testing"
+  },
+  "theme": {
+    "system": "System",
+    "light": "Light",
+    "dark": "Dark"
+  },
+  "language": {
+    "label": "Language"
+  },
+  "url": {
+    "label": "Target URL",
+    "placeholder": "https://example.com",
+    "history": "From history:"
+  },
+  "target": {
+    "heading": "Capture target",
+    "fullpage": "Full page",
+    "fullpageHint": "Scroll to the bottom of the page and capture the whole thing",
+    "viewport": "Viewport",
+    "viewportHint": "Capture only the first view, side by side",
+    "element": "Selected element",
+    "elementHint": "Crop tightly to any block on the page",
+    "selectElement": "Open browser and select an element",
+    "selectorLabel": "Current selection: ",
+    "selectorEmpty": "Not set"
+  },
+  "output": {
+    "heading": "Output settings",
+    "png": "PNG (still image)",
+    "pngHint": "Export the target as a single image",
+    "gif": "GIF recording",
+    "gifHint": "Record animations such as clicks and interactions",
+    "manualInteraction": "Enable manual interaction (wait before capture)",
+    "manualInteractionHint": "Shows a \"Ready\" button in the browser before capture. Open hidden modals or type text, then start the recording/capture yourself.",
+    "startDelay": "Wait time (setup):",
+    "startDelayHint": "Waits this many seconds after starting before capture begins.",
+    "startDelayUnit": "{seconds}s",
+    "gifDuration": "Recording length:",
+    "gifDurationHint": "Records the target for the given duration at a smooth 10 fps.",
+    "gifDurationUnit": "{seconds}s"
+  },
+  "widths": {
+    "heading": "Screen widths to capture",
+    "toggleAll": "Select all / Clear",
+    "heightAuto": "Auto height",
+    "heightAutoHint": "Captures at the natural height. When on, the aspect ratio below is not used.",
+    "ratioHeading": "Aspect ratio",
+    "ratio": {
+      "r16x9": { "label": "16:9", "description": "Standard widescreen" },
+      "r16x10": { "label": "16:10", "description": "PC/Mac" },
+      "r4x3": { "label": "4:3", "description": "Classic screen" },
+      "r3x2": { "label": "3:2", "description": "Photo/Surface" },
+      "r1x1": { "label": "1:1", "description": "Square" },
+      "r21x9": { "label": "21:9", "description": "Ultrawide" },
+      "r9x16": { "label": "9:16", "description": "Portrait" },
+      "custom": { "label": "Other", "description": "Custom ratio" }
+    },
+    "customRatio": "Custom ratio",
+    "preview": {
+      "fullpage": "Not used for full page",
+      "auto": "No fixed height",
+      "selectWidth": "Select a width"
+    }
+  },
+  "frames": {
+    "heading": "Device frames",
+    "intro": "Captures at the device's resolution and saves a PNG composited into the frame (PNG output only — not available for GIF).",
+    "background": {
+      "label": "Background",
+      "transparent": "Transparent",
+      "white": "White",
+      "black": "Black",
+      "custom": "Custom",
+      "customPlaceholder": "#rrggbb"
+    },
+    "shadow": "Drop shadow",
+    "vendor": {
+      "apple": "Apple",
+      "google": "Google"
+    },
+    "category": {
+      "phone": "Phone",
+      "tablet": "Tablet",
+      "laptop": "Laptop",
+      "desktop": "Desktop",
+      "display": "Display"
+    },
+    "state": {
+      "bundled": "Bundled",
+      "imported": "Imported",
+      "missing": "Not imported"
+    },
+    "official": "Official",
+    "openOfficial": "Open official site",
+    "hint": "① Click \"Open official site\" to open Apple Design Resources in your browser. ② Download the Product Bezels (DMG) for the devices you need (iPhone / iPad / MacBook / iMac / Studio Display) — progress shows in your browser's downloads (the app does not download anything itself). ③ Pick the downloaded DMG file with \"Import DMG / PNG\" to import it.",
+    "importDmg": "Import DMG / PNG",
+    "importFolder": "Import folder",
+    "license": "Use Apple's bezels under Apple's license, at your own responsibility. Adding a shadow counts as a modification under Apple's guidelines. The Pixel frames are derived from AOSP (Apache 2.0).",
+    "status": {
+      "listFailed": "Failed to load the frame list: {error}",
+      "dirFailed": "Failed to get the import folder: {error}",
+      "importing": "Importing frames...",
+      "imported": "Import complete: {names}{skipped} (saved to: {dir})",
+      "skipped": " / {count} skipped: {reasons}",
+      "nothingImported": "No frames could be imported{skipped}",
+      "importError": "Import error: {error}",
+      "openFailed": "Couldn't open the browser: {error}"
+    }
+  },
+  "saveDir": {
+    "label": "Save folder",
+    "placeholder": "Not selected",
+    "browse": "Browse"
+  },
+  "actions": {
+    "capture": "Run bulk capture",
+    "abort": "Stop"
+  },
+  "status": {
+    "enterUrl": "Please enter a URL.",
+    "selectSaveDir": "Please select a save folder.",
+    "selectWidthOrDevice": "Select at least one width or device to capture.",
+    "selectWidthForGif": "Select at least one width for GIF.",
+    "invalidBackground": "Enter the background color as #rrggbb.",
+    "starting": "Starting capture...",
+    "done": "All captures complete!",
+    "captureError": "Capture error: {error}",
+    "abortRequested": "Stop request sent...",
+    "elementSelected": "Target element selected: {selector}",
+    "elementSelectCancelled": "Element selection was cancelled.",
+    "elementSelectError": "Error: {error}",
+    "selectingElement": "Launching browser... click an element to select it."
+  },
+  "overlay": {
+    "startGif": "Start recording",
+    "startPng": "Start capture",
+    "startButton": "🔴 {label} (starts in {seconds}s)",
+    "cancel": "Cancel",
+    "intro": "Interact with the page to reveal hidden elements or enter text,<br/>then press the button below.",
+    "ready": "You can interact with the page now...",
+    "recording": "<span style=\"color:#ef4444\">●</span> Recording... {seconds}s left",
+    "saving": "Saving...",
+    "countdown": "⏳ Starting in {seconds}s",
+    "progress": "● Recording & saving... {seconds}s left ({frames} frames done)"
+  }
+}
