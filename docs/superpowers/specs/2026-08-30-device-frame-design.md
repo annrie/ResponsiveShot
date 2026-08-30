@@ -220,17 +220,20 @@ struct FrameJob { device_id: String, variant: Option<String>, frame_png: PathBuf
 
 ```rust
 pub struct Rect { x: u32, y: u32, width: u32, height: u32 }
-pub fn compose_frame(shot: &RgbaImage, frame: &RgbaImage, screen: Rect, shadow: bool) -> RgbaImage
+pub fn compose_frame(shot: &RgbaImage, frame: &RgbaImage, screen: Rect, shadow: bool, background: Option<Rgba<u8>>) -> RgbaImage
+pub fn screen_mask(frame: &RgbaImage, screen: Rect) -> Vec<bool>
+pub fn parse_hex_color(s: &str) -> Result<Rgba<u8>, String>
 ```
 
 1. `shot` を `screen` に **cover** リサイズ（比率維持で覆い、中央クロップ。`FilterType::Lanczos3`）。寸法が既に一致していれば等倍
-2. `pad = shadow ? padding : 0`（§9.1）
-3. `frame.width + 2·pad` × `frame.height + 2·pad` の透明キャンバス
-4. shadow なら影レイヤーを `(pad, pad + offset_y)` に overlay
-5. リサイズ済み `shot` を `(pad + screen.x, pad + screen.y)` に overlay
-6. `frame` を `(pad, pad)` に overlay
+2. `screen_mask` でフレームの穴（画面中央から連結する非不透明画素）を求め、穴の外のスクショ画素を透明にする
+3. `pad = shadow ? padding : 0`（§9.1）
+4. `frame.width + 2·pad` × `frame.height + 2·pad` の`background` が Some ならその色で、None なら透明で初期化したキャンバス
+5. shadow なら影レイヤー（キャンバスと同寸で、シルエットを `(pad, pad + offset_y)` にずらして描いたもの）を `(0, 0)` に overlay
+6. リサイズ済み `shot` を `(pad + screen.x, pad + screen.y)` に overlay
+7. `frame` を `(pad, pad)` に overlay
 
-角丸クリップは行わない（Apple・Google ともフレーム側の角が不透明でスクショの角を覆う）。
+スクショはフレームの「穴」でクリップする（`screen_mask`：画面矩形の中央画素から非不透明画素をフラッドフィルして到達範囲を求め、到達しない画素は透明にする）。v1.1.0 リリース後の修正: 当初は「フレーム側の角が不透明でスクショの角を覆う」ためクリップ不要という前提だったが、Apple のベゼルは角の丸みが大きく画面矩形の角が本体の外（透明）に出るため誤りだった。
 
 ### 9.1 ドロップシャドウ
 
