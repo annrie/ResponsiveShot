@@ -387,10 +387,14 @@ fn list_frames(app: tauri::AppHandle) -> Result<Vec<store::FrameStatus>, String>
 }
 
 #[command]
-fn import_frames(app: tauri::AppHandle, path: String) -> Result<import::ImportReport, String> {
+async fn import_frames(app: tauri::AppHandle, path: String) -> Result<import::ImportReport, String> {
     let roots = frame_roots(&app)?;
     let entries = load_catalog(&roots)?;
-    import::import_frames(Path::new(&path), &entries, &roots.user)
+    tauri::async_runtime::spawn_blocking(move || {
+        import::import_frames(Path::new(&path), &entries, &roots.user)
+    })
+    .await
+    .map_err(|e| format!("取り込み処理のスレッドが失敗しました: {}", e))?
 }
 
 /// 撮影した PNG をフレームに合成して PNG バイト列を返す
