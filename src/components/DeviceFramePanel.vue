@@ -98,11 +98,7 @@ const runImport = async (path: string) => {
 }
 
 const importDmg = async () => {
-  const picked = await open({
-    multiple: false,
-    directory: false,
-    filters: [{ name: 'Apple Product Bezels', extensions: ['dmg', 'png'] }],
-  })
+  const picked = await open({ multiple: false, directory: false })
   if (typeof picked === 'string') await runImport(picked)
 }
 
@@ -188,7 +184,7 @@ defineExpose({ refresh })
       </div>
       <div v-if="g.vendor === 'apple'" class="mt-3 flex flex-wrap items-center gap-2">
         <span class="text-xs text-gray-500 dark:text-gray-400">
-          公式サイトの Product Bezels から DMG をダウンロードして取り込んでください。
+          公式サイトの Product Bezels から DMG をダウンロードし、その DMG ファイル（または展開した PNG のフォルダ）を取り込んでください。
         </span>
         <button
           type="button"
