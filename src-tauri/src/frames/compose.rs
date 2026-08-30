@@ -53,24 +53,30 @@ impl ShadowParams {
     }
 }
 
-/// フレームより `padding` ずつ大きいキャンバスに、本体シルエット（フレームの不透明部 ∪ 画面矩形）を
+/// フレームより `padding` ずつ大きいキャンバスに、本体シルエット（フレームの不透明部 ∪ 画面の穴マスク）を
 /// 下方向に `offset_y` ずらして置き、ぼかして「黒 × opacity」にしたレイヤーを返す。
-pub fn shadow_layer(frame: &RgbaImage, screen: Rect, p: &ShadowParams) -> RgbaImage {
+/// `mask` は `screen_mask(frame, screen)` の戻り値（screen 矩形と同じ大きさ・行優先の bool 配列）を渡す。
+/// Apple のベゼルのように screen 矩形の角が本体の外（透明）に出るフレームでは、画面部を矩形のまま
+/// 埋めるとシルエットの角が四角いままになり、丸い角の外に灰色の影がはみ出す。穴マスクで絞ることで
+/// スクショのクリップと同じ輪郭になる。
+pub fn shadow_layer(frame: &RgbaImage, screen: Rect, mask: &[bool], p: &ShadowParams) -> RgbaImage {
     let (fw, fh) = frame.dimensions();
     let (cw, ch) = (fw + 2 * p.padding, fh + 2 * p.padding);
 
-    // シルエット。画面部はフレームでは透明だが実機は塗り潰しなので矩形で埋める
-    let mut mask = RgbaImage::new(cw, ch);
+    // シルエット。画面部はフレームでは透明だが実機は塗り潰しなので穴マスクで埋める
+    let mut silhouette = RgbaImage::new(cw, ch);
     for y in 0..fh {
         for x in 0..fw {
-            let a = if screen.contains(x, y) { 255 } else { frame.get_pixel(x, y)[3] };
-            mask.put_pixel(x + p.padding, y + p.padding + p.offset_y, Rgba([0, 0, 0, a]));
+            let in_hole = screen.contains(x, y)
+                && mask[(y - screen.y) as usize * screen.width as usize + (x - screen.x) as usize];
+            let a = if in_hole { 255 } else { frame.get_pixel(x, y)[3] };
+            silhouette.put_pixel(x + p.padding, y + p.padding + p.offset_y, Rgba([0, 0, 0, a]));
         }
     }
 
     // 1/4 に縮小してからぼかし、元の寸法に戻す（フルサイズの blur は 1470x3000 で数秒かかる）
     let (sw, sh) = ((cw / 4).max(1), (ch / 4).max(1));
-    let small = imageops::resize(&mask, sw, sh, FilterType::Triangle);
+    let small = imageops::resize(&silhouette, sw, sh, FilterType::Triangle);
     let blurred = imageops::blur(&small, (p.sigma / 4.0).max(0.5));
     let mut layer = imageops::resize(&blurred, cw, ch, FilterType::Triangle);
     for px in layer.pixels_mut() {
@@ -201,7 +207,7 @@ pub fn compose_frame(
         None => RgbaImage::new(cw, ch),
     };
     if shadow {
-        imageops::overlay(&mut canvas, &shadow_layer(frame, screen, &params), 0, 0);
+        imageops::overlay(&mut canvas, &shadow_layer(frame, screen, &mask, &params), 0, 0);
     }
     imageops::overlay(&mut canvas, &fitted, (pad + screen.x) as i64, (pad + screen.y) as i64);
     imageops::overlay(&mut canvas, frame, pad as i64, pad as i64);
@@ -298,6 +304,32 @@ mod tests {
             out.get_pixel(p.padding + 50, p.padding + 100).0,
             [200, 0, 0, 255],
             "画面もそのまま"
+        );
+    }
+
+    #[test]
+    fn shadow_silhouette_follows_the_hole_mask() {
+        // 丸角リング（frame_with_rounded_ring）は screen 矩形の角が本体の外（透明）に出る。
+        // シルエットが screen.contains だけで矩形に埋めていると角も含めて不透明になり、
+        // 角付近のシルエットが四角いまま → ぼかし後も角に影が残る。穴マスクで絞れば
+        // 角はシルエットの外になり、ぼかしの裾しか乗らないので中心付近より暗くなる。
+        let frame = frame_with_rounded_ring();
+        let p = ShadowParams::for_frame(100, 200);
+        let mask = screen_mask(&frame, HOLE);
+        let layer = shadow_layer(&frame, HOLE, &mask, &p);
+
+        let center = layer.get_pixel(p.padding + HOLE.x + 30, p.padding + p.offset_y + HOLE.y + 70);
+        assert!(center[3] > 0, "画面中央のシルエットには影がある (alpha={})", center[3]);
+
+        let corner = layer.get_pixel(p.padding + HOLE.x, p.padding + p.offset_y + HOLE.y);
+        let inside_diagonal =
+            layer.get_pixel(p.padding + HOLE.x + 12, p.padding + p.offset_y + HOLE.y + 12);
+        assert!(
+            corner[3] < inside_diagonal[3],
+            "外接矩形の角は丸い穴マスクの外（ぼかしの裾のみ）なので、対角線上 12px 内側より暗い \
+             (corner alpha={}, inside alpha={})",
+            corner[3],
+            inside_diagonal[3]
         );
     }
 
