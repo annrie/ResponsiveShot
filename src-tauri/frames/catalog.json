@@ -40,6 +40,176 @@
       "pattern": "PNG/iPhone 16 Pro Max/iPhone 16 Pro Max - {variant} - Portrait.png" }
   },
   {
+    "id": "apple-ipad-pro-11-m5-portrait",
+    "vendor": "apple", "category": "tablet", "name": "iPad Pro 11\" (M5) 縦", "orientation": "portrait",
+    "css": { "width": 834, "height": 1210, "dpr": 2.0, "mobile": true },
+    "frame": { "width": 1880, "height": 2640 },
+    "screen": { "x": 106, "y": 110, "width": 1668, "height": 2420 },
+    "source": { "kind": "import",
+      "url": "https://devimages-cdn.apple.com/design/resources/download/Bezel-iPad-Pro-(M5).dmg",
+      "pattern": "PNG/iPad Pro (M5) 11\" - {variant} - Portrait.png" }
+  },
+  {
+    "id": "apple-ipad-pro-11-m5-landscape",
+    "vendor": "apple", "category": "tablet", "name": "iPad Pro 11\" (M5) 横", "orientation": "landscape",
+    "css": { "width": 1210, "height": 834, "dpr": 2.0, "mobile": true },
+    "frame": { "width": 2640, "height": 1880 },
+    "screen": { "x": 110, "y": 106, "width": 2420, "height": 1668 },
+    "source": { "kind": "import",
+      "url": "https://devimages-cdn.apple.com/design/resources/download/Bezel-iPad-Pro-(M5).dmg",
+      "pattern": "PNG/iPad Pro (M5) 11\" - {variant} - Landscape.png" }
+  },
+  {
+    "id": "apple-ipad-pro-13-m5-portrait",
+    "vendor": "apple", "category": "tablet", "name": "iPad Pro 13\" (M5) 縦", "orientation": "portrait",
+    "css": { "width": 1032, "height": 1376, "dpr": 2.0, "mobile": true },
+    "frame": { "width": 2300, "height": 3000 },
+    "screen": { "x": 118, "y": 124, "width": 2064, "height": 2752 },
+    "source": { "kind": "import",
+      "url": "https://devimages-cdn.apple.com/design/resources/download/Bezel-iPad-Pro-(M5).dmg",
+      "pattern": "PNG/iPad Pro (M5) 13\" - {variant} - Portrait.png" }
+  },
+  {
+    "id": "apple-ipad-pro-13-m5-landscape",
+    "vendor": "apple", "category": "tablet", "name": "iPad Pro 13\" (M5) 横", "orientation": "landscape",
+    "css": { "width": 1376, "height": 1032, "dpr": 2.0, "mobile": true },
+    "frame": { "width": 3000, "height": 2300 },
+    "screen": { "x": 124, "y": 118, "width": 2752, "height": 2064 },
+    "source": { "kind": "import",
+      "url": "https://devimages-cdn.apple.com/design/resources/download/Bezel-iPad-Pro-(M5).dmg",
+      "pattern": "PNG/iPad Pro (M5) 13\" - {variant} - Landscape.png" }
+  },
+  {
+    "id": "apple-ipad-air-11-m4-portrait",
+    "vendor": "apple", "category": "tablet", "name": "iPad Air 11\" (M4) 縦", "orientation": "portrait",
+    "css": { "width": 820, "height": 1180, "dpr": 2.0, "mobile": true },
+    "frame": { "width": 1900, "height": 2620 },
+    "screen": { "x": 130, "y": 130, "width": 1640, "height": 2360 },
+    "source": { "kind": "import",
+      "url": "https://devimages-cdn.apple.com/design/resources/download/Bezel-iPad-Air-(M4).dmg",
+      "pattern": "PNG/iPad Air 11\" (M4) - {variant} - Portrait.png" }
+  },
+  {
+    "id": "apple-ipad-air-11-m4-landscape",
+    "vendor": "apple", "category": "tablet", "name": "iPad Air 11\" (M4) 横", "orientation": "landscape",
+    "css": { "width": 1180, "height": 820, "dpr": 2.0, "mobile": true },
+    "frame": { "width": 2620, "height": 1900 },
+    "screen": { "x": 130, "y": 130, "width": 2360, "height": 1640 },
+    "source": { "kind": "import",
+      "url": "https://devimages-cdn.apple.com/design/resources/download/Bezel-iPad-Air-(M4).dmg",
+      "pattern": "PNG/iPad Air 11\" (M4) - {variant} - Landscape.png" }
+  },
+  {
+    "id": "apple-ipad-air-13-m4-portrait",
+    "vendor": "apple", "category": "tablet", "name": "iPad Air 13\" (M4) 縦", "orientation": "portrait",
+    "css": { "width": 1024, "height": 1366, "dpr": 2.0, "mobile": true },
+    "frame": { "width": 2300, "height": 2980 },
+    "screen": { "x": 126, "y": 124, "width": 2048, "height": 2732 },
+    "source": { "kind": "import",
+      "url": "https://devimages-cdn.apple.com/design/resources/download/Bezel-iPad-Air-(M4).dmg",
+      "pattern": "PNG/iPad Air 13\" (M4) - {variant} - Portrait.png" }
+  },
+  {
+    "id": "apple-ipad-air-13-m4-landscape",
+    "vendor": "apple", "category": "tablet", "name": "iPad Air 13\" (M4) 横", "orientation": "landscape",
+    "css": { "width": 1366, "height": 1024, "dpr": 2.0, "mobile": true },
+    "frame": { "width": 2980, "height": 2300 },
+    "screen": { "x": 124, "y": 126, "width": 2732, "height": 2048 },
+    "source": { "kind": "import",
+      "url": "https://devimages-cdn.apple.com/design/resources/download/Bezel-iPad-Air-(M4).dmg",
+      "pattern": "PNG/iPad Air 13\" (M4) - {variant} - Landscape.png" }
+  },
+  {
+    "id": "apple-ipad-mini-a17-pro-portrait",
+    "vendor": "apple", "category": "tablet", "name": "iPad mini (A17 Pro) 縦", "orientation": "portrait",
+    "css": { "width": 744, "height": 1133, "dpr": 2.0, "mobile": true },
+    "frame": { "width": 1780, "height": 2550 },
+    "screen": { "x": 146, "y": 142, "width": 1488, "height": 2266 },
+    "source": { "kind": "import",
+      "url": "https://devimages-cdn.apple.com/design/resources/download/Bezel-iPad-mini-(A17-Pro).dmg",
+      "pattern": "PNG/iPad mini (A17 Pro) - {variant} - Portrait.png" }
+  },
+  {
+    "id": "apple-ipad-mini-a17-pro-landscape",
+    "vendor": "apple", "category": "tablet", "name": "iPad mini (A17 Pro) 横", "orientation": "landscape",
+    "css": { "width": 1133, "height": 744, "dpr": 2.0, "mobile": true },
+    "frame": { "width": 2550, "height": 1780 },
+    "screen": { "x": 142, "y": 146, "width": 2266, "height": 1488 },
+    "source": { "kind": "import",
+      "url": "https://devimages-cdn.apple.com/design/resources/download/Bezel-iPad-mini-(A17-Pro).dmg",
+      "pattern": "PNG/iPad mini (A17 Pro) - {variant} - Landscape.png" }
+  },
+  {
+    "id": "apple-macbook-air-13-m5",
+    "vendor": "apple", "category": "laptop", "name": "MacBook Air 13\" (M5)", "orientation": "landscape",
+    "css": { "width": 1280, "height": 832, "dpr": 2.0, "mobile": false },
+    "frame": { "width": 3400, "height": 2240 },
+    "screen": { "x": 420, "y": 288, "width": 2560, "height": 1664 },
+    "source": { "kind": "import",
+      "url": "https://devimages-cdn.apple.com/design/resources/download/Bezel-MacBook-Air-M5.dmg",
+      "pattern": "PNG/MacBook Air M5 13-inch {variant}.png" }
+  },
+  {
+    "id": "apple-macbook-air-15-m5",
+    "vendor": "apple", "category": "laptop", "name": "MacBook Air 15\" (M5)", "orientation": "landscape",
+    "css": { "width": 1440, "height": 932, "dpr": 2.0, "mobile": false },
+    "frame": { "width": 3540, "height": 2300 },
+    "screen": { "x": 329, "y": 218, "width": 2880, "height": 1864 },
+    "source": { "kind": "import",
+      "url": "https://devimages-cdn.apple.com/design/resources/download/Bezel-MacBook-Air-M5.dmg",
+      "pattern": "PNG/MacBook Air M5 15-inch {variant}.png" }
+  },
+  {
+    "id": "apple-macbook-pro-14-m5",
+    "vendor": "apple", "category": "laptop", "name": "MacBook Pro 14\" (M5)", "orientation": "landscape",
+    "css": { "width": 1512, "height": 982, "dpr": 2.0, "mobile": false },
+    "frame": { "width": 3860, "height": 2540 },
+    "screen": { "x": 418, "y": 288, "width": 3024, "height": 1964 },
+    "source": { "kind": "import",
+      "url": "https://devimages-cdn.apple.com/design/resources/download/Bezel-MacBook-Pro-M5.dmg",
+      "pattern": "PNG/MacBook Pro M5 14-inch {variant}.png" }
+  },
+  {
+    "id": "apple-macbook-pro-16-m5",
+    "vendor": "apple", "category": "laptop", "name": "MacBook Pro 16\" (M5)", "orientation": "landscape",
+    "css": { "width": 1728, "height": 1117, "dpr": 2.0, "mobile": false },
+    "frame": { "width": 4260, "height": 2840 },
+    "screen": { "x": 402, "y": 303, "width": 3456, "height": 2234 },
+    "source": { "kind": "import",
+      "url": "https://devimages-cdn.apple.com/design/resources/download/Bezel-MacBook-Pro-M5.dmg",
+      "pattern": "PNG/MacBook Pro M5 16-inch {variant}.png" }
+  },
+  {
+    "id": "apple-imac-24-m4",
+    "vendor": "apple", "category": "desktop", "name": "iMac 24\" (M4)", "orientation": "landscape",
+    "css": { "width": 2240, "height": 1260, "dpr": 2.0, "mobile": false },
+    "frame": { "width": 4760, "height": 4050 },
+    "screen": { "x": 140, "y": 150, "width": 4482, "height": 2520 },
+    "source": { "kind": "import",
+      "url": "https://devimages-cdn.apple.com/design/resources/download/Bezel-iMac-M4.dmg",
+      "pattern": "PNG/iMac M4 24-inch {variant}.png" }
+  },
+  {
+    "id": "apple-studio-display-2026",
+    "vendor": "apple", "category": "display", "name": "Studio Display (2026)", "orientation": "landscape",
+    "css": { "width": 2560, "height": 1440, "dpr": 2.0, "mobile": false },
+    "frame": { "width": 5400, "height": 4160 },
+    "screen": { "x": 140, "y": 140, "width": 5120, "height": 2880 },
+    "source": { "kind": "import",
+      "url": "https://devimages-cdn.apple.com/design/resources/download/Bezel-Studio-Displays.dmg",
+      "pattern": "PNG/Studio Display 2026 {variant}.png" }
+  },
+  {
+    "id": "apple-studio-display-xdr-2026",
+    "vendor": "apple", "category": "display", "name": "Studio Display XDR (2026)", "orientation": "landscape",
+    "css": { "width": 2560, "height": 1440, "dpr": 2.0, "mobile": false },
+    "frame": { "width": 5400, "height": 4160 },
+    "screen": { "x": 140, "y": 140, "width": 5120, "height": 2880 },
+    "source": { "kind": "import",
+      "url": "https://devimages-cdn.apple.com/design/resources/download/Bezel-Studio-Displays.dmg",
+      "pattern": "PNG/Studio Display XDR 2026 {variant}.png" }
+  },
+  {
     "id": "google-pixel-9",
     "vendor": "google", "category": "phone", "name": "Pixel 9", "orientation": "portrait",
     "css": { "width": 412, "height": 923, "dpr": 2.625, "mobile": true },
