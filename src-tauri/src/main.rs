@@ -411,7 +411,7 @@ fn compose_png(shot_png: &[u8], job: &FrameJob, frame: &RgbaImage) -> Result<Vec
     let shot = image::load_from_memory(shot_png)
         .map_err(|e| format!("スクリーンショットの読み込みに失敗: {}", e))?
         .to_rgba8();
-    let out = compose::compose_frame(&shot, frame, job.screen, job.shadow);
+    let out = compose::compose_frame(&shot, frame, job.screen, job.shadow, None);
     let mut buf = Cursor::new(Vec::new());
     image::DynamicImage::ImageRgba8(out)
         .write_to(&mut buf, ImageOutputFormat::Png)
