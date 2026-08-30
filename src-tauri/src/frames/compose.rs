@@ -79,8 +79,10 @@ pub fn shadow_layer(frame: &RgbaImage, screen: Rect, p: &ShadowParams) -> RgbaIm
     layer
 }
 
-/// フレームの「穴」（画面中央から連結している非不透明画素）を screen 矩形内でフラッドフィルして求める。
-/// 戻り値は screen 矩形と同じ大きさの bool 配列（行優先）。中央が不透明なら全画素 true（クリップしない）。
+/// フレームの「穴」（画面中央付近から連結している非不透明画素）を screen 矩形内でフラッドフィルして求める。
+/// フラッドフィルの起点は中央画素とは限らない。中央が不透明（フレームの装飾等と重なっている）な場合は
+/// 中央を囲む正方形リングをチェビシェフ距離 1, 2, … の順に走査し、最初に見つかった非不透明画素を起点にする。
+/// 戻り値は screen 矩形と同じ大きさの bool 配列（行優先）。screen 矩形全体が不透明なら全画素 true（クリップしない）。
 /// Apple のベゼルは角の丸みが大きく、画面矩形の角が本体の外（透明）に出るため、矩形のまま置くと
 /// スクショの角がはみ出す。穴の形でクリップすればフレームの種類に依らず正しく収まる。
 pub fn screen_mask(frame: &RgbaImage, screen: Rect) -> Vec<bool> {
@@ -94,10 +96,61 @@ pub fn screen_mask(frame: &RgbaImage, screen: Rect) -> Vec<bool> {
         let py = screen.y + y as u32;
         px < frame.width() && py < frame.height() && frame.get_pixel(px, py)[3] < 250
     };
-    let (cx, cy) = (w / 2, h / 2);
-    if !passable(cx, cy) {
-        return vec![true; w * h];
+    let (center_x, center_y) = (w / 2, h / 2);
+    // 起点探索: 中央が通行可能ならそこで即決（よくあるケースは O(1)）。そうでなければ中央を囲む
+    // 正方形リングをチェビシェフ距離 r = 1, 2, … の順に外側へ広げ、周だけを走査して最初に見つかった
+    // 通行可能画素を起点にする。矩形全体（探索半径 = max(w, h) まで）が不透明ならクリップなしで返す。
+    let (cxi, cyi) = (center_x as i64, center_y as i64);
+    let max_r = w.max(h) as i64;
+    let mut seed = None;
+    'search: for r in 0..=max_r {
+        if r == 0 {
+            if passable(center_x, center_y) {
+                seed = Some((center_x, center_y));
+                break 'search;
+            }
+            continue;
+        }
+        let (lo, hi) = (-r, r);
+        for dy in [lo, hi] {
+            let py = cyi + dy;
+            if py < 0 || py as usize >= h {
+                continue;
+            }
+            for dx in lo..=hi {
+                let px = cxi + dx;
+                if px < 0 || px as usize >= w {
+                    continue;
+                }
+                let (x, y) = (px as usize, py as usize);
+                if passable(x, y) {
+                    seed = Some((x, y));
+                    break 'search;
+                }
+            }
+        }
+        for dx in [lo, hi] {
+            let px = cxi + dx;
+            if px < 0 || px as usize >= w {
+                continue;
+            }
+            for dy in (lo + 1)..hi {
+                let py = cyi + dy;
+                if py < 0 || py as usize >= h {
+                    continue;
+                }
+                let (x, y) = (px as usize, py as usize);
+                if passable(x, y) {
+                    seed = Some((x, y));
+                    break 'search;
+                }
+            }
+        }
     }
+    let (cx, cy) = match seed {
+        Some(p) => p,
+        None => return vec![true; w * h],
+    };
     let mut queue = std::collections::VecDeque::with_capacity(w.max(h) * 4);
     mask[cy * w + cx] = true;
     queue.push_back((cx, cy));
@@ -319,6 +372,32 @@ mod tests {
         assert!(m[(70 * 60) + 30], "画面中央は true");
         assert!(!m[0], "外接矩形の左上角（弧の外）は false");
         assert!(m[(70 * 60) + 0], "左辺中央は true");
+    }
+
+    #[test]
+    fn screen_mask_survives_opaque_pixel_at_center() {
+        // 穴の中央に 9x9 の不透明な装飾（ベゼル色）を重ねても、起点探索が中央近傍の
+        // 通行可能画素を見つけてフラッドフィルするため、クリップは無効化されない。
+        let mut frame = frame_with_rounded_ring();
+        let (center_x, center_y) = (HOLE.x + HOLE.width / 2, HOLE.y + HOLE.height / 2);
+        for y in (center_y - 4)..=(center_y + 4) {
+            for x in (center_x - 4)..=(center_x + 4) {
+                frame.put_pixel(x, y, Rgba(BEZEL));
+            }
+        }
+        let m = screen_mask(&frame, HOLE);
+        assert!(!m[0], "外接矩形の左上角（弧の外）は false");
+        assert!(m[(70 * 60) + 0], "左辺中央は true（クリップは維持される）");
+        assert!(!m[(70 * 60) + 30], "中央画素自体は不透明な装飾なので false");
+
+        let shot = solid(60, 140, [200, 0, 0, 255]);
+        let out = compose_frame(&shot, &frame, HOLE, false, None);
+        assert_eq!(out.get_pixel(HOLE.x, HOLE.y)[3], 0, "穴の外接矩形の角はクリップされ透明");
+        assert_eq!(
+            out.get_pixel(HOLE.x + 30, HOLE.y + 20).0,
+            [200, 0, 0, 255],
+            "装飾から離れた穴の画素は赤のまま"
+        );
     }
 
     #[test]
