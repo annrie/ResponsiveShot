@@ -45,16 +45,16 @@ const selectedDevices = useStorage<DeviceSelection[]>('rs-devices', [])
 const frameShadow = useStorage('rs-frame-shadow', false)
 const frameBackground = useStorage('rs-frame-bg', 'transparent')
 
-const ratioOptions = [
-  { value: '16:9', label: '16:9', description: '標準ワイド' },
-  { value: '16:10', label: '16:10', description: 'PC/Mac' },
-  { value: '4:3', label: '4:3', description: '旧来画面' },
-  { value: '3:2', label: '3:2', description: '写真/Surface' },
-  { value: '1:1', label: '1:1', description: '正方形' },
-  { value: '21:9', label: '21:9', description: '超横長' },
-  { value: '9:16', label: '9:16', description: '縦長' },
-  { value: 'custom', label: 'その他', description: '任意比率' },
-]
+const ratioOptions = computed(() => [
+  { value: '16:9', label: t('widths.ratio.r16x9.label'), description: t('widths.ratio.r16x9.description') },
+  { value: '16:10', label: t('widths.ratio.r16x10.label'), description: t('widths.ratio.r16x10.description') },
+  { value: '4:3', label: t('widths.ratio.r4x3.label'), description: t('widths.ratio.r4x3.description') },
+  { value: '3:2', label: t('widths.ratio.r3x2.label'), description: t('widths.ratio.r3x2.description') },
+  { value: '1:1', label: t('widths.ratio.r1x1.label'), description: t('widths.ratio.r1x1.description') },
+  { value: '21:9', label: t('widths.ratio.r21x9.label'), description: t('widths.ratio.r21x9.description') },
+  { value: '9:16', label: t('widths.ratio.r9x16.label'), description: t('widths.ratio.r9x16.description') },
+  { value: 'custom', label: t('widths.ratio.custom.label'), description: t('widths.ratio.custom.description') },
+])
 
 const activeRatio = computed(() => {
   if (selectedRatio.value === 'custom') {
@@ -74,9 +74,9 @@ const viewportHeight = computed(() => {
 })
 
 const ratioPreview = computed(() => {
-  if (targetMode.value === 'fullpage') return 'フルページでは無効'
-  if (heightAuto.value) return '高さ指定なし'
-  if (selectedWidths.value.length === 0) return '幅を選択してください'
+  if (targetMode.value === 'fullpage') return t('widths.preview.fullpage')
+  if (heightAuto.value) return t('widths.preview.auto')
+  if (selectedWidths.value.length === 0) return t('widths.preview.selectWidth')
   return selectedWidths.value
     .slice()
     .sort((a, b) => a - b)
@@ -117,23 +117,23 @@ const selectSaveDir = async () => {
 // Trigger Element Selection
 const selectElement = async () => {
   if (!url.value) {
-    statusMessage.value = "URLを入力してください。"
+    statusMessage.value = t('status.enterUrl')
     return
   }
   try {
     addToHistory(url.value)
     isSelectingElement.value = true
-    statusMessage.value = "ブラウザを起動しています... 要素をクリックして選択してください。"
+    statusMessage.value = t('status.selectingElement')
     const selector: string = await invoke('select_element', { url: url.value })
     if (selector) {
       selectedSelector.value = selector
       targetMode.value = 'element'
-      statusMessage.value = `対象要素を選択しました: ${selector}`
+      statusMessage.value = t('status.elementSelected', { selector })
     } else {
-      statusMessage.value = "要素選択がキャンセルされました。"
+      statusMessage.value = t('status.elementSelectCancelled')
     }
   } catch (err) {
-    statusMessage.value = `エラー: ${err}`
+    statusMessage.value = t('status.elementSelectError', { error: String(err) })
   } finally {
     isSelectingElement.value = false
   }
@@ -142,33 +142,33 @@ const selectElement = async () => {
 // Execute Capture
 const captureScreenshots = async () => {
   if (!url.value) {
-    statusMessage.value = "URLを入力してください。"
+    statusMessage.value = t('status.enterUrl')
     return
   }
   if (!saveDir.value) {
-    statusMessage.value = "保存先フォルダを選択してください。"
+    statusMessage.value = t('status.selectSaveDir')
     return
   }
   if (outputFormat.value === 'gif' && selectedWidths.value.length === 0) {
-    statusMessage.value = "GIF では幅を一つ以上選択してください。"
+    statusMessage.value = t('status.selectWidthForGif')
     return
   }
   const devices = outputFormat.value === 'gif' ? [] : selectedDevices.value
   if (selectedWidths.value.length === 0 && devices.length === 0) {
-    statusMessage.value = "キャプチャする幅かデバイスを一つ以上選択してください。"
+    statusMessage.value = t('status.selectWidthOrDevice')
     return
   }
   const bg = frameBackground.value.trim()
   const bgIsTransparent = bg === '' || bg.toLowerCase() === 'transparent'
   if (devices.length > 0 && !bgIsTransparent && !/^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/.test(bg)) {
-    statusMessage.value = "背景色は #rrggbb 形式で指定してください。"
+    statusMessage.value = t('status.invalidBackground')
     return
   }
 
   try {
     addToHistory(url.value)
     isCapturing.value = true
-    statusMessage.value = "キャプチャを開始します..."
+    statusMessage.value = t('status.starting')
     
     await invoke('capture_screenshots', {
       url: url.value,
@@ -186,9 +186,9 @@ const captureScreenshots = async () => {
       frameBackground: devices.length > 0 && !bgIsTransparent ? bg : null
     })
     
-    statusMessage.value = "すべてのキャプチャが完了しました！"
+    statusMessage.value = t('status.done')
   } catch (err) {
-    statusMessage.value = `キャプチャエラー: ${err}`
+    statusMessage.value = t('status.captureError', { error: String(err) })
   } finally {
     isCapturing.value = false
   }
@@ -197,7 +197,7 @@ const captureScreenshots = async () => {
 const abortCapture = async () => {
   try {
     await invoke('abort_capture')
-    statusMessage.value = "キャプチャ処理の停止要求を送信しました..."
+    statusMessage.value = t('status.abortRequested')
   } catch (e) {
     console.error(e)
   }
@@ -213,29 +213,29 @@ const abortCapture = async () => {
             <option v-for="l in SUPPORTED_LOCALES" :key="l" :value="l">{{ LOCALE_NAMES[l] }}</option>
           </select>
           <select v-model="colorPreference" class="bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-sm rounded-lg px-2 py-1 text-gray-700 dark:text-gray-300 focus:outline-none focus:ring-1 focus:ring-blue-500">
-            <option value="auto">System</option>
-            <option value="light">Light</option>
-            <option value="dark">Dark</option>
+            <option value="auto">{{ t('theme.system') }}</option>
+            <option value="light">{{ t('theme.light') }}</option>
+            <option value="dark">{{ t('theme.dark') }}</option>
           </select>
         </div>
         <h1 class="text-3xl font-bold bg-gradient-to-r from-blue-500 to-indigo-600 bg-clip-text text-transparent">
           ResponsiveShot
         </h1>
-        <p class="text-sm text-gray-500 dark:text-gray-400 mt-2">レスポンシブ検証用 一括スクリーンショットツール</p>
+        <p class="text-sm text-gray-500 dark:text-gray-400 mt-2">{{ t('app.tagline') }}</p>
       </header>
 
       <!-- URL Input -->
       <section class="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700">
-        <label class="block text-sm font-medium mb-2">対象URL</label>
+        <label class="block text-sm font-medium mb-2">{{ t('url.label') }}</label>
         <div class="flex flex-col gap-3">
-          <input 
-            v-model="url" 
-            type="url" 
-            placeholder="https://example.com"
+          <input
+            v-model="url"
+            type="url"
+            :placeholder="t('url.placeholder')"
             class="w-full px-4 py-3 text-lg border rounded-lg bg-gray-50 dark:bg-gray-900 border-gray-200 dark:border-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
           <div v-if="urlHistory.length > 0" class="flex items-center gap-2">
-            <span class="text-xs text-gray-500 dark:text-gray-400">履歴から選択:</span>
+            <span class="text-xs text-gray-500 dark:text-gray-400">{{ t('url.history') }}</span>
             <select v-model="url" class="flex-1 text-sm bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 rounded-md px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-blue-500">
               <option v-for="h in urlHistory" :key="h" :value="h">{{ h }}</option>
             </select>
@@ -245,54 +245,54 @@ const abortCapture = async () => {
 
       <!-- Capture Target Area -->
       <section class="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700">
-        <h2 class="text-sm font-medium mb-4">キャプチャ対象</h2>
+        <h2 class="text-sm font-medium mb-4">{{ t('target.heading') }}</h2>
         <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          
+
           <label class="flex flex-col p-4 border rounded-lg cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
                  :class="{'border-blue-500 bg-blue-50 dark:bg-blue-900/20': targetMode === 'fullpage', 'border-gray-200 dark:border-gray-700': targetMode !== 'fullpage'}">
             <div class="flex items-center gap-2 mb-2">
               <input type="radio" value="fullpage" v-model="targetMode" class="text-blue-500" />
-              <span class="font-medium">フルページ</span>
+              <span class="font-medium">{{ t('target.fullpage') }}</span>
             </div>
-            <p class="text-xs text-gray-500 dark:text-gray-400 pl-6">ページ全体の下部までスクロールして撮影</p>
+            <p class="text-xs text-gray-500 dark:text-gray-400 pl-6">{{ t('target.fullpageHint') }}</p>
           </label>
 
           <label class="flex flex-col p-4 border rounded-lg cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
                  :class="{'border-blue-500 bg-blue-50 dark:bg-blue-900/20': targetMode === 'viewport', 'border-gray-200 dark:border-gray-700': targetMode !== 'viewport'}">
             <div class="flex items-center gap-2 mb-2">
               <input type="radio" value="viewport" v-model="targetMode" class="text-blue-500" />
-              <span class="font-medium">ビューポート</span>
+              <span class="font-medium">{{ t('target.viewport') }}</span>
             </div>
-            <p class="text-xs text-gray-500 dark:text-gray-400 pl-6">ファーストビューのみをそのまま横並びで撮影</p>
+            <p class="text-xs text-gray-500 dark:text-gray-400 pl-6">{{ t('target.viewportHint') }}</p>
           </label>
 
           <label class="flex flex-col p-4 border rounded-lg cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
                  :class="{'border-blue-500 bg-blue-50 dark:bg-blue-900/20': targetMode === 'element', 'border-gray-200 dark:border-gray-700': targetMode !== 'element'}">
             <div class="flex items-center gap-2 mb-2">
               <input type="radio" value="element" v-model="targetMode" class="text-blue-500" />
-              <span class="font-medium">指定要素</span>
+              <span class="font-medium">{{ t('target.element') }}</span>
             </div>
-            <p class="text-xs text-gray-500 dark:text-gray-400 pl-6">任意のブロックの範囲ピッタリで切り抜き</p>
+            <p class="text-xs text-gray-500 dark:text-gray-400 pl-6">{{ t('target.elementHint') }}</p>
           </label>
 
         </div>
 
-        <h2 class="text-sm font-medium mt-6 mb-4">出力設定</h2>
+        <h2 class="text-sm font-medium mt-6 mb-4">{{ t('output.heading') }}</h2>
         <div class="flex gap-4 flex-col sm:flex-row mb-4">
           <label class="flex items-center gap-3 p-4 border rounded-lg cursor-pointer flex-1 transition-colors"
                  :class="{'border-blue-500 bg-blue-50 dark:bg-blue-900/20': outputFormat === 'png', 'border-gray-200 dark:border-gray-700': outputFormat !== 'png'}">
             <input type="radio" value="png" v-model="outputFormat" class="text-blue-500 w-5 h-5" />
             <div class="flex flex-col">
-              <span class="font-bold flex items-center gap-2"><div class="i-carbon-image text-lg"></div> PNG (静止画)</span>
-              <span class="text-xs text-gray-500 dark:text-gray-400 mt-1">選択対象を1枚の画像として書き出す</span>
+              <span class="font-bold flex items-center gap-2"><div class="i-carbon-image text-lg"></div> {{ t('output.png') }}</span>
+              <span class="text-xs text-gray-500 dark:text-gray-400 mt-1">{{ t('output.pngHint') }}</span>
             </div>
           </label>
           <label class="flex items-center gap-3 p-4 border rounded-lg cursor-pointer flex-1 transition-colors"
                  :class="{'border-blue-500 bg-blue-50 dark:bg-blue-900/20': outputFormat === 'gif', 'border-gray-200 dark:border-gray-700': outputFormat !== 'gif'}">
             <input type="radio" value="gif" v-model="outputFormat" class="text-blue-500 w-5 h-5" />
             <div class="flex flex-col">
-              <span class="font-bold flex items-center gap-2"><div class="i-carbon-video text-lg"></div> GIF動画録画</span>
-              <span class="text-xs text-gray-500 dark:text-gray-400 mt-1">クリック操作などのアニメーションを記録する</span>
+              <span class="font-bold flex items-center gap-2"><div class="i-carbon-video text-lg"></div> {{ t('output.gif') }}</span>
+              <span class="text-xs text-gray-500 dark:text-gray-400 mt-1">{{ t('output.gifHint') }}</span>
             </div>
           </label>
         </div>
@@ -301,8 +301,8 @@ const abortCapture = async () => {
                :class="{'border-blue-500 bg-blue-50 dark:bg-blue-900/20': manualInteraction, 'border-gray-200 dark:border-gray-700': !manualInteraction}">
           <input type="checkbox" v-model="manualInteraction" class="text-blue-500 w-5 h-5 rounded" />
           <div class="flex flex-col">
-            <span class="font-bold text-gray-800 dark:text-gray-200">画面手動操作（インタラクション待機）を有効にする</span>
-            <span class="text-xs text-gray-500 dark:text-gray-400 mt-1">撮影前にブラウザ上に「準備完了」ボタンを表示します。非表示のモーダルを開いたり、文字を入力してから録画・撮影をスタートできます。</span>
+            <span class="font-bold text-gray-800 dark:text-gray-200">{{ t('output.manualInteraction') }}</span>
+            <span class="text-xs text-gray-500 dark:text-gray-400 mt-1">{{ t('output.manualInteractionHint') }}</span>
           </div>
         </label>
 
@@ -310,12 +310,12 @@ const abortCapture = async () => {
         <div class="mt-4 p-5 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg flex flex-col gap-5">
           <div class="flex flex-col sm:flex-row items-center justify-between gap-4">
             <div class="text-sm">
-              <span class="font-bold text-gray-800 dark:text-gray-200">待機時間 (準備用):</span>
-              <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">キャプチャ実行後、この秒数待機してからキャプチャを開始します。</p>
+              <span class="font-bold text-gray-800 dark:text-gray-200">{{ t('output.startDelay') }}</span>
+              <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">{{ t('output.startDelayHint') }}</p>
             </div>
             <div class="flex items-center gap-3 bg-white dark:bg-gray-800 p-2 rounded border border-gray-200 dark:border-gray-700">
               <input type="range" v-model.number="startDelay" min="1" max="10" step="1" class="w-24 accent-blue-500" />
-              <span class="font-mono text-blue-500 font-bold w-12 text-center">{{ startDelay }} 秒</span>
+              <span class="font-mono text-blue-500 font-bold w-12 text-center">{{ t('output.startDelayUnit', { seconds: startDelay }) }}</span>
             </div>
           </div>
         </div>
@@ -324,26 +324,26 @@ const abortCapture = async () => {
         <div v-show="outputFormat === 'gif'" class="mt-4 p-5 bg-gray-50 dark:bg-gray-900 border border-blue-100 dark:border-blue-900/30 rounded-lg flex flex-col gap-5">
           <div class="flex flex-col sm:flex-row items-center justify-between gap-4">
             <div class="text-sm">
-              <span class="font-bold text-gray-800 dark:text-gray-200">動画の長さ:</span>
-              <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">指定要素や領域を指定秒数、10コマ/秒の滑らかさで録画します。</p>
+              <span class="font-bold text-gray-800 dark:text-gray-200">{{ t('output.gifDuration') }}</span>
+              <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">{{ t('output.gifDurationHint') }}</p>
             </div>
             <div class="flex items-center gap-3 bg-white dark:bg-gray-800 p-2 rounded border border-gray-200 dark:border-gray-700">
               <input type="range" v-model.number="gifDuration" min="1" max="20" step="1" class="w-24 accent-blue-500" />
-              <span class="font-mono text-blue-500 font-bold w-12 text-center">{{ gifDuration }} 秒</span>
+              <span class="font-mono text-blue-500 font-bold w-12 text-center">{{ t('output.gifDurationUnit', { seconds: gifDuration }) }}</span>
             </div>
           </div>
         </div>
 
         <div v-show="targetMode === 'element'" class="mt-4 p-4 bg-gray-50 dark:bg-gray-900 rounded-lg flex items-center justify-between">
           <div class="text-sm truncate mr-4">
-            現在の選択: <span class="font-mono text-blue-500">{{ selectedSelector || '未指定' }}</span>
+            {{ t('target.selectorLabel') }}<span class="font-mono text-blue-500">{{ selectedSelector || t('target.selectorEmpty') }}</span>
           </div>
-          <button 
-            @click="selectElement" 
+          <button
+            @click="selectElement"
             class="px-4 py-2 bg-indigo-100 hover:bg-indigo-200 dark:bg-indigo-900 dark:hover:bg-indigo-800 text-indigo-700 dark:text-indigo-200 text-sm font-medium rounded-lg transition-colors whitespace-nowrap"
             :disabled="isSelectingElement"
           >
-            ブラウザを開いて要素を選択
+            {{ t('target.selectElement') }}
           </button>
         </div>
       </section>
@@ -351,9 +351,9 @@ const abortCapture = async () => {
       <!-- Width Selection -->
       <section class="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700">
         <div class="flex justify-between items-center mb-4">
-          <h2 class="text-sm font-medium">キャプチャする画面幅</h2>
+          <h2 class="text-sm font-medium">{{ t('widths.heading') }}</h2>
           <button @click="toggleAllWidths" class="text-xs text-blue-500 hover:text-blue-600 dark:text-blue-400">
-            全選択 / 解除
+            {{ t('widths.toggleAll') }}
           </button>
         </div>
         <div class="flex flex-wrap gap-3">
@@ -369,14 +369,14 @@ const abortCapture = async () => {
           <label class="flex items-start gap-3 cursor-pointer">
             <input type="checkbox" v-model="heightAuto" class="mt-1 text-blue-500 rounded" />
             <div class="flex flex-col">
-              <span class="text-sm font-bold text-gray-800 dark:text-gray-200">高さを自動にする</span>
-              <span class="text-xs text-gray-500 dark:text-gray-400 mt-1">現在の仕様で撮影します。オンの場合、下の比率指定は使いません。</span>
+              <span class="text-sm font-bold text-gray-800 dark:text-gray-200">{{ t('widths.heightAuto') }}</span>
+              <span class="text-xs text-gray-500 dark:text-gray-400 mt-1">{{ t('widths.heightAutoHint') }}</span>
             </div>
           </label>
 
           <div class="mt-4" :class="{'opacity-45 pointer-events-none': heightAuto || targetMode === 'fullpage'}">
             <div class="flex items-center justify-between gap-3 mb-3">
-              <h3 class="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wide">画面比率</h3>
+              <h3 class="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wide">{{ t('widths.ratioHeading') }}</h3>
               <span class="text-xs font-mono text-blue-600 dark:text-blue-400 truncate">{{ ratioPreview }}</span>
             </div>
 
@@ -396,7 +396,7 @@ const abortCapture = async () => {
             </div>
 
             <div v-show="selectedRatio === 'custom'" class="mt-3 flex flex-wrap items-center gap-2 p-3 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg">
-              <span class="text-xs font-medium text-gray-500 dark:text-gray-400">任意比率</span>
+              <span class="text-xs font-medium text-gray-500 dark:text-gray-400">{{ t('widths.customRatio') }}</span>
               <input
                 v-model.number="customRatioW"
                 type="number"
@@ -426,20 +426,20 @@ const abortCapture = async () => {
 
       <!-- Save Directory -->
       <section class="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700">
-        <label class="block text-sm font-medium mb-2">保存先フォルダ</label>
+        <label class="block text-sm font-medium mb-2">{{ t('saveDir.label') }}</label>
         <div class="flex gap-2">
-          <input 
-            v-model="saveDir" 
-            type="text" 
+          <input
+            v-model="saveDir"
+            type="text"
             readonly
-            placeholder="選択されていません"
+            :placeholder="t('saveDir.placeholder')"
             class="flex-1 px-4 py-2 border rounded-lg bg-gray-50 dark:bg-gray-900 border-gray-200 dark:border-gray-700 text-sm focus:outline-none cursor-not-allowed text-gray-500"
           />
-          <button 
+          <button
             @click="selectSaveDir"
             class="px-4 py-2 bg-gray-200 hover:bg-gray-300 dark:bg-gray-800 dark:hover:bg-gray-700 text-gray-800 dark:text-gray-100 font-medium rounded-lg transition-colors text-sm dark:shadow-none border border-transparent dark:border-gray-700"
           >
-            フォルダ参照
+            {{ t('saveDir.browse') }}
           </button>
         </div>
       </section>
@@ -454,16 +454,16 @@ const abortCapture = async () => {
             class="flex-1 w-full sm:w-auto px-12 py-4 bg-blue-600 hover:bg-blue-700 focus:ring-4 focus:ring-blue-300 dark:focus:ring-blue-800 text-white font-bold text-lg rounded-xl shadow-lg dark:shadow-none transition-all flex items-center justify-center gap-3 disabled:opacity-50"
           >
             <span class="i-carbon-camera text-2xl"></span>
-            一括キャプチャを実行
+            {{ t('actions.capture') }}
           </button>
-          
-          <button 
+
+          <button
             v-if="isCapturing"
             @click="abortCapture"
             class="flex-1 w-full sm:w-auto px-12 py-4 bg-red-600 hover:bg-red-700 focus:ring-4 focus:ring-red-300 dark:focus:ring-red-800 text-white font-bold text-lg rounded-xl shadow-lg dark:shadow-none transition-all flex items-center justify-center gap-3 animate-pulse"
           >
             <span class="i-carbon-stop-outline text-2xl"></span>
-            処理を中止する
+            {{ t('actions.abort') }}
           </button>
         </div>
         <p v-if="statusMessage" class="mt-4 text-sm font-medium text-center" :class="{'text-blue-500': isCapturing || isSelectingElement, 'text-gray-600 dark:text-gray-400': !isCapturing && !isSelectingElement}">
