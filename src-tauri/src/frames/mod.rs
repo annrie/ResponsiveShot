@@ -4,6 +4,7 @@
 pub mod compose;
 pub mod catalog;
 pub mod store;
+pub mod import;
 
 use serde::{Deserialize, Serialize};
 
