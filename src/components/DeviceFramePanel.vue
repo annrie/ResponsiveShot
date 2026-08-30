@@ -13,6 +13,15 @@ const emit = defineEmits<{ status: [message: string] }>()
 const frames = ref<FrameStatus[]>([])
 const framesDir = ref('')
 const vendorLabels: Record<FrameStatus['vendor'], string> = { apple: 'Apple', google: 'Google' }
+const categoryOrder: FrameStatus['category'][] = ['phone', 'tablet', 'laptop', 'desktop', 'display']
+const categoryLabels: Record<FrameStatus['category'], string> = {
+  phone: 'スマートフォン',
+  tablet: 'タブレット',
+  laptop: 'ノート PC',
+  desktop: 'デスクトップ',
+  display: 'ディスプレイ',
+}
+const APPLE_DESIGN_RESOURCES = 'https://developer.apple.com/design/resources/#product-bezels'
 const stateLabels: Record<FrameStatus['state'], string> = {
   bundled: '同梱',
   imported: '取り込み済み',
@@ -24,9 +33,15 @@ const groups = computed(() =>
     .map(vendor => ({
       vendor,
       label: vendorLabels[vendor],
-      items: frames.value.filter(f => f.vendor === vendor),
+      sections: categoryOrder
+        .map(category => ({
+          category,
+          label: categoryLabels[category],
+          items: frames.value.filter(f => f.vendor === vendor && f.category === category),
+        }))
+        .filter(s => s.items.length > 0),
     }))
-    .filter(g => g.items.length > 0)
+    .filter(g => g.sections.length > 0)
 )
 
 /** list_frames の結果に合わせて選択を整える: 無い/未取り込みは外し、無い色は先頭の色にする */
@@ -80,10 +95,6 @@ const openOfficial = async (url: string) => {
     emit('status', `ブラウザを開けませんでした: ${e}`)
   }
 }
-
-const officialUrl = computed(
-  () => frames.value.find(f => f.vendor === 'apple' && f.source_url)?.source_url ?? ''
-)
 
 const runImport = async (path: string) => {
   importing.value = true
@@ -145,63 +156,65 @@ defineExpose({ refresh })
 
     <div v-for="g in groups" :key="g.vendor" class="mb-4 last:mb-0">
       <h3 class="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-2">{{ g.label }}</h3>
-      <div class="flex flex-wrap gap-3">
-        <label
-          v-for="f in g.items"
-          :key="f.id"
-          class="flex items-center gap-2 px-3 py-2 border border-gray-200 dark:border-gray-700 rounded-md transition-colors"
-          :class="[
-            f.state === 'missing'
-              ? 'opacity-60 cursor-not-allowed'
-              : 'cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700',
-            { 'border-blue-400 bg-blue-50 dark:bg-blue-900/20': isSelected(f.id) },
-          ]"
-        >
-          <input
-            type="checkbox"
-            :checked="isSelected(f.id)"
-            :disabled="f.state === 'missing'"
-            @change="toggle(f)"
-            class="text-blue-500 rounded"
-          />
-          <span class="text-sm">{{ f.name }}</span>
-          <span
-            class="text-xs px-1.5 py-0.5 rounded"
-            :class="
+      <div v-for="s in g.sections" :key="s.category" class="mb-3 last:mb-0">
+        <h4 class="text-xs text-gray-500 dark:text-gray-400 mb-2">{{ s.label }}</h4>
+        <div class="flex flex-wrap gap-3">
+          <label
+            v-for="f in s.items"
+            :key="f.id"
+            class="flex items-center gap-2 px-3 py-2 border border-gray-200 dark:border-gray-700 rounded-md transition-colors"
+            :class="[
               f.state === 'missing'
-                ? 'bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-300'
-                : 'bg-green-100 dark:bg-green-900/40 text-green-700 dark:text-green-300'
-            "
+                ? 'opacity-60 cursor-not-allowed'
+                : 'cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700',
+              { 'border-blue-400 bg-blue-50 dark:bg-blue-900/20': isSelected(f.id) },
+            ]"
           >
-            {{ stateLabels[f.state] }}
-          </span>
-          <select
-            v-if="f.state === 'imported' && f.variants.length > 1 && isSelected(f.id)"
-            :value="variantOf(f.id)"
-            @change="setVariant(f.id, ($event.target as HTMLSelectElement).value)"
-            class="text-xs bg-gray-100 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded px-1 py-0.5"
-          >
-            <option v-for="v in f.variants" :key="v" :value="v">{{ v }}</option>
-          </select>
-          <button
-            v-if="f.state === 'missing' && f.source_url"
-            type="button"
-            @click.prevent="openOfficial(f.source_url ?? '')"
-            class="text-xs text-blue-500 hover:text-blue-600 dark:text-blue-400 underline"
-          >
-            公式
-          </button>
-        </label>
+            <input
+              type="checkbox"
+              :checked="isSelected(f.id)"
+              :disabled="f.state === 'missing'"
+              @change="toggle(f)"
+              class="text-blue-500 rounded"
+            />
+            <span class="text-sm">{{ f.name }}</span>
+            <span
+              class="text-xs px-1.5 py-0.5 rounded"
+              :class="
+                f.state === 'missing'
+                  ? 'bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-300'
+                  : 'bg-green-100 dark:bg-green-900/40 text-green-700 dark:text-green-300'
+              "
+            >
+              {{ stateLabels[f.state] }}
+            </span>
+            <select
+              v-if="f.state === 'imported' && f.variants.length > 1 && isSelected(f.id)"
+              :value="variantOf(f.id)"
+              @change="setVariant(f.id, ($event.target as HTMLSelectElement).value)"
+              class="text-xs bg-gray-100 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded px-1 py-0.5"
+            >
+              <option v-for="v in f.variants" :key="v" :value="v">{{ v }}</option>
+            </select>
+            <button
+              v-if="f.state === 'missing' && f.source_url"
+              type="button"
+              @click.prevent="openOfficial(f.source_url ?? '')"
+              class="text-xs text-blue-500 hover:text-blue-600 dark:text-blue-400 underline"
+            >
+              公式
+            </button>
+          </label>
+        </div>
       </div>
       <div v-if="g.vendor === 'apple'" class="mt-3 flex flex-wrap items-center gap-2">
         <span class="text-xs text-gray-500 dark:text-gray-400 w-full basis-full">
-          ① 「公式サイトを開く」で Apple Design Resources をブラウザで開き、② ブラウザで iPhone 16 の Product Bezels（DMG）をダウンロードしてください（進行状況はブラウザのダウンロード欄に表示されます。アプリはダウンロードしません）。③ ダウンロードした DMG ファイルを「DMG / PNG を取り込む」で選ぶと取り込まれます。
+          ① 「公式サイトを開く」で Apple Design Resources をブラウザで開き、② ブラウザで対応機種（iPhone / iPad / MacBook / iMac / Studio Display）の Product Bezels（DMG）をダウンロードしてください（進行状況はブラウザのダウンロード欄に表示されます。アプリはダウンロードしません）。③ ダウンロードした DMG ファイルを「DMG / PNG を取り込む」で選ぶと取り込まれます。
         </span>
         <button
           type="button"
-          @click="openOfficial(officialUrl)"
-          :disabled="!officialUrl"
-          class="px-3 py-1.5 text-xs font-medium rounded-md bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 disabled:opacity-50"
+          @click="openOfficial(APPLE_DESIGN_RESOURCES)"
+          class="px-3 py-1.5 text-xs font-medium rounded-md bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600"
         >
           公式サイトを開く
         </button>
