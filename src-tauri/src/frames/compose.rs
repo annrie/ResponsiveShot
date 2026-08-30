@@ -5,6 +5,23 @@ use image::{Rgba, RgbaImage};
 
 use super::Rect;
 
+/// `#rgb` / `#rrggbb` を不透明色に変換する。前後の空白は無視。それ以外は Err
+pub fn parse_hex_color(s: &str) -> Result<Rgba<u8>, String> {
+    let err = || format!("背景色の形式が不正です: {:?}（#rrggbb 形式で指定してください）", s);
+    let t = s.trim();
+    let hex = t.strip_prefix('#').ok_or_else(err)?;
+    if !hex.chars().all(|c| c.is_ascii_hexdigit()) {
+        return Err(err());
+    }
+    let expanded: String = match hex.len() {
+        3 => hex.chars().flat_map(|c| [c, c]).collect(),
+        6 => hex.to_string(),
+        _ => return Err(err()),
+    };
+    let channel = |i: usize| u8::from_str_radix(&expanded[i..i + 2], 16).map_err(|_| err());
+    Ok(Rgba([channel(0)?, channel(2)?, channel(4)?, 255]))
+}
+
 /// `src` を比率を保ったまま `w x h` を覆う大きさにリサイズし、中央で `w x h` に切り抜く
 /// （CSS の object-fit: cover 相当）。寸法が一致していれば等倍コピー。
 pub fn cover_resize(src: &RgbaImage, w: u32, h: u32) -> RgbaImage {
@@ -64,14 +81,25 @@ pub fn shadow_layer(frame: &RgbaImage, screen: Rect, p: &ShadowParams) -> RgbaIm
 
 /// スクショを `screen` に cover リサイズして置き、その上にフレームを重ねる。
 /// `shadow` が true ならキャンバスを `padding` 分広げ、影 → スクショ → フレーム の順に重ねる。
+/// `background` を指定するとキャンバスをその色（不透明）で初期化する。`None` は透明（従来どおり）。
 /// フレームの画面部分は透明である前提（Apple / Google の公式素材はどちらもそう）。
 /// 角丸クリップはしない: フレーム側の角が不透明でスクショの角を覆う。
-pub fn compose_frame(shot: &RgbaImage, frame: &RgbaImage, screen: Rect, shadow: bool) -> RgbaImage {
+pub fn compose_frame(
+    shot: &RgbaImage,
+    frame: &RgbaImage,
+    screen: Rect,
+    shadow: bool,
+    background: Option<Rgba<u8>>,
+) -> RgbaImage {
     let fitted = cover_resize(shot, screen.width, screen.height);
     let params = ShadowParams::for_frame(frame.width(), frame.height());
     let pad = if shadow { params.padding } else { 0 };
 
-    let mut canvas = RgbaImage::new(frame.width() + 2 * pad, frame.height() + 2 * pad);
+    let (cw, ch) = (frame.width() + 2 * pad, frame.height() + 2 * pad);
+    let mut canvas = match background {
+        Some(color) => RgbaImage::from_pixel(cw, ch, color),
+        None => RgbaImage::new(cw, ch),
+    };
     if shadow {
         imageops::overlay(&mut canvas, &shadow_layer(frame, screen, &params), 0, 0);
     }
@@ -106,7 +134,7 @@ mod tests {
     #[test]
     fn screenshot_fills_hole_and_frame_covers_outside() {
         let shot = solid(60, 140, [200, 0, 0, 255]);
-        let out = compose_frame(&shot, &frame_with_hole(), HOLE, false);
+        let out = compose_frame(&shot, &frame_with_hole(), HOLE, false, None);
         assert_eq!(out.dimensions(), (100, 200));
         assert_eq!(out.get_pixel(50, 100).0, [200, 0, 0, 255], "画面中央はスクショ");
         assert_eq!(out.get_pixel(5, 5).0, BEZEL, "ベゼル部分はフレーム");
@@ -122,7 +150,7 @@ mod tests {
                 shot.put_pixel(x, y, Rgba([0, 255, 0, 255]));
             }
         }
-        let out = compose_frame(&shot, &frame_with_hole(), HOLE, false);
+        let out = compose_frame(&shot, &frame_with_hole(), HOLE, false, None);
         assert_eq!(out.dimensions(), (100, 200));
         assert_eq!(
             out.get_pixel(HOLE.x, HOLE.y + 70).0,
@@ -134,7 +162,7 @@ mod tests {
     #[test]
     fn smaller_screenshot_is_upscaled_to_fill() {
         let shot = solid(30, 70, [0, 0, 255, 255]);
-        let out = compose_frame(&shot, &frame_with_hole(), HOLE, false);
+        let out = compose_frame(&shot, &frame_with_hole(), HOLE, false, None);
         assert_eq!(out.get_pixel(HOLE.right() - 1, HOLE.bottom() - 1).0, [0, 0, 255, 255]);
     }
 
@@ -158,7 +186,7 @@ mod tests {
     fn shadow_expands_canvas_and_darkens_below_body() {
         let shot = solid(60, 140, [200, 0, 0, 255]);
         let p = ShadowParams::for_frame(100, 200);
-        let out = compose_frame(&shot, &frame_with_hole(), HOLE, true);
+        let out = compose_frame(&shot, &frame_with_hole(), HOLE, true, None);
         assert_eq!(out.dimensions(), (100 + 2 * p.padding, 200 + 2 * p.padding));
 
         let below = out.get_pixel(p.padding + 50, p.padding + 200 + 1);
@@ -171,5 +199,46 @@ mod tests {
             [200, 0, 0, 255],
             "画面もそのまま"
         );
+    }
+
+    #[test]
+    fn parse_hex_color_accepts_3_and_6_digits() {
+        assert_eq!(parse_hex_color("#fff").unwrap(), Rgba([255, 255, 255, 255]));
+        assert_eq!(parse_hex_color("#1a2B3c").unwrap(), Rgba([26, 43, 60, 255]));
+        assert_eq!(parse_hex_color("  #000 ").unwrap(), Rgba([0, 0, 0, 255]), "前後の空白は無視");
+    }
+
+    #[test]
+    fn parse_hex_color_rejects_invalid() {
+        for s in ["fff", "#ggg", "#12345", "", "#", "#1234567", "white"] {
+            let err = parse_hex_color(s).unwrap_err();
+            assert!(err.contains("背景色の形式が不正です"), "{s}: {err}");
+        }
+    }
+
+    #[test]
+    fn background_fills_transparent_areas_and_shadow_darkens_it() {
+        let shot = solid(60, 140, [200, 0, 0, 255]);
+        let mut frame = frame_with_hole();
+        frame.put_pixel(0, 0, Rgba([0, 0, 0, 0])); // フレーム外周に透明画素を 1 つ
+
+        // 背景なし: 従来どおり透明
+        let out = compose_frame(&shot, &frame, HOLE, false, None);
+        assert_eq!(out.get_pixel(0, 0)[3], 0);
+
+        // 白背景・影なし: 透明画素が白に、画面とベゼルは不変
+        let white = Rgba([255, 255, 255, 255]);
+        let out = compose_frame(&shot, &frame, HOLE, false, Some(white));
+        assert_eq!(out.get_pixel(0, 0).0, [255, 255, 255, 255]);
+        assert_eq!(out.get_pixel(50, 100).0, [200, 0, 0, 255]);
+        assert_eq!(out.get_pixel(5, 5).0, BEZEL);
+
+        // 白背景・影あり: 四隅は純白、本体下は白が暗くなる（黒い影が乗る）
+        let p = ShadowParams::for_frame(100, 200);
+        let out = compose_frame(&shot, &frame, HOLE, true, Some(white));
+        assert_eq!(out.get_pixel(0, 0).0, [255, 255, 255, 255]);
+        let below = out.get_pixel(p.padding + 50, p.padding + 200 + 1);
+        assert_eq!(below[3], 255, "背景ありなら不透明");
+        assert!(below[0] < 250 && below[0] == below[1] && below[1] == below[2], "白の上に黒の影 → 灰色: {:?}", below);
     }
 }

@@ -8,6 +8,29 @@ import type { DeviceSelection, FrameStatus, ImportReport } from '../types/frames
 defineProps<{ disabled: boolean }>()
 const selected = defineModel<DeviceSelection[]>('selected', { required: true })
 const shadow = defineModel<boolean>('shadow', { required: true })
+
+/** 'transparent' か '#rrggbb'（'#rgb' も可）。App.vue 側で rs-frame-bg に永続化 */
+const background = defineModel<string>('background', { required: true })
+
+const HEX_RE = /^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/
+const isValidHex = (s: string) => HEX_RE.test(s.trim())
+
+type BgMode = 'transparent' | 'white' | 'black' | 'custom'
+const bgMode = computed<BgMode>(() => {
+  const v = background.value.trim().toLowerCase()
+  if (v === 'transparent') return 'transparent'
+  if (v === '#ffffff' || v === '#fff') return 'white'
+  if (v === '#000000' || v === '#000') return 'black'
+  return 'custom'
+})
+const setBgMode = (mode: BgMode) => {
+  if (mode === 'transparent') background.value = 'transparent'
+  else if (mode === 'white') background.value = '#ffffff'
+  else if (mode === 'black') background.value = '#000000'
+  else if (bgMode.value !== 'custom') background.value = '#f5f5f5'
+}
+const backgroundInvalid = computed(() => bgMode.value === 'custom' && !isValidHex(background.value))
+
 const emit = defineEmits<{ status: [message: string] }>()
 
 const frames = ref<FrameStatus[]>([])
@@ -145,10 +168,35 @@ defineExpose({ refresh })
   >
     <div class="flex justify-between items-center mb-1">
       <h2 class="text-sm font-medium">デバイスフレーム</h2>
-      <label class="flex items-center gap-2 cursor-pointer text-sm">
-        <input type="checkbox" v-model="shadow" class="text-blue-500 rounded" />
-        ドロップシャドウ
-      </label>
+      <div class="flex items-center gap-4 text-sm">
+        <label class="flex items-center gap-1">
+          <span class="text-xs text-gray-500 dark:text-gray-400">背景</span>
+          <select
+            :value="bgMode"
+            @change="setBgMode(($event.target as HTMLSelectElement).value as BgMode)"
+            class="text-xs bg-gray-100 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded px-1 py-0.5"
+          >
+            <option value="transparent">透明</option>
+            <option value="white">白</option>
+            <option value="black">黒</option>
+            <option value="custom">任意</option>
+          </select>
+          <input
+            v-if="bgMode === 'custom'"
+            :value="background"
+            @input="background = ($event.target as HTMLInputElement).value"
+            type="text"
+            placeholder="#rrggbb"
+            spellcheck="false"
+            class="w-24 text-xs font-mono bg-gray-100 dark:bg-gray-900 border rounded px-1 py-0.5"
+            :class="backgroundInvalid ? 'border-red-400' : 'border-gray-200 dark:border-gray-700'"
+          />
+        </label>
+        <label class="flex items-center gap-2 cursor-pointer">
+          <input type="checkbox" v-model="shadow" class="text-blue-500 rounded" />
+          ドロップシャドウ
+        </label>
+      </div>
     </div>
     <p class="text-xs text-gray-500 dark:text-gray-400 mb-4">
       選んだ端末の解像度で撮影し、フレームにはめ込んだ PNG を保存します（PNG 出力のみ。GIF では使えません）。

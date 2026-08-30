@@ -411,7 +411,7 @@ fn compose_png(shot_png: &[u8], job: &FrameJob, frame: &RgbaImage) -> Result<Vec
     let shot = image::load_from_memory(shot_png)
         .map_err(|e| format!("スクリーンショットの読み込みに失敗: {}", e))?
         .to_rgba8();
-    let out = compose::compose_frame(&shot, frame, job.screen, job.shadow);
+    let out = compose::compose_frame(&shot, frame, job.screen, job.shadow, job.background);
     let mut buf = Cursor::new(Vec::new());
     image::DynamicImage::ImageRgba8(out)
         .write_to(&mut buf, ImageOutputFormat::Png)
@@ -434,10 +434,20 @@ fn capture_screenshots(
     viewport_height: Option<u32>,
     devices: Vec<DeviceSelection>,
     frame_shadow: bool,
+    frame_background: Option<String>,
 ) -> Result<(), String> {
     let save_path = PathBuf::from(save_dir);
     ABORT_FLAG.store(false, Ordering::Relaxed);
     let capture_height = viewport_height.unwrap_or(VIEWPORT_HEIGHT).max(1);
+    // 背景色はデバイス撮影があるときだけ検証する（幅指定 / GIF では無視。不正値でブラウザを起動しない）
+    let frame_background = if devices.is_empty() {
+        None
+    } else {
+        match frame_background.as_deref().map(str::trim) {
+            Some("") | None => None,
+            Some(s) => Some(compose::parse_hex_color(s)?),
+        }
+    };
     let frames_ctx = if devices.is_empty() {
         None
     } else {
@@ -451,6 +461,7 @@ fn capture_screenshots(
         capture_height,
         &devices,
         frame_shadow,
+        frame_background,
         duration,
         frames_ctx.as_ref().map(|(e, r)| (e.as_slice(), r)),
     )?;

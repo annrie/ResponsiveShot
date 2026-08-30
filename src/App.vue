@@ -38,6 +38,7 @@ const customRatioW = useStorage('rs-custom-ratio-w', 5)
 const customRatioH = useStorage('rs-custom-ratio-h', 4)
 const selectedDevices = useStorage<DeviceSelection[]>('rs-devices', [])
 const frameShadow = useStorage('rs-frame-shadow', false)
+const frameBackground = useStorage('rs-frame-bg', 'transparent')
 
 const ratioOptions = [
   { value: '16:9', label: '16:9', description: '標準ワイド' },
@@ -152,6 +153,12 @@ const captureScreenshots = async () => {
     statusMessage.value = "キャプチャする幅かデバイスを一つ以上選択してください。"
     return
   }
+  const bg = frameBackground.value.trim()
+  const bgIsTransparent = bg === '' || bg.toLowerCase() === 'transparent'
+  if (devices.length > 0 && !bgIsTransparent && !/^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/.test(bg)) {
+    statusMessage.value = "背景色は #rrggbb 形式で指定してください。"
+    return
+  }
 
   try {
     addToHistory(url.value)
@@ -170,7 +177,8 @@ const captureScreenshots = async () => {
       manualInteraction: manualInteraction.value,
       viewportHeight: viewportHeight.value,
       devices,
-      frameShadow: frameShadow.value
+      frameShadow: frameShadow.value,
+      frameBackground: devices.length > 0 && !bgIsTransparent ? bg : null
     })
     
     statusMessage.value = "すべてのキャプチャが完了しました！"
@@ -403,6 +411,7 @@ const abortCapture = async () => {
       <DeviceFramePanel
         v-model:selected="selectedDevices"
         v-model:shadow="frameShadow"
+        v-model:background="frameBackground"
         :disabled="outputFormat === 'gif'"
         @status="statusMessage = $event"
       />
