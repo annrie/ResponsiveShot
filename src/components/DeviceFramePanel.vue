@@ -174,7 +174,7 @@ defineExpose({ refresh })
           <select
             :value="bgMode"
             @change="setBgMode(($event.target as HTMLSelectElement).value as BgMode)"
-            class="text-xs bg-gray-100 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded px-1 py-0.5"
+            class="text-xs text-gray-800 dark:text-gray-100 bg-gray-100 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded px-1 py-0.5"
           >
             <option value="transparent">透明</option>
             <option value="white">白</option>
@@ -188,7 +188,7 @@ defineExpose({ refresh })
             type="text"
             placeholder="#rrggbb"
             spellcheck="false"
-            class="w-24 text-xs font-mono bg-gray-100 dark:bg-gray-900 border rounded px-1 py-0.5"
+            class="w-24 text-xs font-mono text-gray-800 dark:text-gray-100 bg-gray-100 dark:bg-gray-900 border rounded px-1 py-0.5"
             :class="backgroundInvalid ? 'border-red-400' : 'border-gray-200 dark:border-gray-700'"
           />
         </label>
@@ -240,7 +240,7 @@ defineExpose({ refresh })
               v-if="f.state === 'imported' && f.variants.length > 1 && isSelected(f.id)"
               :value="variantOf(f.id)"
               @change="setVariant(f.id, ($event.target as HTMLSelectElement).value)"
-              class="text-xs bg-gray-100 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded px-1 py-0.5"
+              class="text-xs text-gray-800 dark:text-gray-100 bg-gray-100 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded px-1 py-0.5"
             >
               <option v-for="v in f.variants" :key="v" :value="v">{{ v }}</option>
             </select>
