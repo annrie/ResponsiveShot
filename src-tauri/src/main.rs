@@ -15,6 +15,12 @@ use std::sync::atomic::{AtomicBool, Ordering};
 use std::time::Duration;
 use tauri::command;
 
+mod frames;
+use frames::{catalog, compose, import, store};
+use frames::targets::{build_targets, DeviceSelection, FrameJob};
+use std::path::Path;
+use tauri::Manager;
+
 static ABORT_FLAG: AtomicBool = AtomicBool::new(false);
 const VIEWPORT_HEIGHT: u32 = 1080;
 
@@ -22,12 +28,14 @@ fn set_viewport_metrics(
     tab: &headless_chrome::browser::tab::Tab,
     width: u32,
     height: u32,
+    device_scale_factor: f64,
+    mobile: bool,
 ) -> Result<(), String> {
     tab.call_method(Emulation::SetDeviceMetricsOverride {
         width,
         height,
-        device_scale_factor: 1.0,
-        mobile: false,
+        device_scale_factor,
+        mobile,
         scale: None,
         screen_width: Some(width),
         screen_height: Some(height),
@@ -225,7 +233,7 @@ fn capture_fullpage_expanded_viewport(
         width: Some(width_px as f64),
         height: Some(height_px as f64),
     });
-    set_viewport_metrics(tab, width_px, height_px)?;
+    set_viewport_metrics(tab, width_px, height_px, 1.0, false)?;
     let _ = tab.evaluate("window.scrollTo(0, 0)", false);
     wait_for_paint(tab)?;
 
@@ -346,8 +354,74 @@ fn abort_capture() {
     ABORT_FLAG.store(true, Ordering::Relaxed);
 }
 
+/// 同梱フレーム（resource）と取り込みフレーム（app_data）のルート。
+/// `tauri dev` で resources が解決できない場合は開発ビルドに限り src-tauri/frames を直接読む。
+fn frame_roots(app: &tauri::AppHandle) -> Result<store::Roots, String> {
+    let bundled = app
+        .path()
+        .resolve("frames", tauri::path::BaseDirectory::Resource)
+        .map_err(|e| e.to_string())?;
+    #[cfg(debug_assertions)]
+    let bundled = if bundled.join("catalog.json").is_file() {
+        bundled
+    } else {
+        PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("frames")
+    };
+    let user = app
+        .path()
+        .app_data_dir()
+        .map_err(|e| e.to_string())?
+        .join("frames");
+    Ok(store::Roots { bundled, user })
+}
+
+fn load_catalog(roots: &store::Roots) -> Result<Vec<catalog::DeviceEntry>, String> {
+    catalog::load_catalog(&roots.bundled.join("catalog.json"))
+}
+
+#[command]
+fn list_frames(app: tauri::AppHandle) -> Result<Vec<store::FrameStatus>, String> {
+    let roots = frame_roots(&app)?;
+    let entries = load_catalog(&roots)?;
+    Ok(entries.iter().map(|e| store::status_for(e, &roots)).collect())
+}
+
+/// 取り込みフレームの保存先（無ければ作る）。UI の「取り込み先を Finder で開く」用
+#[command]
+fn get_frames_dir(app: tauri::AppHandle) -> Result<String, String> {
+    let roots = frame_roots(&app)?;
+    std::fs::create_dir_all(&roots.user)
+        .map_err(|e| format!("保存先を作成できません {}: {}", roots.user.display(), e))?;
+    Ok(roots.user.to_string_lossy().into_owned())
+}
+
+#[command]
+async fn import_frames(app: tauri::AppHandle, path: String) -> Result<import::ImportReport, String> {
+    let roots = frame_roots(&app)?;
+    let entries = load_catalog(&roots)?;
+    tauri::async_runtime::spawn_blocking(move || {
+        import::import_frames(Path::new(&path), &entries, &roots.user)
+    })
+    .await
+    .map_err(|e| format!("取り込み処理のスレッドが失敗しました: {}", e))?
+}
+
+/// 撮影した PNG をフレームに合成して PNG バイト列を返す。フレーム画像は呼び出し側で事前デコード済み（AGENTS.md §1）
+fn compose_png(shot_png: &[u8], job: &FrameJob, frame: &RgbaImage) -> Result<Vec<u8>, String> {
+    let shot = image::load_from_memory(shot_png)
+        .map_err(|e| format!("スクリーンショットの読み込みに失敗: {}", e))?
+        .to_rgba8();
+    let out = compose::compose_frame(&shot, frame, job.screen, job.shadow);
+    let mut buf = Cursor::new(Vec::new());
+    image::DynamicImage::ImageRgba8(out)
+        .write_to(&mut buf, ImageOutputFormat::Png)
+        .map_err(|e| format!("PNG エンコードに失敗: {}", e))?;
+    Ok(buf.into_inner())
+}
+
 #[command]
 fn capture_screenshots(
+    app: tauri::AppHandle,
     url: String,
     widths: Vec<u32>,
     mode: String,
@@ -358,12 +432,50 @@ fn capture_screenshots(
     delay: u32,
     manual_interaction: bool,
     viewport_height: Option<u32>,
+    devices: Vec<DeviceSelection>,
+    frame_shadow: bool,
 ) -> Result<(), String> {
     let save_path = PathBuf::from(save_dir);
     ABORT_FLAG.store(false, Ordering::Relaxed);
     let capture_height = viewport_height.unwrap_or(VIEWPORT_HEIGHT).max(1);
+    let frames_ctx = if devices.is_empty() {
+        None
+    } else {
+        let roots = frame_roots(&app)?;
+        let entries = load_catalog(&roots)?;
+        Some((entries, roots))
+    };
+    let targets = build_targets(
+        &widths,
+        viewport_height,
+        capture_height,
+        &devices,
+        frame_shadow,
+        duration,
+        frames_ctx.as_ref().map(|(e, r)| (e.as_slice(), r)),
+    )?;
 
-    for w in widths {
+    for target in targets {
+        // 既存のループ本体は w / capture_height を参照しているので、同名で束縛し直して差分を最小にする
+        let w = target.width;
+        let capture_height = target.height;
+        // デバイスターゲットは常に viewport 撮影（spec §8）
+        let mode = if target.frame.is_some() {
+            "viewport".to_string()
+        } else {
+            mode.clone()
+        };
+
+        // フレーム画像は Chrome 起動前にデコードする（失敗をブラウザ起動前に返す。AGENTS.md §1）
+        let frame_image: Option<RgbaImage> = match &target.frame {
+            Some(job) => Some(
+                image::open(&job.frame_png)
+                    .map_err(|e| format!("フレーム画像の読み込みに失敗 {}: {}", job.frame_png.display(), e))?
+                    .to_rgba8(),
+            ),
+            None => None,
+        };
+
         if ABORT_FLAG.load(Ordering::Relaxed) {
             return Err("ユーザーによってキャプチャが中止されました".to_string());
         }
@@ -382,7 +494,7 @@ fn capture_screenshots(
         let browser = Browser::new(launch_opts).map_err(|e| e.to_string())?;
         let tab = browser.new_tab().map_err(|e| e.to_string())?;
 
-        set_viewport_metrics(&tab, w, capture_height)?;
+        set_viewport_metrics(&tab, w, capture_height, target.dpr, target.mobile)?;
         tab.navigate_to(&url).map_err(|e| e.to_string())?;
         tab.wait_until_navigated().map_err(|e| e.to_string())?;
 
@@ -581,19 +693,16 @@ fn capture_screenshots(
             width: Some(w as f64),
             height: Some(capture_height as f64),
         });
-        set_viewport_metrics(&tab, w, capture_height)?;
+        set_viewport_metrics(&tab, w, capture_height, target.dpr, target.mobile)?;
 
         std::thread::sleep(Duration::from_millis(500)); // wait for final layout snap
 
-        let size_label = if viewport_height.is_some() {
-            format!("{}x{}", w, capture_height)
-        } else {
-            format!("{}px", w)
-        };
-        let file_name = if duration > 0 {
-            format!("capture_{}_{}.gif", size_label, mode)
-        } else {
-            format!("capture_{}_{}.png", size_label, mode)
+        let size_label = &target.label;
+        let file_name = match &target.frame {
+            Some(job) if job.shadow => format!("capture_{}_framed-shadow.png", size_label),
+            Some(_) => format!("capture_{}_framed.png", size_label),
+            None if duration > 0 => format!("capture_{}_{}.gif", size_label, mode),
+            None => format!("capture_{}_{}.png", size_label, mode),
         };
         let dst = save_path.join(file_name);
 
@@ -765,8 +874,21 @@ fn capture_screenshots(
                 }
             };
 
-            std::fs::write(&dst, png_data)
-                .map_err(|e| format!("Failed to save image at {:?}: {}", dst, e))?;
+            let saved = match (&target.frame, &frame_image) {
+                (Some(job), Some(frame)) => compose_png(&png_data, job, frame),
+                _ => Ok(png_data),
+            }
+            .and_then(|data| {
+                std::fs::write(&dst, data)
+                    .map_err(|e| format!("Failed to save image at {:?}: {}", dst, e))
+            });
+            if let Err(e) = saved {
+                // エラー時もブラウザは別スレッドで drop する（AGENTS.md §1）
+                std::thread::spawn(move || {
+                    drop(browser);
+                });
+                return Err(e);
+            }
         }
 
         // Drop the browser in a separate thread to avoid blocking the main thread
@@ -781,11 +903,15 @@ fn capture_screenshots(
 fn main() {
     tauri::Builder::default()
         .plugin(tauri_plugin_dialog::init())
+        .plugin(tauri_plugin_opener::init())
         .invoke_handler(tauri::generate_handler![
             get_default_save_dir,
             select_element,
             capture_screenshots,
-            abort_capture
+            abort_capture,
+            list_frames,
+            import_frames,
+            get_frames_dir
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

@@ -1,0 +1,8 @@
+Google Pixel device frames in this directory are derived from the Android Open Source Project
+(platform/tools/adt/idea, artwork/resources/device-art-resources), licensed under the Apache License 2.0
+(see LICENSE in this directory).
+
+Source: https://android.googlesource.com/platform/tools/adt/idea/+/refs/heads/mirror-goog-studio-main/artwork/resources/device-art-resources/
+Retrieved: 2026-08-30 (branch mirror-goog-studio-main)
+Modification: mask.webp composited over back.webp at the display offset given in each device's
+"layout" file, then converted to PNG by scripts/build-pixel-frames.sh.

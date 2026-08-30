@@ -3,6 +3,8 @@ import { computed, ref, onMounted } from 'vue'
 import { useStorage, useColorMode } from '@vueuse/core'
 import { invoke } from '@tauri-apps/api/core'
 import { open } from '@tauri-apps/plugin-dialog'
+import DeviceFramePanel from './components/DeviceFramePanel.vue'
+import type { DeviceSelection } from './types/frames'
 
 const colorPreference = useStorage('vueuse-color-scheme', 'auto')
 useColorMode() // Activates UnoCSS dark listener
@@ -34,6 +36,8 @@ const heightAuto = useStorage('rs-height-auto', true)
 const selectedRatio = useStorage('rs-ratio', '16:9')
 const customRatioW = useStorage('rs-custom-ratio-w', 5)
 const customRatioH = useStorage('rs-custom-ratio-h', 4)
+const selectedDevices = useStorage<DeviceSelection[]>('rs-devices', [])
+const frameShadow = useStorage('rs-frame-shadow', false)
 
 const ratioOptions = [
   { value: '16:9', label: '16:9', description: '標準ワイド' },
@@ -139,8 +143,13 @@ const captureScreenshots = async () => {
     statusMessage.value = "保存先フォルダを選択してください。"
     return
   }
-  if (selectedWidths.value.length === 0) {
-    statusMessage.value = "キャプチャする幅を一つ以上選択してください。"
+  if (outputFormat.value === 'gif' && selectedWidths.value.length === 0) {
+    statusMessage.value = "GIF では幅を一つ以上選択してください。"
+    return
+  }
+  const devices = outputFormat.value === 'gif' ? [] : selectedDevices.value
+  if (selectedWidths.value.length === 0 && devices.length === 0) {
+    statusMessage.value = "キャプチャする幅かデバイスを一つ以上選択してください。"
     return
   }
 
@@ -159,7 +168,9 @@ const captureScreenshots = async () => {
       duration: outputFormat.value === 'gif' ? gifDuration.value : 0,
       delay: startDelay.value,
       manualInteraction: manualInteraction.value,
-      viewportHeight: viewportHeight.value
+      viewportHeight: viewportHeight.value,
+      devices,
+      frameShadow: frameShadow.value
     })
     
     statusMessage.value = "すべてのキャプチャが完了しました！"
@@ -387,6 +398,14 @@ const abortCapture = async () => {
           </div>
         </div>
       </section>
+
+      <!-- Device Frames -->
+      <DeviceFramePanel
+        v-model:selected="selectedDevices"
+        v-model:shadow="frameShadow"
+        :disabled="outputFormat === 'gif'"
+        @status="statusMessage = $event"
+      />
 
       <!-- Save Directory -->
       <section class="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700">
