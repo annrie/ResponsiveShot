@@ -5,6 +5,7 @@ import { invoke } from '@tauri-apps/api/core'
 import { open } from '@tauri-apps/plugin-dialog'
 import { openUrl } from '@tauri-apps/plugin-opener'
 import type { DeviceSelection, FrameStatus, ImportReport } from '../types/frames'
+import type { StatusMessage } from '../types/status'
 
 const { t } = useI18n()
 
@@ -34,7 +35,7 @@ const setBgMode = (mode: BgMode) => {
 }
 const backgroundInvalid = computed(() => bgMode.value === 'custom' && !isValidHex(background.value))
 
-const emit = defineEmits<{ status: [message: string] }>()
+const emit = defineEmits<{ status: [message: StatusMessage] }>()
 
 const frames = ref<FrameStatus[]>([])
 const framesDir = ref('')
@@ -76,13 +77,13 @@ const refresh = async () => {
     frames.value = await invoke<FrameStatus[]>('list_frames')
     reconcile()
   } catch (e) {
-    emit('status', t('frames.status.listFailed', { error: e }))
+    emit('status', { key: 'frames.status.listFailed', params: { error: e } })
   }
   try {
     framesDir.value = await invoke<string>('get_frames_dir')
   } catch (e) {
     framesDir.value = ''
-    emit('status', t('frames.status.dirFailed', { error: e }))
+    emit('status', { key: 'frames.status.dirFailed', params: { error: e } })
   }
 }
 
@@ -108,31 +109,31 @@ const openOfficial = async (url: string) => {
   try {
     await openUrl(url)
   } catch (e) {
-    emit('status', t('frames.status.openFailed', { error: e }))
+    emit('status', { key: 'frames.status.openFailed', params: { error: e } })
   }
 }
 
 const runImport = async (path: string) => {
   importing.value = true
-  emit('status', t('frames.status.importing'))
+  emit('status', { key: 'frames.status.importing' })
   try {
     const report = await invoke<ImportReport>('import_frames', { path })
     await refresh()
     const names = report.imported.map(i => `${i.id} (${i.variant})`).join(', ')
     const skipped = report.skipped.length
-      ? t('frames.status.skipped', {
-          count: report.skipped.length,
-          reasons: report.skipped.map(s => s.reason).join('; '),
-        })
+      ? {
+          key: 'frames.status.skipped',
+          params: { count: report.skipped.length, reasons: report.skipped.map(s => s.reason).join('; ') },
+        }
       : ''
     emit(
       'status',
       report.imported.length
-        ? t('frames.status.imported', { names, skipped, dir: framesDir.value })
-        : t('frames.status.nothingImported', { skipped })
+        ? { key: 'frames.status.imported', params: { names, skipped, dir: framesDir.value } }
+        : { key: 'frames.status.nothingImported', params: { skipped } }
     )
   } catch (e) {
-    emit('status', t('frames.status.importError', { error: e }))
+    emit('status', { key: 'frames.status.importError', params: { error: e } })
   } finally {
     importing.value = false
   }

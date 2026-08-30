@@ -6,6 +6,7 @@ import { open } from '@tauri-apps/plugin-dialog'
 import { useI18n } from 'vue-i18n'
 import DeviceFramePanel from './components/DeviceFramePanel.vue'
 import type { DeviceSelection, OverlayLabels } from './types/frames'
+import { isStatusMessage, type StatusMessage } from './types/status'
 import { LOCALE_NAMES, SUPPORTED_LOCALES, setLocale, type SupportedLocale } from './i18n'
 
 const { t, locale } = useI18n()
@@ -26,7 +27,15 @@ const saveDir = useStorage('rs-save-dir', '')
 
 const isCapturing = ref(false)
 const isSelectingElement = ref(false)
-const statusMessage = ref('')
+const status = ref<StatusMessage | null>(null)
+// 言語切替時に再翻訳できるよう、表示文ではなくキーとパラメータを保持する
+const statusMessage = computed(() => {
+  if (!status.value) return ''
+  const params = Object.fromEntries(
+    Object.entries(status.value.params ?? {}).map(([k, v]) => [k, isStatusMessage(v) ? t(v.key, v.params ?? {}) : v])
+  )
+  return t(status.value.key, params)
+})
 
 const addToHistory = (newUrl: string) => {
   if (!newUrl) return
@@ -117,23 +126,23 @@ const selectSaveDir = async () => {
 // Trigger Element Selection
 const selectElement = async () => {
   if (!url.value) {
-    statusMessage.value = t('status.enterUrl')
+    status.value = { key: 'status.enterUrl' }
     return
   }
   try {
     addToHistory(url.value)
     isSelectingElement.value = true
-    statusMessage.value = t('status.selectingElement')
+    status.value = { key: 'status.selectingElement' }
     const selector: string = await invoke('select_element', { url: url.value })
     if (selector) {
       selectedSelector.value = selector
       targetMode.value = 'element'
-      statusMessage.value = t('status.elementSelected', { selector })
+      status.value = { key: 'status.elementSelected', params: { selector } }
     } else {
-      statusMessage.value = t('status.elementSelectCancelled')
+      status.value = { key: 'status.elementSelectCancelled' }
     }
   } catch (err) {
-    statusMessage.value = t('status.elementSelectError', { error: String(err) })
+    status.value = { key: 'status.elementSelectError', params: { error: String(err) } }
   } finally {
     isSelectingElement.value = false
   }
@@ -142,33 +151,33 @@ const selectElement = async () => {
 // Execute Capture
 const captureScreenshots = async () => {
   if (!url.value) {
-    statusMessage.value = t('status.enterUrl')
+    status.value = { key: 'status.enterUrl' }
     return
   }
   if (!saveDir.value) {
-    statusMessage.value = t('status.selectSaveDir')
+    status.value = { key: 'status.selectSaveDir' }
     return
   }
   if (outputFormat.value === 'gif' && selectedWidths.value.length === 0) {
-    statusMessage.value = t('status.selectWidthForGif')
+    status.value = { key: 'status.selectWidthForGif' }
     return
   }
   const devices = outputFormat.value === 'gif' ? [] : selectedDevices.value
   if (selectedWidths.value.length === 0 && devices.length === 0) {
-    statusMessage.value = t('status.selectWidthOrDevice')
+    status.value = { key: 'status.selectWidthOrDevice' }
     return
   }
   const bg = frameBackground.value.trim()
   const bgIsTransparent = bg === '' || bg.toLowerCase() === 'transparent'
   if (devices.length > 0 && !bgIsTransparent && !/^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/.test(bg)) {
-    statusMessage.value = t('status.invalidBackground')
+    status.value = { key: 'status.invalidBackground' }
     return
   }
 
   try {
     addToHistory(url.value)
     isCapturing.value = true
-    statusMessage.value = t('status.starting')
+    status.value = { key: 'status.starting' }
     
     await invoke('capture_screenshots', {
       url: url.value,
@@ -200,9 +209,9 @@ const captureScreenshots = async () => {
       } satisfies OverlayLabels,
     })
     
-    statusMessage.value = t('status.done')
+    status.value = { key: 'status.done' }
   } catch (err) {
-    statusMessage.value = t('status.captureError', { error: String(err) })
+    status.value = { key: 'status.captureError', params: { error: String(err) } }
   } finally {
     isCapturing.value = false
   }
@@ -211,7 +220,7 @@ const captureScreenshots = async () => {
 const abortCapture = async () => {
   try {
     await invoke('abort_capture')
-    statusMessage.value = t('status.abortRequested')
+    status.value = { key: 'status.abortRequested' }
   } catch (e) {
     console.error(e)
   }
@@ -435,7 +444,7 @@ const abortCapture = async () => {
         v-model:shadow="frameShadow"
         v-model:background="frameBackground"
         :disabled="outputFormat === 'gif'"
-        @status="statusMessage = $event"
+        @status="status = $event"
       />
 
       <!-- Save Directory -->
