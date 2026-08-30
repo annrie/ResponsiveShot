@@ -2,7 +2,7 @@
 import { computed, onMounted, ref } from 'vue'
 import { invoke } from '@tauri-apps/api/core'
 import { open } from '@tauri-apps/plugin-dialog'
-import { openUrl, revealItemInDir } from '@tauri-apps/plugin-opener'
+import { openUrl } from '@tauri-apps/plugin-opener'
 import type { DeviceSelection, FrameStatus, ImportReport } from '../types/frames'
 
 defineProps<{ disabled: boolean }>()
@@ -105,14 +105,6 @@ const runImport = async (path: string) => {
     emit('status', `取り込みエラー: ${e}`)
   } finally {
     importing.value = false
-  }
-}
-
-const openFramesDir = async () => {
-  try {
-    await revealItemInDir(framesDir.value)
-  } catch (e) {
-    emit('status', `Finder を開けませんでした: ${e}`)
   }
 }
 
@@ -228,14 +220,6 @@ defineExpose({ refresh })
           class="px-3 py-1.5 text-xs font-medium rounded-md bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 disabled:opacity-50"
         >
           フォルダを取り込む
-        </button>
-        <button
-          type="button"
-          @click="openFramesDir"
-          :disabled="!framesDir"
-          class="px-3 py-1.5 text-xs font-medium rounded-md bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 disabled:opacity-50"
-        >
-          取り込み先を Finder で開く
         </button>
       </div>
     </div>
