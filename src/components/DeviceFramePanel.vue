@@ -2,7 +2,7 @@
 import { computed, onMounted, ref } from 'vue'
 import { invoke } from '@tauri-apps/api/core'
 import { open } from '@tauri-apps/plugin-dialog'
-import { openUrl } from '@tauri-apps/plugin-opener'
+import { openUrl, revealItemInDir } from '@tauri-apps/plugin-opener'
 import type { DeviceSelection, FrameStatus, ImportReport } from '../types/frames'
 
 defineProps<{ disabled: boolean }>()
@@ -11,6 +11,7 @@ const shadow = defineModel<boolean>('shadow', { required: true })
 const emit = defineEmits<{ status: [message: string] }>()
 
 const frames = ref<FrameStatus[]>([])
+const framesDir = ref('')
 const vendorLabels: Record<FrameStatus['vendor'], string> = { apple: 'Apple', google: 'Google' }
 const stateLabels: Record<FrameStatus['state'], string> = {
   bundled: '同梱',
@@ -42,6 +43,7 @@ const reconcile = () => {
 const refresh = async () => {
   try {
     frames.value = await invoke<FrameStatus[]>('list_frames')
+    framesDir.value = await invoke<string>('get_frames_dir')
     reconcile()
   } catch (e) {
     emit('status', `フレーム一覧の取得に失敗: ${e}`)
@@ -87,13 +89,21 @@ const runImport = async (path: string) => {
     emit(
       'status',
       report.imported.length
-        ? `取り込み完了: ${names}${skipped}`
+        ? `取り込み完了: ${names}${skipped}（保存先: ${framesDir.value}）`
         : `取り込めるフレームがありませんでした${skipped}`
     )
   } catch (e) {
     emit('status', `取り込みエラー: ${e}`)
   } finally {
     importing.value = false
+  }
+}
+
+const openFramesDir = async () => {
+  try {
+    await revealItemInDir(framesDir.value)
+  } catch (e) {
+    emit('status', `Finder を開けませんでした: ${e}`)
   }
 }
 
@@ -201,6 +211,14 @@ defineExpose({ refresh })
           class="px-3 py-1.5 text-xs font-medium rounded-md bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 disabled:opacity-50"
         >
           フォルダを取り込む
+        </button>
+        <button
+          type="button"
+          @click="openFramesDir"
+          :disabled="!framesDir"
+          class="px-3 py-1.5 text-xs font-medium rounded-md bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 disabled:opacity-50"
+        >
+          取り込み先を Finder で開く
         </button>
       </div>
     </div>

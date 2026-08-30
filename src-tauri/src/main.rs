@@ -386,6 +386,15 @@ fn list_frames(app: tauri::AppHandle) -> Result<Vec<store::FrameStatus>, String>
     Ok(entries.iter().map(|e| store::status_for(e, &roots)).collect())
 }
 
+/// 取り込みフレームの保存先（無ければ作る）。UI の「取り込み先を Finder で開く」用
+#[command]
+fn get_frames_dir(app: tauri::AppHandle) -> Result<String, String> {
+    let roots = frame_roots(&app)?;
+    std::fs::create_dir_all(&roots.user)
+        .map_err(|e| format!("保存先を作成できません {}: {}", roots.user.display(), e))?;
+    Ok(roots.user.to_string_lossy().into_owned())
+}
+
 #[command]
 async fn import_frames(app: tauri::AppHandle, path: String) -> Result<import::ImportReport, String> {
     let roots = frame_roots(&app)?;
@@ -884,7 +893,8 @@ fn main() {
             capture_screenshots,
             abort_capture,
             list_frames,
-            import_frames
+            import_frames,
+            get_frames_dir
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
