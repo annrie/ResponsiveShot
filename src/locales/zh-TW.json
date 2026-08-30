@@ -1,0 +1,149 @@
+{
+  "app": {
+    "tagline": "響應式測試用的批次截圖工具"
+  },
+  "theme": {
+    "system": "系統",
+    "light": "淺色",
+    "dark": "深色"
+  },
+  "language": {
+    "label": "語言"
+  },
+  "url": {
+    "label": "目標網址",
+    "placeholder": "https://example.com",
+    "history": "從記錄選擇："
+  },
+  "target": {
+    "heading": "擷取對象",
+    "fullpage": "完整頁面",
+    "fullpageHint": "捲動至頁面底部並擷取整頁",
+    "viewport": "可視區域",
+    "viewportHint": "僅並排擷取第一畫面",
+    "element": "指定元素",
+    "elementHint": "精準裁切頁面上任意區塊",
+    "selectElement": "開啟瀏覽器並選取元素",
+    "selectorLabel": "目前選取：",
+    "selectorEmpty": "未指定"
+  },
+  "output": {
+    "heading": "輸出設定",
+    "png": "PNG（靜態圖片）",
+    "pngHint": "將對象匯出為單張圖片",
+    "gif": "GIF 錄製",
+    "gifHint": "記錄點擊等互動動畫",
+    "manualInteraction": "啟用畫面手動操作（等待互動）",
+    "manualInteractionHint": "擷取前會在瀏覽器顯示「準備完成」按鈕。您可以開啟隱藏的彈出視窗或輸入文字，再自行開始錄製／擷取。",
+    "startDelay": "等待時間（準備用）：",
+    "startDelayHint": "執行擷取後，等待此秒數再開始擷取。",
+    "startDelayUnit": "{seconds} 秒",
+    "gifDuration": "錄製時長：",
+    "gifDurationHint": "以每秒 10 幀的流暢度，錄製指定對象達指定秒數。",
+    "gifDurationUnit": "{seconds} 秒"
+  },
+  "widths": {
+    "heading": "要擷取的畫面寬度",
+    "toggleAll": "全選／取消",
+    "heightAuto": "高度自動",
+    "heightAutoHint": "以目前規格擷取。開啟時，下方的比例設定將不會使用。",
+    "ratioHeading": "畫面比例",
+    "ratio": {
+      "r16x9": { "label": "16:9", "description": "標準寬螢幕" },
+      "r16x10": { "label": "16:10", "description": "PC/Mac" },
+      "r4x3": { "label": "4:3", "description": "傳統螢幕" },
+      "r3x2": { "label": "3:2", "description": "相片／Surface" },
+      "r1x1": { "label": "1:1", "description": "正方形" },
+      "r21x9": { "label": "21:9", "description": "超寬螢幕" },
+      "r9x16": { "label": "9:16", "description": "直式" },
+      "custom": { "label": "其他", "description": "自訂比例" }
+    },
+    "customRatio": "自訂比例",
+    "preview": {
+      "fullpage": "完整頁面時不適用",
+      "auto": "未指定高度",
+      "selectWidth": "請選擇寬度"
+    }
+  },
+  "frames": {
+    "heading": "裝置外框",
+    "intro": "以裝置的解析度擷取，並儲存合成到外框內的 PNG（僅限 PNG 輸出，GIF 無法使用）。",
+    "background": {
+      "label": "背景",
+      "transparent": "透明",
+      "white": "白色",
+      "black": "黑色",
+      "custom": "自訂",
+      "customPlaceholder": "#rrggbb"
+    },
+    "shadow": "陰影",
+    "vendor": {
+      "apple": "Apple",
+      "google": "Google"
+    },
+    "category": {
+      "phone": "手機",
+      "tablet": "平板",
+      "laptop": "筆記型電腦",
+      "desktop": "桌上型電腦",
+      "display": "顯示器"
+    },
+    "state": {
+      "bundled": "已內建",
+      "imported": "已取得",
+      "missing": "尚未取得"
+    },
+    "official": "官方",
+    "openOfficial": "開啟官方網站",
+    "hint": "① 點選「開啟官方網站」，在瀏覽器中開啟 Apple Design Resources。② 下載所需機型（iPhone／iPad／MacBook／iMac／Studio Display）的 Product Bezels（DMG）（進度會顯示在瀏覽器的下載欄，應用程式本身不會下載任何檔案）。③ 在「匯入 DMG／PNG」選擇下載好的 DMG 檔案即可匯入。",
+    "importDmg": "匯入 DMG／PNG",
+    "importFolder": "匯入資料夾",
+    "license": "請依 Apple 的授權條款自行負責使用 Apple 的外框。依 Apple 準則，新增陰影視為改作。Pixel 外框衍生自 AOSP（Apache 2.0）。",
+    "status": {
+      "listFailed": "無法取得外框清單：{error}",
+      "dirFailed": "無法取得匯入資料夾：{error}",
+      "importing": "正在匯入外框…",
+      "imported": "匯入完成：{names}{skipped}（儲存位置：{dir}）",
+      "skipped": " ／略過 {count} 項：{reasons}",
+      "nothingImported": "沒有可匯入的外框{skipped}",
+      "importError": "匯入錯誤：{error}",
+      "openFailed": "無法開啟瀏覽器：{error}"
+    }
+  },
+  "saveDir": {
+    "label": "儲存資料夾",
+    "placeholder": "尚未選擇",
+    "browse": "瀏覽資料夾"
+  },
+  "actions": {
+    "capture": "執行批次擷取",
+    "abort": "中止處理"
+  },
+  "status": {
+    "enterUrl": "請輸入網址。",
+    "selectSaveDir": "請選擇儲存資料夾。",
+    "selectWidthOrDevice": "請至少選擇一個要擷取的寬度或裝置。",
+    "selectWidthForGif": "GIF 請至少選擇一個寬度。",
+    "invalidBackground": "背景色請以 #rrggbb 格式指定。",
+    "starting": "正在開始擷取…",
+    "done": "所有擷取皆已完成！",
+    "captureError": "擷取錯誤：{error}",
+    "abortRequested": "已送出擷取中止要求…",
+    "elementSelected": "已選取目標元素：{selector}",
+    "elementSelectCancelled": "已取消元素選取。",
+    "elementSelectError": "錯誤：{error}",
+    "selectingElement": "正在啟動瀏覽器…請點擊元素以選取。"
+  },
+  "overlay": {
+    "startGif": "開始錄製",
+    "startPng": "開始擷取",
+    "startButton": "🔴 {label}（{seconds} 秒後開始）",
+    "cancel": "中止",
+    "intro": "請操作頁面以顯示隱藏元素，<br/>或輸入文字後再按下方按鈕。",
+    "ready": "現在可以操作頁面了，請開始操作…",
+    "recording": "<span style=\"color:#ef4444\">●</span> 錄製中…剩餘 {seconds} 秒",
+    "saving": "正在儲存…",
+    "countdown": "⏳ {seconds} 秒後開始",
+    "progress": "● 錄製、儲存中…剩餘 {seconds} 秒（已完成 {frames} 幀）"
+  }
+}

@@ -1,18 +1,12 @@
 import { createI18n } from 'vue-i18n'
 import ja from '../locales/ja.json'
 import en from '../locales/en.json'
-// TODO(Task 6): 本物の翻訳に差し替え
-import de from '../locales/en.json'
-// TODO(Task 6): 本物の翻訳に差し替え
-import es from '../locales/en.json'
-// TODO(Task 6): 本物の翻訳に差し替え
-import fr from '../locales/en.json'
-// TODO(Task 6): 本物の翻訳に差し替え
-import ko from '../locales/en.json'
-// TODO(Task 6): 本物の翻訳に差し替え
-import ptBR from '../locales/en.json'
-// TODO(Task 6): 本物の翻訳に差し替え
-import zhTW from '../locales/en.json'
+import de from '../locales/de.json'
+import es from '../locales/es.json'
+import fr from '../locales/fr.json'
+import ko from '../locales/ko.json'
+import ptBR from '../locales/pt-BR.json'
+import zhTW from '../locales/zh-TW.json'
 
 export const SUPPORTED_LOCALES = ['ja', 'en', 'de', 'es', 'fr', 'ko', 'pt-BR', 'zh-TW'] as const
 export type SupportedLocale = (typeof SUPPORTED_LOCALES)[number]

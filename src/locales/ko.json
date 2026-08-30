@@ -1,0 +1,149 @@
+{
+  "app": {
+    "tagline": "반응형 테스트를 위한 일괄 스크린샷 도구"
+  },
+  "theme": {
+    "system": "시스템",
+    "light": "라이트",
+    "dark": "다크"
+  },
+  "language": {
+    "label": "언어"
+  },
+  "url": {
+    "label": "대상 URL",
+    "placeholder": "https://example.com",
+    "history": "기록에서 선택:"
+  },
+  "target": {
+    "heading": "캡처 대상",
+    "fullpage": "전체 페이지",
+    "fullpageHint": "페이지 맨 아래까지 스크롤하여 전체를 캡처합니다",
+    "viewport": "뷰포트",
+    "viewportHint": "첫 화면만 나란히 캡처합니다",
+    "element": "지정 요소",
+    "elementHint": "페이지의 임의 블록을 정확히 잘라냅니다",
+    "selectElement": "브라우저를 열어 요소 선택",
+    "selectorLabel": "현재 선택: ",
+    "selectorEmpty": "미지정"
+  },
+  "output": {
+    "heading": "출력 설정",
+    "png": "PNG (정지 이미지)",
+    "pngHint": "대상을 하나의 이미지로 내보냅니다",
+    "gif": "GIF 녹화",
+    "gifHint": "클릭 등의 애니메이션 동작을 기록합니다",
+    "manualInteraction": "화면 수동 조작(상호작용 대기) 사용",
+    "manualInteractionHint": "캡처 전에 브라우저에 「준비 완료」 버튼을 표시합니다. 숨겨진 모달을 열거나 텍스트를 입력한 뒤 직접 녹화·캡처를 시작할 수 있습니다.",
+    "startDelay": "대기 시간(준비용):",
+    "startDelayHint": "캡처 실행 후 이 초만큼 대기한 다음 캡처를 시작합니다.",
+    "startDelayUnit": "{seconds}초",
+    "gifDuration": "녹화 길이:",
+    "gifDurationHint": "지정 요소나 영역을 지정한 초 동안 초당 10프레임의 부드러움으로 녹화합니다.",
+    "gifDurationUnit": "{seconds}초"
+  },
+  "widths": {
+    "heading": "캡처할 화면 너비",
+    "toggleAll": "전체 선택 / 해제",
+    "heightAuto": "높이 자동 설정",
+    "heightAutoHint": "현재 사양대로 캡처합니다. 켜면 아래의 비율 지정은 사용하지 않습니다.",
+    "ratioHeading": "화면 비율",
+    "ratio": {
+      "r16x9": { "label": "16:9", "description": "표준 와이드" },
+      "r16x10": { "label": "16:10", "description": "PC/Mac" },
+      "r4x3": { "label": "4:3", "description": "기존 화면" },
+      "r3x2": { "label": "3:2", "description": "사진/Surface" },
+      "r1x1": { "label": "1:1", "description": "정사각형" },
+      "r21x9": { "label": "21:9", "description": "초와이드" },
+      "r9x16": { "label": "9:16", "description": "세로형" },
+      "custom": { "label": "기타", "description": "임의 비율" }
+    },
+    "customRatio": "임의 비율",
+    "preview": {
+      "fullpage": "전체 페이지에서는 사용 안 함",
+      "auto": "높이 지정 없음",
+      "selectWidth": "너비를 선택하세요"
+    }
+  },
+  "frames": {
+    "heading": "기기 프레임",
+    "intro": "선택한 기기의 해상도로 캡처하고, 프레임에 합성한 PNG를 저장합니다(PNG 출력 전용 — GIF에서는 사용할 수 없습니다).",
+    "background": {
+      "label": "배경",
+      "transparent": "투명",
+      "white": "흰색",
+      "black": "검정색",
+      "custom": "임의",
+      "customPlaceholder": "#rrggbb"
+    },
+    "shadow": "그림자 효과",
+    "vendor": {
+      "apple": "Apple",
+      "google": "Google"
+    },
+    "category": {
+      "phone": "스마트폰",
+      "tablet": "태블릿",
+      "laptop": "노트북",
+      "desktop": "데스크톱",
+      "display": "디스플레이"
+    },
+    "state": {
+      "bundled": "동봉됨",
+      "imported": "가져옴",
+      "missing": "가져오지 않음"
+    },
+    "official": "공식",
+    "openOfficial": "공식 사이트 열기",
+    "hint": "① 「공식 사이트 열기」를 눌러 브라우저에서 Apple Design Resources를 엽니다. ② 필요한 기기(iPhone / iPad / MacBook / iMac / Studio Display)의 Product Bezels(DMG)를 다운로드합니다(진행 상황은 브라우저의 다운로드 목록에 표시됩니다. 앱은 직접 다운로드하지 않습니다). ③ 다운로드한 DMG 파일을 「DMG / PNG 가져오기」에서 선택하면 가져와집니다.",
+    "importDmg": "DMG / PNG 가져오기",
+    "importFolder": "폴더 가져오기",
+    "license": "Apple의 베젤은 Apple의 라이선스에 따라 본인 책임하에 사용하세요. 그림자를 추가하는 것은 Apple 가이드라인상 변경에 해당합니다. Pixel 프레임은 AOSP(Apache 2.0)에서 파생되었습니다.",
+    "status": {
+      "listFailed": "프레임 목록을 가져오지 못함: {error}",
+      "dirFailed": "가져오기 대상 폴더를 가져오지 못함: {error}",
+      "importing": "프레임을 가져오는 중...",
+      "imported": "가져오기 완료: {names}{skipped}(저장 위치: {dir})",
+      "skipped": " / {count}건 건너뜀: {reasons}",
+      "nothingImported": "가져올 수 있는 프레임이 없습니다{skipped}",
+      "importError": "가져오기 오류: {error}",
+      "openFailed": "브라우저를 열 수 없습니다: {error}"
+    }
+  },
+  "saveDir": {
+    "label": "저장 폴더",
+    "placeholder": "선택되지 않음",
+    "browse": "폴더 찾기"
+  },
+  "actions": {
+    "capture": "일괄 캡처 실행",
+    "abort": "중지"
+  },
+  "status": {
+    "enterUrl": "URL을 입력하세요.",
+    "selectSaveDir": "저장 폴더를 선택하세요.",
+    "selectWidthOrDevice": "캡처할 너비나 기기를 하나 이상 선택하세요.",
+    "selectWidthForGif": "GIF에서는 너비를 하나 이상 선택하세요.",
+    "invalidBackground": "배경색은 #rrggbb 형식으로 지정하세요.",
+    "starting": "캡처를 시작합니다...",
+    "done": "모든 캡처가 완료되었습니다!",
+    "captureError": "캡처 오류: {error}",
+    "abortRequested": "캡처 중지 요청을 전송했습니다...",
+    "elementSelected": "대상 요소를 선택했습니다: {selector}",
+    "elementSelectCancelled": "요소 선택이 취소되었습니다.",
+    "elementSelectError": "오류: {error}",
+    "selectingElement": "브라우저를 실행하는 중입니다... 요소를 클릭해 선택하세요."
+  },
+  "overlay": {
+    "startGif": "녹화 시작",
+    "startPng": "촬영 시작",
+    "startButton": "🔴 {label} ({seconds}초 후 시작)",
+    "cancel": "중지",
+    "intro": "화면을 조작해 숨겨진 요소를 표시하거나<br/>텍스트를 입력한 뒤 아래 버튼을 누르세요.",
+    "ready": "조작할 수 있습니다. 화면을 조작하세요...",
+    "recording": "<span style=\"color:#ef4444\">●</span> 녹화 중... {seconds}초 남음",
+    "saving": "저장 처리 중...",
+    "countdown": "⏳ 시작까지 {seconds}초",
+    "progress": "● 녹화·저장 중... {seconds}초 남음({frames}프레임 완료)"
+  }
+}
