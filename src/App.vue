@@ -375,7 +375,7 @@ const abortCapture = async () => {
       <section class="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700">
         <div class="flex justify-between items-center mb-4">
           <h2 class="text-sm font-medium">{{ t('widths.heading') }}</h2>
-          <button @click="toggleAllWidths" class="text-xs text-blue-500 hover:text-blue-600 dark:text-blue-400">
+          <button @click="toggleAllWidths" class="text-xs text-blue-500 hover:text-blue-600 dark:text-blue-600 dark:hover:text-blue-700">
             {{ t('widths.toggleAll') }}
           </button>
         </div>
