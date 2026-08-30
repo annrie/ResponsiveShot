@@ -2,7 +2,7 @@
 export interface FrameStatus {
   id: string
   vendor: 'apple' | 'google'
-  category: 'phone' | 'tablet'
+  category: 'phone' | 'tablet' | 'laptop' | 'desktop' | 'display'
   name: string
   orientation: 'portrait' | 'landscape'
   state: 'bundled' | 'imported' | 'missing'
