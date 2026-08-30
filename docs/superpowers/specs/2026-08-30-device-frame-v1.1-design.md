@@ -60,6 +60,7 @@ DMG の URL はすべて `https://devimages-cdn.apple.com/design/resources/downl
 
 - カタログに任意フィールド `island: { x, y, width, height, radius }`（CSS px、画面左上原点）。iPhone 16 / 16 Plus / 16 Pro / 16 Pro Max に付ける。他機種は省略
 - 値の求め方: **この Mac の iOS シミュレータで実測**。`xcrun simctl boot <iPhone 16 系>` → `simctl openurl` で白いページ（`https://example.com`）を Safari で開く → `simctl io <udid> screenshot` → 上端中央付近の黒（RGB 各 ≤ 16）画素の外接矩形を求め、幅・高さ・位置を device px ÷ 3 で CSS px に換算。`radius` は高さ ÷ 2。シミュレータが使えない場合は公開されている pt 値を使い、spec にその旨を記す
+- **採用値（2026-08-31）**: この Mac の iOS シミュレータ（x86 版 SimLaunchHost）は 15 分経っても起動が終わらなかったため実測は断念し、公開されている pt 値を採用した。iPhone 16 / 16 Plus / 16 Pro / 16 Pro Max 共通で幅 126pt・高さ 37.33pt・上端 11pt・水平中央（x = (css.width − 126) / 2）、radius = 18.67。実機と数 px ずれる可能性があるので、気になれば実測値で `catalog.json` の `island` を更新する
 - 合成器: cover リサイズ後のスクショに対し、`island` を `screen.width / css.width` 倍して黒の角丸矩形を描く（`compose::fill_rounded_rect(img, rect, radius, color)`、距離関数で 1px アンチエイリアス）。`island` が無ければ何もしない。**トグルは設けない**（データがあれば常時適用）
 - `compose_frame` の引数に `island: Option<Rect 相当 (f32)>` を追加するのではなく、`compose_png` 側で `shot` に描いてから `compose_frame` に渡す（合成器の署名を増やさない）。描画関数は `compose.rs` に置きテストする
 - テスト: `fill_rounded_rect` で矩形内が黒・角の外側が元色・境界が中間値、`island` 付きエントリのデシリアライズ
