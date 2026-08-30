@@ -1,6 +1,6 @@
 {
   "app": {
-    "tagline": "Outil de captures d'écran en masse pour les tests responsives"
+    "tagline": "Outil de captures d'écran en masse pour les tests responsive"
   },
   "theme": {
     "system": "Système",
@@ -44,7 +44,7 @@
   },
   "widths": {
     "heading": "Largeurs d'écran à capturer",
-    "toggleAll": "Tout sélectionner / Effacer",
+    "toggleAll": "Tout sélectionner / Tout désélectionner",
     "heightAuto": "Hauteur automatique",
     "heightAutoHint": "Capture à la hauteur naturelle. Si activé, le rapport d'aspect ci-dessous n'est pas utilisé.",
     "ratioHeading": "Rapport d'aspect",
@@ -85,7 +85,7 @@
       "phone": "Téléphone",
       "tablet": "Tablette",
       "laptop": "Ordinateur portable",
-      "desktop": "Bureau",
+      "desktop": "Ordinateur de bureau",
       "display": "Écran"
     },
     "state": {
@@ -111,7 +111,7 @@
     }
   },
   "saveDir": {
-    "label": "Dossier de sortie",
+    "label": "Dossier d'enregistrement",
     "placeholder": "Non sélectionné",
     "browse": "Parcourir"
   },
@@ -121,10 +121,10 @@
   },
   "status": {
     "enterUrl": "Veuillez saisir une URL.",
-    "selectSaveDir": "Veuillez sélectionner un dossier de sortie.",
+    "selectSaveDir": "Veuillez sélectionner un dossier d'enregistrement.",
     "selectWidthOrDevice": "Sélectionnez au moins une largeur ou un appareil à capturer.",
     "selectWidthForGif": "Sélectionnez au moins une largeur pour le GIF.",
-    "invalidBackground": "Indiquez la couleur de fond au format #rrggbb.",
+    "invalidBackground": "Indiquez la couleur d'arrière-plan au format #rrggbb.",
     "starting": "Démarrage de la capture...",
     "done": "Toutes les captures sont terminées !",
     "captureError": "Erreur de capture : {error}",
@@ -142,7 +142,7 @@
     "intro": "Interagissez avec la page pour révéler des éléments cachés ou saisir du texte,<br/>puis appuyez sur le bouton ci-dessous.",
     "ready": "Vous pouvez maintenant interagir avec la page...",
     "recording": "<span style=\"color:#ef4444\">●</span> Enregistrement... {seconds}s restantes",
-    "saving": "Enregistrement en cours...",
+    "saving": "Sauvegarde en cours…",
     "countdown": "⏳ Démarre dans {seconds}s",
     "progress": "● Enregistrement et sauvegarde... {seconds}s restantes ({frames} images terminées)"
   }

@@ -44,7 +44,7 @@
   },
   "widths": {
     "heading": "Aufzunehmende Bildschirmbreiten",
-    "toggleAll": "Alle auswählen / Leeren",
+    "toggleAll": "Alle auswählen / abwählen",
     "heightAuto": "Automatische Höhe",
     "heightAutoHint": "Nimmt in der natürlichen Höhe auf. Wenn aktiviert, wird das Seitenverhältnis unten nicht verwendet.",
     "ratioHeading": "Seitenverhältnis",
@@ -56,7 +56,7 @@
       "r1x1": { "label": "1:1", "description": "Quadratisch" },
       "r21x9": { "label": "21:9", "description": "Ultrabreit" },
       "r9x16": { "label": "9:16", "description": "Hochformat" },
-      "custom": { "label": "Andere", "description": "Benutzerdefiniert" }
+      "custom": { "label": "Andere", "description": "Benutzerdefiniertes Verhältnis" }
     },
     "customRatio": "Benutzerdefiniertes Verhältnis",
     "preview": {
@@ -66,7 +66,7 @@
     }
   },
   "frames": {
-    "heading": "Gerätrahmen",
+    "heading": "Geräterahmen",
     "intro": "Nimmt mit der Auflösung des Geräts auf und speichert ein PNG, das in den Rahmen eingesetzt ist (nur PNG-Ausgabe – nicht für GIF verfügbar).",
     "background": {
       "label": "Hintergrund",
@@ -128,14 +128,14 @@
     "starting": "Aufnahme wird gestartet...",
     "done": "Alle Aufnahmen abgeschlossen!",
     "captureError": "Aufnahmefehler: {error}",
-    "abortRequested": "Stoppanfrage gesendet...",
+    "abortRequested": "Abbruch angefordert...",
     "elementSelected": "Zielelement ausgewählt: {selector}",
     "elementSelectCancelled": "Elementauswahl wurde abgebrochen.",
     "elementSelectError": "Fehler: {error}",
     "selectingElement": "Browser wird gestartet... Klicken Sie ein Element an, um es auszuwählen."
   },
   "overlay": {
-    "startGif": "Aufzeichnung starten",
+    "startGif": "GIF-Aufnahme starten",
     "startPng": "Aufnahme starten",
     "startButton": "🔴 {label} (startet in {seconds}s)",
     "cancel": "Abbrechen",

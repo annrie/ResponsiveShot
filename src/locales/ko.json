@@ -36,7 +36,7 @@
     "manualInteraction": "화면 수동 조작(상호작용 대기) 사용",
     "manualInteractionHint": "캡처 전에 브라우저에 「준비 완료」 버튼을 표시합니다. 숨겨진 모달을 열거나 텍스트를 입력한 뒤 직접 녹화·캡처를 시작할 수 있습니다.",
     "startDelay": "대기 시간(준비용):",
-    "startDelayHint": "캡처 실행 후 이 초만큼 대기한 다음 캡처를 시작합니다.",
+    "startDelayHint": "캡처 실행 후 설정한 시간만큼 대기한 다음 캡처를 시작합니다.",
     "startDelayUnit": "{seconds}초",
     "gifDuration": "녹화 길이:",
     "gifDurationHint": "지정 요소나 영역을 지정한 초 동안 초당 10프레임의 부드러움으로 녹화합니다.",
@@ -46,7 +46,7 @@
     "heading": "캡처할 화면 너비",
     "toggleAll": "전체 선택 / 해제",
     "heightAuto": "높이 자동 설정",
-    "heightAutoHint": "현재 사양대로 캡처합니다. 켜면 아래의 비율 지정은 사용하지 않습니다.",
+    "heightAutoHint": "페이지 본래 높이로 캡처합니다. 켜면 아래의 비율 지정은 사용하지 않습니다.",
     "ratioHeading": "화면 비율",
     "ratio": {
       "r16x9": { "label": "16:9", "description": "표준 와이드" },
@@ -56,9 +56,9 @@
       "r1x1": { "label": "1:1", "description": "정사각형" },
       "r21x9": { "label": "21:9", "description": "초와이드" },
       "r9x16": { "label": "9:16", "description": "세로형" },
-      "custom": { "label": "기타", "description": "임의 비율" }
+      "custom": { "label": "기타", "description": "사용자 지정 비율" }
     },
-    "customRatio": "임의 비율",
+    "customRatio": "사용자 지정 비율",
     "preview": {
       "fullpage": "전체 페이지에서는 사용 안 함",
       "auto": "높이 지정 없음",
@@ -73,7 +73,7 @@
       "transparent": "투명",
       "white": "흰색",
       "black": "검정색",
-      "custom": "임의",
+      "custom": "사용자 지정",
       "customPlaceholder": "#rrggbb"
     },
     "shadow": "그림자 효과",
@@ -89,7 +89,7 @@
       "display": "디스플레이"
     },
     "state": {
-      "bundled": "동봉됨",
+      "bundled": "기본 제공",
       "imported": "가져옴",
       "missing": "가져오지 않음"
     },
@@ -136,9 +136,9 @@
   },
   "overlay": {
     "startGif": "녹화 시작",
-    "startPng": "촬영 시작",
+    "startPng": "캡처 시작",
     "startButton": "🔴 {label} ({seconds}초 후 시작)",
-    "cancel": "중지",
+    "cancel": "취소",
     "intro": "화면을 조작해 숨겨진 요소를 표시하거나<br/>텍스트를 입력한 뒤 아래 버튼을 누르세요.",
     "ready": "조작할 수 있습니다. 화면을 조작하세요...",
     "recording": "<span style=\"color:#ef4444\">●</span> 녹화 중... {seconds}초 남음",

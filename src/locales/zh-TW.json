@@ -44,9 +44,9 @@
   },
   "widths": {
     "heading": "要擷取的畫面寬度",
-    "toggleAll": "全選／取消",
+    "toggleAll": "全選／取消全選",
     "heightAuto": "高度自動",
-    "heightAutoHint": "以目前規格擷取。開啟時，下方的比例設定將不會使用。",
+    "heightAutoHint": "以頁面原本的高度擷取。開啟時，下方的比例設定將不會使用。",
     "ratioHeading": "畫面比例",
     "ratio": {
       "r16x9": { "label": "16:9", "description": "標準寬螢幕" },
@@ -90,8 +90,8 @@
     },
     "state": {
       "bundled": "已內建",
-      "imported": "已取得",
-      "missing": "尚未取得"
+      "imported": "已匯入",
+      "missing": "尚未匯入"
     },
     "official": "官方",
     "openOfficial": "開啟官方網站",
@@ -138,7 +138,7 @@
     "startGif": "開始錄製",
     "startPng": "開始擷取",
     "startButton": "🔴 {label}（{seconds} 秒後開始）",
-    "cancel": "中止",
+    "cancel": "取消",
     "intro": "請操作頁面以顯示隱藏元素，<br/>或輸入文字後再按下方按鈕。",
     "ready": "現在可以操作頁面了，請開始操作…",
     "recording": "<span style=\"color:#ef4444\">●</span> 錄製中…剩餘 {seconds} 秒",

@@ -44,7 +44,7 @@
   },
   "widths": {
     "heading": "Anchos de pantalla a capturar",
-    "toggleAll": "Seleccionar todo / Borrar",
+    "toggleAll": "Seleccionar todo / Deseleccionar",
     "heightAuto": "Altura automática",
     "heightAutoHint": "Captura con la altura natural. Si está activado, no se usa la relación de aspecto de abajo.",
     "ratioHeading": "Relación de aspecto",

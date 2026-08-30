@@ -44,7 +44,7 @@
   },
   "widths": {
     "heading": "Larguras de tela a capturar",
-    "toggleAll": "Selecionar tudo / Limpar",
+    "toggleAll": "Selecionar tudo / Desmarcar tudo",
     "heightAuto": "Altura automática",
     "heightAutoHint": "Captura na altura natural. Quando ativado, a proporção abaixo não é usada.",
     "ratioHeading": "Proporção",
@@ -111,7 +111,7 @@
     }
   },
   "saveDir": {
-    "label": "Pasta de salvamento",
+    "label": "Pasta de destino",
     "placeholder": "Não selecionada",
     "browse": "Procurar"
   },
@@ -121,7 +121,7 @@
   },
   "status": {
     "enterUrl": "Digite uma URL.",
-    "selectSaveDir": "Selecione uma pasta de salvamento.",
+    "selectSaveDir": "Selecione uma pasta de destino.",
     "selectWidthOrDevice": "Selecione ao menos uma largura ou dispositivo para capturar.",
     "selectWidthForGif": "Selecione ao menos uma largura para o GIF.",
     "invalidBackground": "Informe a cor de fundo no formato #rrggbb.",
