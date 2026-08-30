@@ -70,6 +70,34 @@ mod tests {
         assert_eq!(match_variant(&p, "iPhone 16 Pro -  - Portrait.png", true), None, "色名が空");
     }
 
+    /// v1.1 で追加した Apple DMG のファイル名形式: Mac 系は色の前の区切りが空白のみ、iPad は名前に `"` を含む、
+    /// Studio Display は XDR と非 XDR が同じ接頭辞で始まる。いずれも他のエントリに誤マッチしないこと
+    #[test]
+    fn match_variant_supports_v11_apple_file_names() {
+        let air13 = split_pattern("PNG/MacBook Air M5 13-inch {variant}.png").unwrap();
+        let air15 = split_pattern("PNG/MacBook Air M5 15-inch {variant}.png").unwrap();
+        let sd = split_pattern("PNG/Studio Display 2026 {variant}.png").unwrap();
+        let sd_xdr = split_pattern("PNG/Studio Display XDR 2026 {variant}.png").unwrap();
+        let ipad11 = split_pattern("PNG/iPad Pro (M5) 11\" - {variant} - Landscape.png").unwrap();
+        let ipad13 = split_pattern("PNG/iPad Pro (M5) 13\" - {variant} - Landscape.png").unwrap();
+
+        // Mac: フラットな名前（DMG の相対パス / フォルダのファイル名の両モード）
+        assert_eq!(match_variant(&air13, "PNG/MacBook Air M5 13-inch Midnight.png", false), Some("Midnight".to_string()));
+        assert_eq!(match_variant(&air13, "MacBook Air M5 13-inch Sky Blue.png", true), Some("Sky Blue".to_string()));
+        assert_eq!(match_variant(&air15, "PNG/MacBook Air M5 13-inch Midnight.png", false), None, "13-inch は 15-inch に掛からない");
+        assert_eq!(match_variant(&air13, "PNG/MacBook Air M5 15-inch Midnight.png", false), None, "15-inch は 13-inch に掛からない");
+
+        // Studio Display: XDR と非 XDR
+        assert_eq!(match_variant(&sd, "PNG/Studio Display 2026 On Dark Background.png", false), Some("On Dark Background".to_string()));
+        assert_eq!(match_variant(&sd, "PNG/Studio Display XDR 2026 On Dark Background.png", false), None, "XDR は非 XDR に掛からない");
+        assert_eq!(match_variant(&sd_xdr, "PNG/Studio Display XDR 2026 On Light Background.png", false), Some("On Light Background".to_string()));
+
+        // iPad: `"` 入りの名前、11" と 13"
+        assert_eq!(match_variant(&ipad11, "PNG/iPad Pro (M5) 11\" - Silver - Landscape.png", false), Some("Silver".to_string()));
+        assert_eq!(match_variant(&ipad13, "PNG/iPad Pro (M5) 11\" - Silver - Landscape.png", false), None);
+        assert_eq!(match_variant(&ipad11, "iPad Pro (M5) 11\" - Space Black - Portrait.png", true), None, "向きが違えば掛からない");
+    }
+
     #[test]
     fn import_copies_matching_png_as_slug() {
         let root = temp_root("copy");
