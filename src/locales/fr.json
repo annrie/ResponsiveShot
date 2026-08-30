@@ -1,0 +1,149 @@
+{
+  "app": {
+    "tagline": "Outil de captures d'écran en masse pour les tests responsive"
+  },
+  "theme": {
+    "system": "Système",
+    "light": "Clair",
+    "dark": "Sombre"
+  },
+  "language": {
+    "label": "Langue"
+  },
+  "url": {
+    "label": "URL cible",
+    "placeholder": "https://example.com",
+    "history": "Depuis l'historique :"
+  },
+  "target": {
+    "heading": "Cible de capture",
+    "fullpage": "Page entière",
+    "fullpageHint": "Défile jusqu'en bas de la page et capture l'ensemble",
+    "viewport": "Fenêtre d'affichage",
+    "viewportHint": "Capture uniquement la première vue, côte à côte",
+    "element": "Élément sélectionné",
+    "elementHint": "Recadre précisément n'importe quel bloc de la page",
+    "selectElement": "Ouvrir le navigateur et sélectionner un élément",
+    "selectorLabel": "Sélection actuelle : ",
+    "selectorEmpty": "Non défini"
+  },
+  "output": {
+    "heading": "Paramètres de sortie",
+    "png": "PNG (image fixe)",
+    "pngHint": "Exporte la cible sous forme d'une seule image",
+    "gif": "Enregistrement GIF",
+    "gifHint": "Enregistre les animations comme les clics et interactions",
+    "manualInteraction": "Activer l'interaction manuelle (attendre avant la capture)",
+    "manualInteractionHint": "Affiche un bouton « Prêt » dans le navigateur avant la capture. Ouvrez des fenêtres modales cachées ou saisissez du texte, puis démarrez vous-même l'enregistrement ou la capture.",
+    "startDelay": "Temps d'attente (préparation) :",
+    "startDelayHint": "Attend ce nombre de secondes après le démarrage avant que la capture ne commence.",
+    "startDelayUnit": "{seconds} s",
+    "gifDuration": "Durée d'enregistrement :",
+    "gifDurationHint": "Enregistre la cible pendant la durée indiquée à environ 3 im/s.",
+    "gifDurationUnit": "{seconds} s"
+  },
+  "widths": {
+    "heading": "Largeurs d'écran à capturer",
+    "toggleAll": "Tout sélectionner / Tout désélectionner",
+    "heightAuto": "Hauteur automatique",
+    "heightAutoHint": "Utilise la hauteur de viewport par défaut (1080 px). Si activé, le rapport d'aspect ci-dessous n'est pas utilisé.",
+    "ratioHeading": "Rapport d'aspect",
+    "ratio": {
+      "r16x9": { "label": "16:9", "description": "Grand écran standard" },
+      "r16x10": { "label": "16:10", "description": "PC/Mac" },
+      "r4x3": { "label": "4:3", "description": "Écran classique" },
+      "r3x2": { "label": "3:2", "description": "Photo/Surface" },
+      "r1x1": { "label": "1:1", "description": "Carré" },
+      "r21x9": { "label": "21:9", "description": "Ultra-large" },
+      "r9x16": { "label": "9:16", "description": "Portrait" },
+      "custom": { "label": "Autre", "description": "Rapport personnalisé" }
+    },
+    "customRatio": "Rapport personnalisé",
+    "preview": {
+      "fullpage": "Non utilisé pour la page entière",
+      "auto": "Aucune hauteur fixe",
+      "selectWidth": "Sélectionnez une largeur"
+    }
+  },
+  "frames": {
+    "heading": "Cadres d'appareil",
+    "intro": "Capture à la résolution de l'appareil et enregistre un PNG intégré dans le cadre (sortie PNG uniquement — indisponible pour GIF).",
+    "background": {
+      "label": "Arrière-plan",
+      "transparent": "Transparent",
+      "white": "Blanc",
+      "black": "Noir",
+      "custom": "Personnalisé",
+      "customPlaceholder": "#rrggbb"
+    },
+    "shadow": "Ombre portée",
+    "vendor": {
+      "apple": "Apple",
+      "google": "Google"
+    },
+    "category": {
+      "phone": "Téléphone",
+      "tablet": "Tablette",
+      "laptop": "Ordinateur portable",
+      "desktop": "Ordinateur de bureau",
+      "display": "Écran"
+    },
+    "state": {
+      "bundled": "Inclus",
+      "imported": "Importé",
+      "missing": "Non importé"
+    },
+    "official": "Officiel",
+    "openOfficial": "Ouvrir le site officiel",
+    "hint": "① Cliquez sur « Ouvrir le site officiel » pour ouvrir Apple Design Resources dans votre navigateur. ② Téléchargez les Product Bezels (DMG) des appareils dont vous avez besoin (iPhone / iPad / MacBook / iMac / Studio Display) — la progression s'affiche dans la zone de téléchargements de votre navigateur (l'application ne télécharge rien elle-même). ③ Choisissez le fichier DMG téléchargé avec « Importer DMG / PNG » pour l'importer.",
+    "importDmg": "Importer DMG / PNG",
+    "importFolder": "Importer un dossier",
+    "license": "Utilisez les cadres Apple selon la licence d'Apple, sous votre propre responsabilité. L'ajout d'une ombre constitue une modification selon les directives d'Apple. Les cadres Pixel proviennent d'AOSP (Apache 2.0).",
+    "status": {
+      "listFailed": "Échec du chargement de la liste des cadres : {error}",
+      "dirFailed": "Échec de la récupération du dossier d'import : {error}",
+      "importing": "Importation des cadres...",
+      "imported": "Importation terminée : {names}{skipped} (enregistré dans : {dir})",
+      "skipped": " / {count} ignorés : {reasons}",
+      "nothingImported": "Aucun cadre n'a pu être importé{skipped}",
+      "importError": "Erreur d'importation : {error}",
+      "openFailed": "Impossible d'ouvrir le navigateur : {error}"
+    }
+  },
+  "saveDir": {
+    "label": "Dossier d'enregistrement",
+    "placeholder": "Non sélectionné",
+    "browse": "Parcourir"
+  },
+  "actions": {
+    "capture": "Lancer la capture en masse",
+    "abort": "Arrêter"
+  },
+  "status": {
+    "enterUrl": "Veuillez saisir une URL.",
+    "selectSaveDir": "Veuillez sélectionner un dossier d'enregistrement.",
+    "selectWidthOrDevice": "Sélectionnez au moins une largeur ou un appareil à capturer.",
+    "selectWidthForGif": "Sélectionnez au moins une largeur pour le GIF.",
+    "invalidBackground": "Indiquez la couleur d'arrière-plan au format #rrggbb.",
+    "starting": "Démarrage de la capture...",
+    "done": "Toutes les captures sont terminées !",
+    "captureError": "Erreur de capture : {error}",
+    "abortRequested": "Demande d'arrêt envoyée...",
+    "elementSelected": "Élément cible sélectionné : {selector}",
+    "elementSelectCancelled": "La sélection de l'élément a été annulée.",
+    "elementSelectError": "Erreur : {error}",
+    "selectingElement": "Lancement du navigateur... cliquez sur un élément pour le sélectionner."
+  },
+  "overlay": {
+    "startGif": "Démarrer l'enregistrement",
+    "startPng": "Démarrer la capture",
+    "startButton": "🔴 {label} (démarre dans {seconds}s)",
+    "cancel": "Annuler",
+    "intro": "Interagissez avec la page pour révéler des éléments cachés ou saisir du texte,<br/>puis appuyez sur le bouton ci-dessous.",
+    "ready": "Vous pouvez maintenant interagir avec la page...",
+    "recording": "<span style=\"color:#ef4444\">●</span> Enregistrement... {seconds}s restantes",
+    "saving": "Sauvegarde en cours…",
+    "countdown": "⏳ Démarre dans {seconds}s",
+    "progress": "● Enregistrement et sauvegarde... {seconds}s restantes ({frames} images terminées)"
+  }
+}

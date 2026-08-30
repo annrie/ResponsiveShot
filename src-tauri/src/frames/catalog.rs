@@ -47,14 +47,14 @@ pub struct DeviceEntry {
 
 pub fn parse_catalog(json: &str) -> Result<Vec<DeviceEntry>, String> {
     let entries: Vec<DeviceEntry> =
-        serde_json::from_str(json).map_err(|e| format!("カタログの読み込みに失敗: {}", e))?;
+        serde_json::from_str(json).map_err(|e| format!("Failed to load the frame catalog: {}", e))?;
     validate(&entries)?;
     Ok(entries)
 }
 
 pub fn load_catalog(path: &Path) -> Result<Vec<DeviceEntry>, String> {
     let json = std::fs::read_to_string(path)
-        .map_err(|e| format!("カタログの読み込みに失敗: {}: {}", path.display(), e))?;
+        .map_err(|e| format!("Failed to load the frame catalog: {}: {}", path.display(), e))?;
     parse_catalog(&json)
 }
 
@@ -64,28 +64,28 @@ pub fn validate(entries: &[DeviceEntry]) -> Result<(), String> {
     let mut seen = HashSet::new();
     for e in entries {
         if !seen.insert(e.id.as_str()) {
-            return Err(format!("カタログ id が重複しています: {}", e.id));
+            return Err(format!("Duplicate catalog id: {}", e.id));
         }
         if e.id.is_empty()
             || !e.id.chars().all(|c| c.is_ascii_lowercase() || c.is_ascii_digit() || c == '-')
         {
-            return Err(format!("カタログ id は英小文字・数字・ハイフンのみ: {:?}", e.id));
+            return Err(format!("Catalog id must be lowercase letters, digits and hyphens: {:?}", e.id));
         }
         const VENDORS: [&str; 2] = ["apple", "google"];
         const CATEGORIES: [&str; 5] = ["phone", "tablet", "laptop", "desktop", "display"];
         if !VENDORS.contains(&e.vendor.as_str()) {
-            return Err(format!("{}: vendor が不正です: {:?}", e.id, e.vendor));
+            return Err(format!("{}: invalid vendor: {:?}", e.id, e.vendor));
         }
         if !CATEGORIES.contains(&e.category.as_str()) {
-            return Err(format!("{}: category が不正です: {:?}", e.id, e.category));
+            return Err(format!("{}: invalid category: {:?}", e.id, e.category));
         }
         if e.screen.right() > e.frame.width || e.screen.bottom() > e.frame.height {
-            return Err(format!("{}: screen が frame の外に出ています", e.id));
+            return Err(format!("{}: screen rect exceeds the frame", e.id));
         }
         if let Source::Import { pattern, .. } = &e.source {
             if pattern.matches("{variant}").count() != 1 {
                 return Err(format!(
-                    "{}: pattern は {{variant}} を 1 回だけ含む必要があります",
+                    "{}: pattern must contain {{variant}} exactly once",
                     e.id
                 ));
             }
@@ -130,35 +130,35 @@ mod tests {
     fn rejects_duplicate_id() {
         let mut e = parse_catalog(SAMPLE).unwrap();
         e[1].id = e[0].id.clone();
-        assert!(validate(&e).unwrap_err().contains("重複"));
+        assert!(validate(&e).unwrap_err().contains("Duplicate"));
     }
 
     #[test]
     fn rejects_bad_id_chars() {
         let mut e = parse_catalog(SAMPLE).unwrap();
         e[0].id = "Pixel 9".into();
-        assert!(validate(&e).unwrap_err().contains("英小文字"));
+        assert!(validate(&e).unwrap_err().contains("lowercase"));
     }
 
     #[test]
     fn rejects_unknown_vendor() {
         let mut e = parse_catalog(SAMPLE).unwrap();
         e[0].vendor = "samsung".into();
-        assert!(validate(&e).unwrap_err().contains("vendor が不正"));
+        assert!(validate(&e).unwrap_err().contains("invalid vendor"));
     }
 
     #[test]
     fn rejects_unknown_category() {
         let mut e = parse_catalog(SAMPLE).unwrap();
         e[1].category = "watch".into();
-        assert!(validate(&e).unwrap_err().contains("category が不正"));
+        assert!(validate(&e).unwrap_err().contains("invalid category"));
     }
 
     #[test]
     fn rejects_screen_outside_frame() {
         let mut e = parse_catalog(SAMPLE).unwrap();
         e[0].screen.x = 200; // 200 + 1080 > 1198
-        assert!(validate(&e).unwrap_err().contains("frame の外"));
+        assert!(validate(&e).unwrap_err().contains("exceeds the frame"));
     }
 
     #[test]
@@ -170,7 +170,7 @@ mod tests {
 
     #[test]
     fn reports_invalid_json() {
-        assert!(parse_catalog("[{").unwrap_err().starts_with("カタログの読み込みに失敗"));
+        assert!(parse_catalog("[{").unwrap_err().starts_with("Failed to load the frame catalog"));
     }
 
     /// 同梱カタログそのもの: 30 件、不変条件を満たし、bundled の PNG が存在して frame 寸法と一致する

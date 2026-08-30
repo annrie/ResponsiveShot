@@ -67,13 +67,13 @@ pub fn build_targets(
 
     if !devices.is_empty() {
         if duration > 0 {
-            return Err("デバイスフレームは PNG 出力のみ対応しています".to_string());
+            return Err("Device frames support PNG output only".to_string());
         }
         let (entries, roots) =
-            frames.ok_or_else(|| "フレームカタログが読み込まれていません".to_string())?;
+            frames.ok_or_else(|| "Frame catalog is not loaded".to_string())?;
         for sel in devices {
             let entry = catalog::find(entries, &sel.id)
-                .ok_or_else(|| format!("カタログに無いデバイスです: {}", sel.id))?;
+                .ok_or_else(|| format!("Unknown device id: {}", sel.id))?;
             // フレームが無ければここで止める（撮影を始めない）
             let frame_png = store::resolve_frame_png(entry, sel.variant.as_deref(), roots)?;
             let label = match &sel.variant {
@@ -162,7 +162,7 @@ mod tests {
     fn gif_with_devices_is_rejected_before_anything_else() {
         let devices = [DeviceSelection { id: "google-pixel-9".into(), variant: None }];
         let err = build_targets(&[], None, 1080, &devices, false, None, 3, None).unwrap_err();
-        assert_eq!(err, "デバイスフレームは PNG 出力のみ対応しています");
+        assert_eq!(err, "Device frames support PNG output only");
     }
 
     #[test]
@@ -171,7 +171,7 @@ mod tests {
         let r = roots("missing");
         let devices = [DeviceSelection { id: "google-pixel-9".into(), variant: None }];
         let err = build_targets(&[], None, 1080, &devices, false, None, 0, Some((&entries, &r))).unwrap_err();
-        assert!(err.contains("フレームが見つかりません"), "{}", err);
+        assert!(err.contains("Frame not found"), "{}", err);
     }
 
     #[test]
@@ -226,6 +226,6 @@ mod tests {
         let r = roots("unknown");
         let devices = [DeviceSelection { id: "nope".into(), variant: None }];
         let err = build_targets(&[], None, 1080, &devices, false, None, 0, Some((&entries, &r))).unwrap_err();
-        assert!(err.contains("カタログに無いデバイスです"), "{}", err);
+        assert!(err.contains("Unknown device id"), "{}", err);
     }
 }

@@ -1,0 +1,149 @@
+{
+  "app": {
+    "tagline": "Bulk-Screenshot-Tool für Responsive-Tests"
+  },
+  "theme": {
+    "system": "System",
+    "light": "Hell",
+    "dark": "Dunkel"
+  },
+  "language": {
+    "label": "Sprache"
+  },
+  "url": {
+    "label": "Ziel-URL",
+    "placeholder": "https://example.com",
+    "history": "Aus dem Verlauf:"
+  },
+  "target": {
+    "heading": "Aufnahmeziel",
+    "fullpage": "Ganze Seite",
+    "fullpageHint": "Scrollt bis zum Ende der Seite und nimmt alles auf",
+    "viewport": "Viewport",
+    "viewportHint": "Nimmt nur den ersten sichtbaren Bereich nebeneinander auf",
+    "element": "Ausgewähltes Element",
+    "elementHint": "Schneidet exakt auf einen beliebigen Block der Seite zu",
+    "selectElement": "Browser öffnen und Element auswählen",
+    "selectorLabel": "Aktuelle Auswahl: ",
+    "selectorEmpty": "Nicht festgelegt"
+  },
+  "output": {
+    "heading": "Ausgabeeinstellungen",
+    "png": "PNG (Standbild)",
+    "pngHint": "Exportiert das Ziel als einzelnes Bild",
+    "gif": "GIF-Aufnahme",
+    "gifHint": "Zeichnet Animationen wie Klicks und Interaktionen auf",
+    "manualInteraction": "Manuelle Interaktion aktivieren (vor Aufnahme warten)",
+    "manualInteractionHint": "Zeigt vor der Aufnahme eine Schaltfläche „Bereit“ im Browser an. Öffnen Sie versteckte Modale oder geben Sie Text ein und starten Sie dann selbst die Aufnahme.",
+    "startDelay": "Wartezeit (Vorbereitung):",
+    "startDelayHint": "Wartet nach dem Start diese Anzahl Sekunden, bevor die Aufnahme beginnt.",
+    "startDelayUnit": "{seconds} s",
+    "gifDuration": "Aufnahmedauer:",
+    "gifDurationHint": "Nimmt das Ziel für die angegebene Dauer mit etwa 3 fps auf.",
+    "gifDurationUnit": "{seconds} s"
+  },
+  "widths": {
+    "heading": "Aufzunehmende Bildschirmbreiten",
+    "toggleAll": "Alle auswählen / abwählen",
+    "heightAuto": "Automatische Höhe",
+    "heightAutoHint": "Verwendet die Standard-Viewport-Höhe (1080 px). Wenn aktiviert, wird das Seitenverhältnis unten nicht verwendet.",
+    "ratioHeading": "Seitenverhältnis",
+    "ratio": {
+      "r16x9": { "label": "16:9", "description": "Standard-Breitbild" },
+      "r16x10": { "label": "16:10", "description": "PC/Mac" },
+      "r4x3": { "label": "4:3", "description": "Klassischer Bildschirm" },
+      "r3x2": { "label": "3:2", "description": "Foto/Surface" },
+      "r1x1": { "label": "1:1", "description": "Quadratisch" },
+      "r21x9": { "label": "21:9", "description": "Ultrabreit" },
+      "r9x16": { "label": "9:16", "description": "Hochformat" },
+      "custom": { "label": "Andere", "description": "Benutzerdefiniertes Verhältnis" }
+    },
+    "customRatio": "Benutzerdefiniertes Verhältnis",
+    "preview": {
+      "fullpage": "Nicht für ganze Seite verwendet",
+      "auto": "Keine feste Höhe",
+      "selectWidth": "Breite auswählen"
+    }
+  },
+  "frames": {
+    "heading": "Geräterahmen",
+    "intro": "Nimmt mit der Auflösung des Geräts auf und speichert ein PNG, das in den Rahmen eingesetzt ist (nur PNG-Ausgabe – nicht für GIF verfügbar).",
+    "background": {
+      "label": "Hintergrund",
+      "transparent": "Transparent",
+      "white": "Weiß",
+      "black": "Schwarz",
+      "custom": "Benutzerdefiniert",
+      "customPlaceholder": "#rrggbb"
+    },
+    "shadow": "Schlagschatten",
+    "vendor": {
+      "apple": "Apple",
+      "google": "Google"
+    },
+    "category": {
+      "phone": "Smartphone",
+      "tablet": "Tablet",
+      "laptop": "Laptop",
+      "desktop": "Desktop",
+      "display": "Display"
+    },
+    "state": {
+      "bundled": "Enthalten",
+      "imported": "Importiert",
+      "missing": "Nicht importiert"
+    },
+    "official": "Offiziell",
+    "openOfficial": "Offizielle Seite öffnen",
+    "hint": "① Klicken Sie auf „Offizielle Seite öffnen“, um Apple Design Resources im Browser zu öffnen. ② Laden Sie die Product Bezels (DMG) für die benötigten Geräte herunter (iPhone / iPad / MacBook / iMac / Studio Display) – der Fortschritt wird im Download-Bereich Ihres Browsers angezeigt (die App lädt selbst nichts herunter). ③ Wählen Sie die heruntergeladene DMG-Datei bei „DMG / PNG importieren“ aus, um sie zu importieren.",
+    "importDmg": "DMG / PNG importieren",
+    "importFolder": "Ordner importieren",
+    "license": "Verwenden Sie Apples Rahmen gemäß Apples Lizenz auf eigene Verantwortung. Das Hinzufügen eines Schattens gilt laut Apples Richtlinien als Änderung. Die Pixel-Rahmen stammen von AOSP (Apache 2.0).",
+    "status": {
+      "listFailed": "Laden der Rahmenliste fehlgeschlagen: {error}",
+      "dirFailed": "Abrufen des Importordners fehlgeschlagen: {error}",
+      "importing": "Rahmen werden importiert...",
+      "imported": "Import abgeschlossen: {names}{skipped} (gespeichert unter: {dir})",
+      "skipped": " / {count} übersprungen: {reasons}",
+      "nothingImported": "Es konnten keine Rahmen importiert werden{skipped}",
+      "importError": "Importfehler: {error}",
+      "openFailed": "Browser konnte nicht geöffnet werden: {error}"
+    }
+  },
+  "saveDir": {
+    "label": "Speicherordner",
+    "placeholder": "Nicht ausgewählt",
+    "browse": "Durchsuchen"
+  },
+  "actions": {
+    "capture": "Massenaufnahme starten",
+    "abort": "Stopp"
+  },
+  "status": {
+    "enterUrl": "Bitte geben Sie eine URL ein.",
+    "selectSaveDir": "Bitte wählen Sie einen Speicherordner aus.",
+    "selectWidthOrDevice": "Wählen Sie mindestens eine Breite oder ein Gerät zur Aufnahme aus.",
+    "selectWidthForGif": "Wählen Sie für GIF mindestens eine Breite aus.",
+    "invalidBackground": "Geben Sie die Hintergrundfarbe als #rrggbb an.",
+    "starting": "Aufnahme wird gestartet...",
+    "done": "Alle Aufnahmen abgeschlossen!",
+    "captureError": "Aufnahmefehler: {error}",
+    "abortRequested": "Abbruch angefordert...",
+    "elementSelected": "Zielelement ausgewählt: {selector}",
+    "elementSelectCancelled": "Elementauswahl wurde abgebrochen.",
+    "elementSelectError": "Fehler: {error}",
+    "selectingElement": "Browser wird gestartet... Klicken Sie ein Element an, um es auszuwählen."
+  },
+  "overlay": {
+    "startGif": "GIF-Aufnahme starten",
+    "startPng": "Aufnahme starten",
+    "startButton": "🔴 {label} (startet in {seconds}s)",
+    "cancel": "Abbrechen",
+    "intro": "Interagieren Sie mit der Seite, um versteckte Elemente anzuzeigen oder Text einzugeben,<br/>und drücken Sie dann die Schaltfläche unten.",
+    "ready": "Sie können jetzt mit der Seite interagieren...",
+    "recording": "<span style=\"color:#ef4444\">●</span> Aufnahme läuft... noch {seconds}s",
+    "saving": "Wird gespeichert...",
+    "countdown": "⏳ Start in {seconds}s",
+    "progress": "● Aufnahme & Speichern läuft... noch {seconds}s ({frames} Bilder fertig)"
+  }
+}

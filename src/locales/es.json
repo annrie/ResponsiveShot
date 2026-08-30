@@ -1,0 +1,149 @@
+{
+  "app": {
+    "tagline": "Herramienta de capturas masivas para pruebas responsivas"
+  },
+  "theme": {
+    "system": "Sistema",
+    "light": "Claro",
+    "dark": "Oscuro"
+  },
+  "language": {
+    "label": "Idioma"
+  },
+  "url": {
+    "label": "URL de destino",
+    "placeholder": "https://example.com",
+    "history": "Desde el historial:"
+  },
+  "target": {
+    "heading": "Objetivo de captura",
+    "fullpage": "Página completa",
+    "fullpageHint": "Se desplaza hasta el final de la página y captura todo",
+    "viewport": "Viewport",
+    "viewportHint": "Captura solo la primera vista, una junto a otra",
+    "element": "Elemento seleccionado",
+    "elementHint": "Recorta con precisión cualquier bloque de la página",
+    "selectElement": "Abrir el navegador y seleccionar un elemento",
+    "selectorLabel": "Selección actual: ",
+    "selectorEmpty": "No definido"
+  },
+  "output": {
+    "heading": "Ajustes de salida",
+    "png": "PNG (imagen fija)",
+    "pngHint": "Exporta el objetivo como una sola imagen",
+    "gif": "Grabación GIF",
+    "gifHint": "Graba animaciones como clics e interacciones",
+    "manualInteraction": "Activar interacción manual (esperar antes de capturar)",
+    "manualInteractionHint": "Muestra un botón «Listo» en el navegador antes de capturar. Abre modales ocultos o escribe texto y luego inicia tú mismo la grabación o captura.",
+    "startDelay": "Tiempo de espera (preparación):",
+    "startDelayHint": "Espera esta cantidad de segundos tras iniciar antes de comenzar la captura.",
+    "startDelayUnit": "{seconds} s",
+    "gifDuration": "Duración de la grabación:",
+    "gifDurationHint": "Graba el objetivo durante la duración indicada a unos 3 fps.",
+    "gifDurationUnit": "{seconds} s"
+  },
+  "widths": {
+    "heading": "Anchos de pantalla a capturar",
+    "toggleAll": "Seleccionar todo / Deseleccionar",
+    "heightAuto": "Altura automática",
+    "heightAutoHint": "Usa la altura de viewport predeterminada (1080 px). Si está activado, no se usa la relación de aspecto de abajo.",
+    "ratioHeading": "Relación de aspecto",
+    "ratio": {
+      "r16x9": { "label": "16:9", "description": "Panorámico estándar" },
+      "r16x10": { "label": "16:10", "description": "PC/Mac" },
+      "r4x3": { "label": "4:3", "description": "Pantalla clásica" },
+      "r3x2": { "label": "3:2", "description": "Foto/Surface" },
+      "r1x1": { "label": "1:1", "description": "Cuadrado" },
+      "r21x9": { "label": "21:9", "description": "Ultrapanorámico" },
+      "r9x16": { "label": "9:16", "description": "Vertical" },
+      "custom": { "label": "Otro", "description": "Relación personalizada" }
+    },
+    "customRatio": "Relación personalizada",
+    "preview": {
+      "fullpage": "No se usa en página completa",
+      "auto": "Sin altura fija",
+      "selectWidth": "Selecciona un ancho"
+    }
+  },
+  "frames": {
+    "heading": "Marcos de dispositivo",
+    "intro": "Captura con la resolución del dispositivo y guarda un PNG compuesto dentro del marco (solo salida PNG; no disponible para GIF).",
+    "background": {
+      "label": "Fondo",
+      "transparent": "Transparente",
+      "white": "Blanco",
+      "black": "Negro",
+      "custom": "Personalizado",
+      "customPlaceholder": "#rrggbb"
+    },
+    "shadow": "Sombra paralela",
+    "vendor": {
+      "apple": "Apple",
+      "google": "Google"
+    },
+    "category": {
+      "phone": "Teléfono",
+      "tablet": "Tableta",
+      "laptop": "Portátil",
+      "desktop": "Escritorio",
+      "display": "Pantalla"
+    },
+    "state": {
+      "bundled": "Incluido",
+      "imported": "Importado",
+      "missing": "No importado"
+    },
+    "official": "Oficial",
+    "openOfficial": "Abrir sitio oficial",
+    "hint": "① Haz clic en «Abrir sitio oficial» para abrir Apple Design Resources en tu navegador. ② Descarga los Product Bezels (DMG) de los dispositivos que necesites (iPhone / iPad / MacBook / iMac / Studio Display); el progreso se muestra en la sección de descargas de tu navegador (la app no descarga nada por sí misma). ③ Elige el archivo DMG descargado en «Importar DMG / PNG» para importarlo.",
+    "importDmg": "Importar DMG / PNG",
+    "importFolder": "Importar carpeta",
+    "license": "Usa los marcos de Apple bajo la licencia de Apple, bajo tu propia responsabilidad. Añadir una sombra se considera una modificación según las directrices de Apple. Los marcos de Pixel derivan de AOSP (Apache 2.0).",
+    "status": {
+      "listFailed": "Error al cargar la lista de marcos: {error}",
+      "dirFailed": "Error al obtener la carpeta de importación: {error}",
+      "importing": "Importando marcos...",
+      "imported": "Importación completa: {names}{skipped} (guardado en: {dir})",
+      "skipped": " / {count} omitidos: {reasons}",
+      "nothingImported": "No se pudo importar ningún marco{skipped}",
+      "importError": "Error de importación: {error}",
+      "openFailed": "No se pudo abrir el navegador: {error}"
+    }
+  },
+  "saveDir": {
+    "label": "Carpeta de guardado",
+    "placeholder": "No seleccionada",
+    "browse": "Examinar"
+  },
+  "actions": {
+    "capture": "Ejecutar captura masiva",
+    "abort": "Detener"
+  },
+  "status": {
+    "enterUrl": "Introduce una URL.",
+    "selectSaveDir": "Selecciona una carpeta de guardado.",
+    "selectWidthOrDevice": "Selecciona al menos un ancho o dispositivo para capturar.",
+    "selectWidthForGif": "Selecciona al menos un ancho para el GIF.",
+    "invalidBackground": "Indica el color de fondo en formato #rrggbb.",
+    "starting": "Iniciando captura...",
+    "done": "¡Todas las capturas se completaron!",
+    "captureError": "Error de captura: {error}",
+    "abortRequested": "Solicitud de detención enviada...",
+    "elementSelected": "Elemento objetivo seleccionado: {selector}",
+    "elementSelectCancelled": "Se canceló la selección de elemento.",
+    "elementSelectError": "Error: {error}",
+    "selectingElement": "Iniciando el navegador... haz clic en un elemento para seleccionarlo."
+  },
+  "overlay": {
+    "startGif": "Iniciar grabación",
+    "startPng": "Iniciar captura",
+    "startButton": "🔴 {label} (empieza en {seconds}s)",
+    "cancel": "Cancelar",
+    "intro": "Interactúa con la página para mostrar elementos ocultos o escribir texto,<br/>y luego presiona el botón de abajo.",
+    "ready": "Ya puedes interactuar con la página...",
+    "recording": "<span style=\"color:#ef4444\">●</span> Grabando... quedan {seconds}s",
+    "saving": "Guardando...",
+    "countdown": "⏳ Empieza en {seconds}s",
+    "progress": "● Grabando y guardando... quedan {seconds}s ({frames} fotogramas listos)"
+  }
+}
