@@ -28,7 +28,7 @@
 
 - iPad / MacBook / iMac / Studio Display（DMG の形式が iPhone と同じことを実測してから追加。手順は §5.4）
 - 横向き iPhone、縦向き Pixel Tablet、折りたたみ機（`closed` / `default` の 2 構成）、Watch、TV
-- Dynamic Island の黒塗り（Apple のベゼル PNG は Island 部分も透明のため、ページ内容が透けて見える。v1 はそのまま）
+- Dynamic Island の黒塗り（Apple のベゼル PNG は Island 部分も透明のため、ページ内容が透けて見える。v1 はそのまま）→ **前提が誤りと判明し見送り**（2026-08-31 確認: ベゼル PNG は Island を不透明に描いており、ページ内容は元々透けない。v1.1 §3 / PR #6 参照）
 - GIF へのフレーム合成
 - 未知のフレーム画像の持ち込み（画面矩形の自動検出は §9 の方法で可能だが v1 では使わない）
 - 素のスクリーンショットの同時保存（幅指定で別途撮影できる）
@@ -46,7 +46,7 @@
 
 - 配布: https://developer.apple.com/design/resources/#product-bezels 。ログイン不要の DMG。EULA 付きで `hdiutil attach` 時に `Y` の応答が必要
 - DMG 内構成（iPhone 16 の例）: `PNG/<機種>/<機種> - <色> - Portrait|Landscape.png` と `Photoshop/…psd`、`App Store Marketing Artwork License Agreement.rtf`
-- PNG は RGBA。**画面領域は透明で、寸法は端末のネイティブ解像度と完全一致**。本体の外側も透明（余白 21〜25px、影は含まれない）。Dynamic Island 部分も透明
+- PNG は RGBA。**画面領域は透明で、寸法は端末のネイティブ解像度と完全一致**。本体の外側も透明（余白 21〜25px、影は含まれない）。Dynamic Island は不透明なピルとして描かれている（2026-08-31 確認）
 - 実測値:
 
 | 機種 | フレーム PNG | 画面矩形 (x, y, w, h) | CSS (w × h @ DPR) | 色 |

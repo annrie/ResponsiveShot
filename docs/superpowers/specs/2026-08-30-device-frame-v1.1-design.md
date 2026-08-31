@@ -64,6 +64,8 @@ DMG の URL はすべて `https://devimages-cdn.apple.com/design/resources/downl
 - `compose_frame` の引数に `island: Option<Rect 相当 (f32)>` を追加するのではなく、`compose_png` 側で `shot` に描いてから `compose_frame` に渡す（合成器の署名を増やさない）。描画関数は `compose.rs` に置きテストする
 - テスト: `fill_rounded_rect` で矩形内が黒・角の外側が元色・境界が中間値、`island` 付きエントリのデシリアライズ
 
+- **見送り（2026-08-31）**: 実装して PR #6 まで進めたが、最終レビューでベゼル PNG 自体が Dynamic Island を不透明な黒のピルとして描いている（上記の「透明」前提が誤り）と判明。黒塗りはフレームの下に隠れて見えず、追加価値がないため機能ごとクローズした。実測値の記録: 16 = x134/y11/125×37.33/r18.67、16 Plus = 152.33/11.33/125.67×36.67/r18.33、16 Pro = 138.67/14.33/124.67×36/r18、16 Pro Max = 157.67/14.33/124.67×36/r18（ベゼル PNG の穴内側の非透明画素の外接矩形 ÷ 3）
+
 ## 4. UA / タッチのエミュレーション（既定 OFF）
 
 - UI: パネルにトグル「モバイル UA / タッチをエミュレート」（`rs-frame-emulate-mobile`、既定 `false`）。`capture_screenshots` に `emulate_mobile: bool`
