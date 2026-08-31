@@ -209,27 +209,32 @@ mod tests {
     #[test]
     fn bundled_catalog_user_agents_follow_the_device_rules() {
         let entries = load_catalog(Path::new(concat!(env!("CARGO_MANIFEST_DIR"), "/frames/catalog.json"))).unwrap();
+        const IPHONE_UA: &str = "Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.0 Mobile/15E148 Safari/604.1";
+        const TABLET_UA: &str = "Mozilla/5.0 (Linux; Android 15) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36";
+        let (mut iphones, mut pixels, mut tablets) = (0, 0, 0);
         for e in &entries {
             let ua = e.css.user_agent.as_deref();
             match (e.vendor.as_str(), e.category.as_str()) {
-                // iPhone: iOS Safari の UA
+                // iPhone: iOS Safari の UA（全文一致）
                 ("apple", "phone") => {
-                    let ua = ua.expect(&e.id);
-                    assert!(ua.contains("iPhone OS 18_0") && ua.contains("Mobile/15E148"), "{}: {}", e.id, ua);
+                    assert_eq!(ua, Some(IPHONE_UA), "{}", e.id);
+                    iphones += 1;
                 }
-                // Pixel スマホ: Android Chrome の UA（機種名と Mobile トークンを含む）
+                // Pixel スマホ: Android Chrome の UA（機種名入り、全文一致）
                 ("google", "phone") => {
-                    let ua = ua.expect(&e.id);
-                    assert!(ua.contains(&format!("; {})", e.name)) && ua.contains("Mobile Safari"), "{}: {}", e.id, ua);
+                    let expected = format!("Mozilla/5.0 (Linux; Android 15; {}) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Mobile Safari/537.36", e.name);
+                    assert_eq!(ua, Some(expected.as_str()), "{}", e.id);
+                    pixels += 1;
                 }
-                // Pixel Tablet: Android Chrome だが Mobile トークンなし
+                // Pixel Tablet: Mobile トークンなしの Android Chrome（全文一致）
                 ("google", "tablet") => {
-                    let ua = ua.expect(&e.id);
-                    assert!(ua.contains("Android 15") && !ua.contains("Mobile"), "{}: {}", e.id, ua);
+                    assert_eq!(ua, Some(TABLET_UA), "{}", e.id);
+                    tablets += 1;
                 }
                 // iPad はデスクトップ UA を名乗るので付けない。Mac / iMac / Display も対象外
                 _ => assert_eq!(ua, None, "{}", e.id),
             }
         }
+        assert_eq!((iphones, pixels, tablets), (4, 8, 1), "UA を持つ件数");
     }
 }

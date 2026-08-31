@@ -121,7 +121,7 @@ mod tests {
         "screen": { "x": 55, "y": 58, "width": 1080, "height": 2424 },
         "source": { "kind": "bundled", "file": "google/pixel_9.png" } },
       { "id": "apple-iphone-16-pro", "vendor": "apple", "category": "phone", "name": "iPhone 16 Pro", "orientation": "portrait",
-        "css": { "width": 402, "height": 874, "dpr": 3.0, "mobile": true },
+        "css": { "width": 402, "height": 874, "dpr": 3.0, "mobile": true, "userAgent": "Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.0 Mobile/15E148 Safari/604.1" },
         "frame": { "width": 1350, "height": 2760 },
         "screen": { "x": 72, "y": 69, "width": 1206, "height": 2622 },
         "source": { "kind": "import", "url": "https://example.com/Bezel-iPhone-16.dmg",
@@ -290,5 +290,22 @@ mod tests {
             assert_eq!(t.user_agent, None, "{}", t.label);
             assert!(!t.touch, "{}", t.label);
         }
+    }
+
+    #[test]
+    fn emulation_on_propagates_user_agent_for_imported_devices() {
+        let entries = catalog::parse_catalog(SAMPLE).unwrap();
+        let r = roots("emu-import");
+        touch(&r.user.join("apple-iphone-16-pro/black-titanium.png"), 1350, 2760);
+        let devices = [DeviceSelection {
+            id: "apple-iphone-16-pro".into(),
+            variant: Some("Black Titanium".into()),
+        }];
+        let targets = build_targets(&[], None, 1080, &devices, false, None, 0, true, Some((&entries, &r))).unwrap();
+        assert!(
+            targets[0].user_agent.as_deref().unwrap().contains("iPhone OS 18_0"),
+            "import 機種でも UA が伝播する"
+        );
+        assert!(targets[0].touch);
     }
 }
