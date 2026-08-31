@@ -77,6 +77,7 @@
       "customPlaceholder": "#rrggbb"
     },
     "shadow": "ドロップシャドウ",
+    "emulateMobile": "モバイル UA / タッチをエミュレート",
     "vendor": {
       "apple": "Apple",
       "google": "Google"

@@ -67,6 +67,7 @@ MacのRetinaディスプレイでは、1440x1080pxの要求に対して実際の
 - iPad は縦・横を別エントリ（`-portrait` / `-landscape`）にしてある。Apple の DMG は iPhone 16 以外 `PNG/` 直下にファイルが並び、Mac 系は色の前の区切りが空白のみ。`pattern` の prefix/suffix 照合で吸収している
 - iMac 24" (M4) の画面矩形は 7 色の穴の和集合（Orange だけ 2px 右にずれる）。余分な 2px はベゼルの下に隠れる
 - 背景色（`frame_background`）はフレーム付き出力のみに適用し、`compose_frame` のキャンバス初期色として実装している。hex の検証は撮影前（`parse_hex_color`）と UI の両方で行う
+- **UA / タッチ**: カタログ `css.userAgent`（任意）と `css.mobile` から `build_targets(emulate_mobile)` が `CaptureTarget.user_agent / touch` を決める（既定 OFF、幅ターゲットは常に無効）。適用は撮影ループの `set_viewport_metrics` 前（`tab.set_user_agent` + `Emulation::SetTouchEmulationEnabled`）。UA 文字列はコードに置かずカタログにだけ持たせる。UA Client Hints（`Sec-CH-UA` / `navigator.userAgentData`）は上書きしない既知限界（必要になれば `Network::SetUserAgentOverride` を metadata 付きで送る）
 
 ### 8. 多言語対応（i18n）の設計制約
 - **UI 文字列は必ず `t()` を通す。** `useI18n()` から取得した `t` を使い、キーは `section.key` のネスト形式（`ja.json` 等の JSON 階層に対応）にする

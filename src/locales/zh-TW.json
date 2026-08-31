@@ -77,6 +77,7 @@
       "customPlaceholder": "#rrggbb"
     },
     "shadow": "陰影",
+    "emulateMobile": "模擬行動版 UA / 觸控",
     "vendor": {
       "apple": "Apple",
       "google": "Google"

@@ -77,6 +77,7 @@
       "customPlaceholder": "#rrggbb"
     },
     "shadow": "Sombra projetada",
+    "emulateMobile": "Emular UA móvel / toque",
     "vendor": {
       "apple": "Apple",
       "google": "Google"
