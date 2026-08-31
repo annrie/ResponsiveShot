@@ -14,6 +14,10 @@ pub struct CssSpec {
     pub height: u32,
     pub dpr: f64,
     pub mobile: bool,
+    /// 撮影時に名乗る UA。無い機種（iPad / Mac / Display）はエミュレーション ON でも UA を変えない
+    #[serde(rename = "userAgent")]
+    #[serde(default)]
+    pub user_agent: Option<String>,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
@@ -185,6 +189,46 @@ mod tests {
                 let (w, h) = image::image_dimensions(&path)
                     .unwrap_or_else(|err| panic!("{}: {}", path.display(), err));
                 assert_eq!((w, h), (e.frame.width, e.frame.height), "{}", e.id);
+            }
+        }
+    }
+
+    #[test]
+    fn user_agent_is_optional_and_deserializes() {
+        let entries = parse_catalog(SAMPLE).unwrap();
+        assert_eq!(entries[0].css.user_agent, None, "SAMPLE には userAgent が無いので None");
+        let json = SAMPLE.replacen(
+            r#""css": { "width": 412,"#,
+            r#""css": { "userAgent": "TestUA/1.0", "width": 412,"#,
+            1,
+        );
+        let entries = parse_catalog(&json).unwrap();
+        assert_eq!(entries[0].css.user_agent.as_deref(), Some("TestUA/1.0"));
+    }
+
+    #[test]
+    fn bundled_catalog_user_agents_follow_the_device_rules() {
+        let entries = load_catalog(Path::new(concat!(env!("CARGO_MANIFEST_DIR"), "/frames/catalog.json"))).unwrap();
+        for e in &entries {
+            let ua = e.css.user_agent.as_deref();
+            match (e.vendor.as_str(), e.category.as_str()) {
+                // iPhone: iOS Safari の UA
+                ("apple", "phone") => {
+                    let ua = ua.expect(&e.id);
+                    assert!(ua.contains("iPhone OS 18_0") && ua.contains("Mobile/15E148"), "{}: {}", e.id, ua);
+                }
+                // Pixel スマホ: Android Chrome の UA（機種名と Mobile トークンを含む）
+                ("google", "phone") => {
+                    let ua = ua.expect(&e.id);
+                    assert!(ua.contains(&format!("; {})", e.name)) && ua.contains("Mobile Safari"), "{}: {}", e.id, ua);
+                }
+                // Pixel Tablet: Android Chrome だが Mobile トークンなし
+                ("google", "tablet") => {
+                    let ua = ua.expect(&e.id);
+                    assert!(ua.contains("Android 15") && !ua.contains("Mobile"), "{}: {}", e.id, ua);
+                }
+                // iPad はデスクトップ UA を名乗るので付けない。Mac / iMac / Display も対象外
+                _ => assert_eq!(ua, None, "{}", e.id),
             }
         }
     }
