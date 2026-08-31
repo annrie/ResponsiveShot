@@ -462,6 +462,7 @@ fn capture_screenshots(
     devices: Vec<DeviceSelection>,
     frame_shadow: bool,
     frame_background: Option<String>,
+    emulate_mobile: bool,
     overlay: OverlayLabels,
 ) -> Result<(), String> {
     let save_path = PathBuf::from(save_dir);
@@ -491,7 +492,7 @@ fn capture_screenshots(
         frame_shadow,
         frame_background,
         duration,
-        false, // TODO(Task 3): UI からのモバイルエミュレーション指定を配線する
+        emulate_mobile,
         frames_ctx.as_ref().map(|(e, r)| (e.as_slice(), r)),
     )?;
 
@@ -533,6 +534,15 @@ fn capture_screenshots(
 
         let browser = Browser::new(launch_opts).map_err(|e| e.to_string())?;
         let tab = browser.new_tab().map_err(|e| e.to_string())?;
+
+        // UA / タッチのエミュレーション（デバイスターゲットでトグル ON のときだけ値が入る）
+        if let Some(ua) = &target.user_agent {
+            tab.set_user_agent(ua, None, None).map_err(|e| e.to_string())?;
+        }
+        if target.touch {
+            tab.call_method(Emulation::SetTouchEmulationEnabled { enabled: true, max_touch_points: Some(5) })
+                .map_err(|e| e.to_string())?;
+        }
 
         set_viewport_metrics(&tab, w, capture_height, target.dpr, target.mobile)?;
         tab.navigate_to(&url).map_err(|e| e.to_string())?;

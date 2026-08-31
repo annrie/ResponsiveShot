@@ -35,12 +35,8 @@ pub struct CaptureTarget {
     /// ファイル名用ラベル。幅指定は従来どおり "1440px" / "1440x810"
     pub label: String,
     /// エミュレーション ON かつカタログに userAgent がある場合だけ Some
-    /// main.rs での実消費は Task 3（UI からの emulate_mobile 配線）で行う
-    #[allow(dead_code)]
     pub user_agent: Option<String>,
     /// エミュレーション ON かつ css.mobile のときタッチイベントを有効にする
-    /// main.rs での実消費は Task 3（UI からの emulate_mobile 配線）で行う
-    #[allow(dead_code)]
     pub touch: bool,
     pub frame: Option<FrameJob>,
 }

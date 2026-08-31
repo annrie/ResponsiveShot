@@ -52,6 +52,7 @@ const customRatioW = useStorage('rs-custom-ratio-w', 5)
 const customRatioH = useStorage('rs-custom-ratio-h', 4)
 const selectedDevices = useStorage<DeviceSelection[]>('rs-devices', [])
 const frameShadow = useStorage('rs-frame-shadow', false)
+const emulateMobile = useStorage('rs-frame-emulate-mobile', false)
 const frameBackground = useStorage('rs-frame-bg', 'transparent')
 
 const ratioOptions = computed(() => [
@@ -193,6 +194,7 @@ const captureScreenshots = async () => {
       devices,
       frameShadow: frameShadow.value,
       frameBackground: devices.length > 0 && !bgIsTransparent ? bg : null,
+      emulateMobile: emulateMobile.value,
       overlay: {
         // vue-i18n は未指定の名前付きプレースホルダを空文字にするため、
         // Rust / JS 側でテンプレートのまま使うキーはプレースホルダ自身を値として渡す
@@ -442,6 +444,7 @@ const abortCapture = async () => {
       <DeviceFramePanel
         v-model:selected="selectedDevices"
         v-model:shadow="frameShadow"
+        v-model:emulate-mobile="emulateMobile"
         v-model:background="frameBackground"
         :disabled="outputFormat === 'gif'"
         @status="status = $event"

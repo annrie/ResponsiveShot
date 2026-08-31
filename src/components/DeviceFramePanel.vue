@@ -12,6 +12,7 @@ const { t } = useI18n()
 defineProps<{ disabled: boolean }>()
 const selected = defineModel<DeviceSelection[]>('selected', { required: true })
 const shadow = defineModel<boolean>('shadow', { required: true })
+const emulateMobile = defineModel<boolean>('emulateMobile', { required: true })
 
 /** 'transparent' か '#rrggbb'（'#rgb' も可）。App.vue 側で rs-frame-bg に永続化 */
 const background = defineModel<string>('background', { required: true })
@@ -192,6 +193,10 @@ defineExpose({ refresh })
         <label class="flex items-center gap-2 cursor-pointer">
           <input type="checkbox" v-model="shadow" class="text-blue-500 rounded" />
           {{ t('frames.shadow') }}
+        </label>
+        <label class="flex items-center gap-2 cursor-pointer">
+          <input type="checkbox" v-model="emulateMobile" class="text-blue-500 rounded" />
+          {{ t('frames.emulateMobile') }}
         </label>
       </div>
     </div>
