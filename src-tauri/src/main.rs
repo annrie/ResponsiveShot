@@ -491,6 +491,7 @@ fn capture_screenshots(
         frame_shadow,
         frame_background,
         duration,
+        false, // TODO(Task 3): UI からのモバイルエミュレーション指定を配線する
         frames_ctx.as_ref().map(|(e, r)| (e.as_slice(), r)),
     )?;
 
