@@ -20,7 +20,7 @@
 - 新しい UI 文字列は `frames.emulateMobile` の 1 キーのみ。**8 ロケール全部**（ja/en/de/es/fr/ko/pt-BR/zh-TW）の `frames` セクション、`"shadow"` の直後に追加（`node scripts/check-locales.mjs` が `8 locales, 118 keys OK` になること）
 - 新規依存なし、`let ... else` なし、`#[allow(dead_code)]` なし。`pnpm test` 合格、`cargo check` 警告 0。ユーザー向けエラー文言は英語、コードコメントは日本語
 - コミットメッセージは `<type>(scope): <emoji> 日本語`。`.superpowers/`、`dist/`、`dist-release/` はコミットしない
-- テスト数の推移: 現在 52 → Task 1 で +2 = 54 → Task 2 で +3 = 57
+- テスト数の推移: 現在 44（develop 起点。island 分は落とした）→ Task 1 で +2 = 46 → Task 2 で +3 = 49
 
 ## File Structure
 
@@ -120,7 +120,7 @@ Expected: コンパイルエラー（`user_agent` が `CssSpec` に無い）
 - [ ] **Step 4: 合格を確認**
 
 Run: `cd src-tauri && cargo test 2>&1 | tail -3 && cargo check 2>&1 | grep -c warning`
-Expected: `54 passed`、警告 `0`
+Expected: `46 passed`、警告 `0`
 
 - [ ] **Step 5: コミット**
 
@@ -232,7 +232,7 @@ Expected: コンパイルエラー（引数の数・フィールドが無い）
 - [ ] **Step 4: 合格を確認**
 
 Run: `cd src-tauri && cargo test 2>&1 | tail -3`
-Expected: コンパイルエラーが `main.rs` の `build_targets` 呼び出しに残る場合は、この時点では `main.rs` の呼び出しに `false` を仮で入れておく（Task 3 で本配線に置き換える）。`57 passed`、警告 0
+Expected: コンパイルエラーが `main.rs` の `build_targets` 呼び出しに残る場合は、この時点では `main.rs` の呼び出しに `false` を仮で入れておく（Task 3 で本配線に置き換える）。`49 passed`、警告 0
 
 - [ ] **Step 5: コミット**
 
@@ -297,7 +297,7 @@ git commit -m "feat(frames): ✨ CaptureTarget に user_agent / touch を配線�
 - [ ] **Step 3: 検証**
 
 Run: `node scripts/check-locales.mjs && pnpm run build && cd src-tauri && cargo test 2>&1 | tail -3 && cargo check 2>&1 | grep -c warning`
-Expected: `check-locales: 8 locales, 118 keys OK`、build 成功、`57 passed`、警告 `0`
+Expected: `check-locales: 8 locales, 118 keys OK`、build 成功、`49 passed`、警告 `0`
 
 - [ ] **Step 4: コミット**
 
