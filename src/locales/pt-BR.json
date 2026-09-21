@@ -89,6 +89,14 @@
       "desktop": "Desktop",
       "display": "Monitor"
     },
+    "orientation": {
+      "portrait": "Retrato",
+      "landscape": "Paisagem"
+    },
+    "display": {
+      "inner": "Tela interna",
+      "outer": "Tela externa"
+    },
     "state": {
       "bundled": "Incluído",
       "imported": "Importado",

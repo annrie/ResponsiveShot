@@ -89,6 +89,14 @@
       "desktop": "Desktop",
       "display": "Display"
     },
+    "orientation": {
+      "portrait": "Hochformat",
+      "landscape": "Querformat"
+    },
+    "display": {
+      "inner": "Innendisplay",
+      "outer": "Außendisplay"
+    },
     "state": {
       "bundled": "Enthalten",
       "imported": "Importiert",

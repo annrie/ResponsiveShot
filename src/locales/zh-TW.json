@@ -89,6 +89,14 @@
       "desktop": "桌上型電腦",
       "display": "顯示器"
     },
+    "orientation": {
+      "portrait": "直向",
+      "landscape": "橫向"
+    },
+    "display": {
+      "inner": "內螢幕",
+      "outer": "外螢幕"
+    },
     "state": {
       "bundled": "已內建",
       "imported": "已匯入",

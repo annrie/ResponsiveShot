@@ -89,6 +89,14 @@
       "desktop": "デスクトップ",
       "display": "ディスプレイ"
     },
+    "orientation": {
+      "portrait": "縦",
+      "landscape": "横"
+    },
+    "display": {
+      "inner": "内側",
+      "outer": "外側"
+    },
     "state": {
       "bundled": "同梱",
       "imported": "取り込み済み",

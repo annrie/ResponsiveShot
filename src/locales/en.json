@@ -89,6 +89,14 @@
       "desktop": "Desktop",
       "display": "Display"
     },
+    "orientation": {
+      "portrait": "Portrait",
+      "landscape": "Landscape"
+    },
+    "display": {
+      "inner": "Inner display",
+      "outer": "Outer display"
+    },
     "state": {
       "bundled": "Bundled",
       "imported": "Imported",

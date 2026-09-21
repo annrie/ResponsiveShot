@@ -3,8 +3,11 @@ export interface FrameStatus {
   id: string
   vendor: 'apple' | 'google'
   category: 'phone' | 'tablet' | 'laptop' | 'desktop' | 'display'
+  /** 機種名のみ。向き・画面種別は orientation / display から UI が合成する */
   name: string
   orientation: 'portrait' | 'landscape'
+  /** 折りたたみ端末の画面種別（iPhone Duo）。それ以外は null */
+  display: 'inner' | 'outer' | null
   state: 'bundled' | 'imported' | 'missing'
   /** 取り込み済みの色スラッグ（例 "black-titanium"）。同梱は空 */
   variants: string[]

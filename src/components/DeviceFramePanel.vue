@@ -46,6 +46,24 @@ const categoryLabel = (c: FrameStatus['category']) => t(`frames.category.${c}`)
 const APPLE_DESIGN_RESOURCES = 'https://developer.apple.com/design/resources/#product-bezels'
 const stateLabel = (s: FrameStatus['state']) => t(`frames.state.${s}`)
 
+/** 同じ機種（vendor + name + display）が複数の向きで登録されているときだけ向きを表示する（縦のみの iPhone には付けない） */
+const orientationNeeded = computed(() => {
+  const counts = new Map<string, number>()
+  for (const f of frames.value) {
+    const key = `${f.vendor}|${f.name}|${f.display ?? ''}`
+    counts.set(key, (counts.get(key) ?? 0) + 1)
+  }
+  return (f: FrameStatus) => (counts.get(`${f.vendor}|${f.name}|${f.display ?? ''}`) ?? 0) > 1
+})
+
+/** 表示名: 機種名 · 画面種別 · 向き（ロケール別。カタログの name には向き・画面種別を含めない） */
+const displayName = (f: FrameStatus) => {
+  const parts = [f.name]
+  if (f.display) parts.push(t(`frames.display.${f.display}`))
+  if (orientationNeeded.value(f)) parts.push(t(`frames.orientation.${f.orientation}`))
+  return parts.join(' · ')
+}
+
 const groups = computed(() =>
   (['apple', 'google'] as const)
     .map(vendor => ({
@@ -227,7 +245,7 @@ defineExpose({ refresh })
               @change="toggle(f)"
               class="text-blue-500 rounded"
             />
-            <span class="text-sm">{{ f.name }}</span>
+            <span class="text-sm">{{ displayName(f) }}</span>
             <span
               class="text-xs px-1.5 py-0.5 rounded"
               :class="

@@ -11,6 +11,8 @@
 
 DMG の構成は iPhone 16 と異なり、`PNG/` 直下にファイルが並ぶ（機種サブフォルダなし）。Mac 系は色の前の区切りが ` - ` ではなく空白 1 個。いずれも既存の `pattern`（`{variant}` 前後の prefix / suffix 照合）で扱えるため **取り込みコードの変更は不要**。
 
+> 下表の `name` 列は当時の値。2026-09-21 に `name` から「縦 / 横」を外し（機種名のみ）、向きは UI が `frames.orientation.*` で合成する方式に改めた（v1 spec §5.1 参照）。
+
 | id | name | category | orientation | CSS (w×h @2, mobile) | frame (w×h) | screen (x, y, w, h) | DMG / pattern |
 |---|---|---|---|---|---|---|---|
 | `apple-ipad-pro-11-m5-portrait` | iPad Pro 11" (M5) 縦 | tablet | portrait | 834×1210, true | 1880×2640 | 106, 110, 1668, 2420 | `Bezel-iPad-Pro-(M5).dmg` / `PNG/iPad Pro (M5) 11" - {variant} - Portrait.png` |
