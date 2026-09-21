@@ -1,6 +1,19 @@
 # Changelog
 
 
+## v1.3.0
+
+[compare changes](https://github.com/annrie/ResponsiveShot/compare/v1.2.0...v1.3.0)
+
+### 🚀 新機能
+
+- 📱 iPhone 18 Pro / Pro Max・iPhone Duo のベゼル追加 + デバイス名の i18n 化 / Add iPhone 18 & iPhone Duo bezels, localize device labels ([#8](https://github.com/annrie/ResponsiveShot/pull/8))
+- 📱 iPhone 17 / iPhone Air / 17 Pro / 17 Pro Max のベゼル追加 / Add iPhone 17 family bezels ([#9](https://github.com/annrie/ResponsiveShot/pull/9))
+
+### ❤️ Contributors
+
+- Annrie ([@annrie](https://github.com/annrie))
+
 ## v1.2.0
 
 [compare changes](https://github.com/annrie/ResponsiveShot/compare/v1.1.0...v1.2.0)
