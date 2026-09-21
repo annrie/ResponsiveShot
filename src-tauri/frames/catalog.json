@@ -40,6 +40,46 @@
       "pattern": "PNG/iPhone 16 Pro Max/iPhone 16 Pro Max - {variant} - Portrait.png" }
   },
   {
+    "id": "apple-iphone-17",
+    "vendor": "apple", "category": "phone", "name": "iPhone 17", "orientation": "portrait",
+    "css": { "width": 402, "height": 874, "dpr": 3.0, "mobile": true, "userAgent": "Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.0 Mobile/15E148 Safari/604.1" },
+    "frame": { "width": 1350, "height": 2760 },
+    "screen": { "x": 72, "y": 69, "width": 1206, "height": 2622 },
+    "source": { "kind": "import",
+      "url": "https://devimages-cdn.apple.com/design/resources/download/Bezel-iPhone-17.dmg",
+      "pattern": "PNG/iPhone 17/iPhone 17 - {variant} - Portrait.png" }
+  },
+  {
+    "id": "apple-iphone-air",
+    "vendor": "apple", "category": "phone", "name": "iPhone Air", "orientation": "portrait",
+    "css": { "width": 420, "height": 912, "dpr": 3.0, "mobile": true, "userAgent": "Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.0 Mobile/15E148 Safari/604.1" },
+    "frame": { "width": 1380, "height": 2880 },
+    "screen": { "x": 60, "y": 72, "width": 1260, "height": 2736 },
+    "source": { "kind": "import",
+      "url": "https://devimages-cdn.apple.com/design/resources/download/Bezel-iPhone-17.dmg",
+      "pattern": "PNG/iPhone Air/iPhone Air - {variant} - Portrait.png" }
+  },
+  {
+    "id": "apple-iphone-17-pro",
+    "vendor": "apple", "category": "phone", "name": "iPhone 17 Pro", "orientation": "portrait",
+    "css": { "width": 402, "height": 874, "dpr": 3.0, "mobile": true, "userAgent": "Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.0 Mobile/15E148 Safari/604.1" },
+    "frame": { "width": 1350, "height": 2760 },
+    "screen": { "x": 72, "y": 69, "width": 1206, "height": 2622 },
+    "source": { "kind": "import",
+      "url": "https://devimages-cdn.apple.com/design/resources/download/Bezel-iPhone-17.dmg",
+      "pattern": "PNG/iPhone 17 Pro/iPhone 17 Pro - {variant} - Portrait.png" }
+  },
+  {
+    "id": "apple-iphone-17-pro-max",
+    "vendor": "apple", "category": "phone", "name": "iPhone 17 Pro Max", "orientation": "portrait",
+    "css": { "width": 440, "height": 956, "dpr": 3.0, "mobile": true, "userAgent": "Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.0 Mobile/15E148 Safari/604.1" },
+    "frame": { "width": 1470, "height": 3000 },
+    "screen": { "x": 75, "y": 66, "width": 1320, "height": 2868 },
+    "source": { "kind": "import",
+      "url": "https://devimages-cdn.apple.com/design/resources/download/Bezel-iPhone-17.dmg",
+      "pattern": "PNG/iPhone 17 Pro Max/iPhone 17 Pro Max - {variant} - Portrait.png" }
+  },
+  {
     "id": "apple-iphone-18-pro",
     "vendor": "apple", "category": "phone", "name": "iPhone 18 Pro", "orientation": "portrait",
     "css": { "width": 402, "height": 874, "dpr": 3.0, "mobile": true, "userAgent": "Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.0 Mobile/15E148 Safari/604.1" },

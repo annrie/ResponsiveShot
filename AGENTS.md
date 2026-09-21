@@ -25,7 +25,7 @@
 3. **手動インタラクション (Manual Interaction)**
    - Chrome側に専用のUIコンテナを直接注入（Inject）し、ユーザーが手動で画面上のボタンなどを操作してから「録画開始」を押せる待機機構
 4. **デバイスフレーム (Device Frames)**
-   - カタログ `src-tauri/frames/catalog.json` に登録した端末（Apple iPhone 16 系・iPhone 18 Pro/Pro Max・iPhone Duo（内側・外側画面の縦・横）/ iPad Pro・Air・mini（縦・横）/ MacBook Air・Pro / iMac / Studio Display（いずれも取り込み）・Google Pixel 9/10 系 + Pixel Tablet（同梱））を選ぶと、その CSS 寸法・DPR・mobile で viewport 撮影し、Rust 側 `frames::compose` でベゼル PNG に合成して保存する。ドロップシャドウはアプリが生成する
+   - カタログ `src-tauri/frames/catalog.json` に登録した端末（Apple iPhone 16 系・iPhone 17 系（17 / Air / 17 Pro / 17 Pro Max）・iPhone 18 Pro/Pro Max・iPhone Duo（内側・外側画面の縦・横）/ iPad Pro・Air・mini（縦・横）/ MacBook Air・Pro / iMac / Studio Display（いずれも取り込み）・Google Pixel 9/10 系 + Pixel Tablet（同梱））を選ぶと、その CSS 寸法・DPR・mobile で viewport 撮影し、Rust 側 `frames::compose` でベゼル PNG に合成して保存する。ドロップシャドウはアプリが生成する
    - Google 分は同梱（AOSP, Apache 2.0）、Apple 分はユーザーが公式 DMG を取り込む（`frames::import`、`hdiutil attach` を使用）
 5. **多言語対応 (i18n)**
    - UI は 8 言語（ja/en/de/es/fr/ko/pt-BR/zh-TW）に対応。ヘッダーのセレクトで切り替え、選択は `localStorage`（キー `responsiveshot_language`）に保存される
@@ -65,7 +65,7 @@ MacのRetinaディスプレイでは、1440x1080pxの要求に対して実際の
 - **デバイスターゲットは viewport / PNG 固定。** GIF と同時指定は Rust 側で `Err` にする（フロントは GIF 選択時に `devices: []` を送る）
 - Apple の Product Bezels PNG の Dynamic Island は**不透明な黒のピルとして描かれている**（v1.0 spec の「透明」は誤り。フレームを最後に重ねるためページ内容は透けない）。黒塗り機能は不要と判明し見送り（2026-08-31、PR #6 クローズ）
 - **カタログの `name` は機種名のみ**（`iPad Pro 11" (M5)`、`iPhone Duo`）。向きは `orientation`、折りたたみ端末の画面種別は任意フィールド `display`（`inner` / `outer`、`validate` で検証）に持ち、`DeviceFramePanel.vue` の `displayName` がロケール別に `機種名 · 画面種別 · 向き` を合成する。向きのラベルは同じ vendor + name + display が複数の向きで登録されているときだけ付く（縦のみの iPhone には付かない）。Rust のエラー文は `name` だけでは縦横を区別できないので `[id]` を併記する
-- iPad は縦・横を別エントリ（`-portrait` / `-landscape`）にしてある。Apple の DMG は iPhone 16 / 18 以外 `PNG/` 直下にファイルが並び（iPhone Duo も直下で、`Inner Open` / `Outer Closed` の縦横 4 種と `Outer Open` 1 種。`Outer Open` は外側画面と同寸なので未登録）、Mac 系は色の前の区切りが空白のみ。`pattern` の prefix/suffix 照合で吸収している
+- iPad は縦・横を別エントリ（`-portrait` / `-landscape`）にしてある。Apple の DMG は iPhone 16 / 17 / 18 以外 `PNG/` 直下にファイルが並び（iPhone Duo も直下で、`Inner Open` / `Outer Closed` の縦横 4 種と `Outer Open` 1 種。`Outer Open` は外側画面と同寸なので未登録）、Mac 系は色の前の区切りが空白のみ。`pattern` の prefix/suffix 照合で吸収している
 - iMac 24" (M4) の画面矩形は 7 色の穴の和集合（Orange だけ 2px 右にずれる）。余分な 2px はベゼルの下に隠れる
 - 背景色（`frame_background`）はフレーム付き出力のみに適用し、`compose_frame` のキャンバス初期色として実装している。hex の検証は撮影前（`parse_hex_color`）と UI の両方で行う
 - **UA / タッチ**: カタログ `css.userAgent`（任意）と `css.mobile` から `build_targets(emulate_mobile)` が `CaptureTarget.user_agent / touch` を決める（既定 OFF、幅ターゲットは常に無効）。適用は撮影ループの `set_viewport_metrics` 前（`tab.set_user_agent` + `Emulation::SetTouchEmulationEnabled`）。UA 文字列はコードに置かずカタログにだけ持たせる。UA Client Hints（`Sec-CH-UA` / `navigator.userAgentData`）は上書きしない既知限界（必要になれば `Network::SetUserAgentOverride` を metadata 付きで送る）

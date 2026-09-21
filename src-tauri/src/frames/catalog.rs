@@ -198,12 +198,12 @@ mod tests {
         assert!(parse_catalog("[{").unwrap_err().starts_with("Failed to load the frame catalog"));
     }
 
-    /// 同梱カタログそのもの: 36 件、不変条件を満たし、bundled の PNG が存在して frame 寸法と一致する
+    /// 同梱カタログそのもの: 40 件、不変条件を満たし、bundled の PNG が存在して frame 寸法と一致する
     #[test]
     fn bundled_catalog_is_valid_and_bundled_pngs_match_frame_size() {
         let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("frames");
         let entries = load_catalog(&root.join("catalog.json")).expect("frames/catalog.json");
-        assert_eq!(entries.len(), 36);
+        assert_eq!(entries.len(), 40);
         for e in &entries {
             if let Source::Bundled { file } = &e.source {
                 let path = root.join(file);
@@ -256,6 +256,6 @@ mod tests {
                 _ => assert_eq!(ua, None, "{}", e.id),
             }
         }
-        assert_eq!((iphones, pixels, tablets), (10, 8, 1), "UA を持つ件数");
+        assert_eq!((iphones, pixels, tablets), (14, 8, 1), "UA を持つ件数");
     }
 }
