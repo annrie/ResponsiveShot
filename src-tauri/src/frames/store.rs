@@ -30,6 +30,8 @@ pub struct FrameStatus {
     pub category: String,
     pub name: String,
     pub orientation: String,
+    /// `inner` / `outer`（折りたたみ端末のみ）
+    pub display: Option<String>,
     /// "bundled" | "imported" | "missing"
     pub state: String,
     /// 取り込み済みの色スラッグ（昇順）。同梱は空
@@ -71,6 +73,7 @@ pub fn status_for(entry: &DeviceEntry, roots: &Roots) -> FrameStatus {
         category: entry.category.clone(),
         name: entry.name.clone(),
         orientation: entry.orientation.clone(),
+        display: entry.display.clone(),
         state: state.to_string(),
         variants,
         source_url,
@@ -86,15 +89,16 @@ pub fn resolve_frame_png(
     let path = match &entry.source {
         Source::Bundled { file } => roots.bundled.join(file),
         Source::Import { .. } => {
-            let v = variant.ok_or_else(|| format!("No color variant selected for {}", entry.name))?;
+            let v = variant
+                .ok_or_else(|| format!("No color variant selected for {} [{}]", entry.name, entry.id))?;
             roots.user.join(&entry.id).join(format!("{}.png", slugify(v)))
         }
     };
     if !path.is_file() {
         let label = variant.map(slugify).unwrap_or_else(|| "bundled".to_string());
         return Err(format!(
-            "Frame not found: {} ({}). Import the frames again",
-            entry.name, label
+            "Frame not found: {} [{}] ({}). Import the frames again",
+            entry.name, entry.id, label
         ));
     }
     match image::image_dimensions(&path) {
@@ -192,6 +196,15 @@ mod tests {
     }
 
     #[test]
+    fn status_propagates_display() {
+        let mut entries = parse_catalog(SAMPLE).unwrap();
+        let r = roots("display");
+        assert_eq!(status_for(&entries[1], &r).display, None);
+        entries[1].display = Some("outer".into());
+        assert_eq!(status_for(&entries[1], &r).display.as_deref(), Some("outer"));
+    }
+
+    #[test]
     fn resolve_bundled_and_import_paths() {
         let entries = parse_catalog(SAMPLE).unwrap();
         let r = roots("resolve");
@@ -206,7 +219,7 @@ mod tests {
         assert!(resolve_frame_png(&entries[1], None, &r).unwrap_err().contains("No color variant"));
         assert_eq!(
             resolve_frame_png(&entries[1], Some("pink"), &r).unwrap_err(),
-            "Frame not found: iPhone 16 Pro (pink). Import the frames again"
+            "Frame not found: iPhone 16 Pro [apple-iphone-16-pro] (pink). Import the frames again"
         );
     }
 

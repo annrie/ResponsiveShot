@@ -89,6 +89,14 @@
       "desktop": "Escritorio",
       "display": "Pantalla"
     },
+    "orientation": {
+      "portrait": "Vertical",
+      "landscape": "Horizontal"
+    },
+    "display": {
+      "inner": "Pantalla interior",
+      "outer": "Pantalla exterior"
+    },
     "state": {
       "bundled": "Incluido",
       "imported": "Importado",

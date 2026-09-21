@@ -41,8 +41,12 @@ pub struct DeviceEntry {
     pub id: String,
     pub vendor: String,
     pub category: String,
+    /// 機種名だけを持つ（向き・画面種別は含めない。UI が `orientation` / `display` からロケール別に合成する）
     pub name: String,
     pub orientation: String,
+    /// 折りたたみ端末の画面種別 `inner` / `outer`（任意。iPhone Duo）
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub display: Option<String>,
     pub css: CssSpec,
     pub frame: Size,
     pub screen: Rect,
@@ -63,7 +67,7 @@ pub fn load_catalog(path: &Path) -> Result<Vec<DeviceEntry>, String> {
 }
 
 /// spec §5.1 の不変条件。同梱ファイルの存在と寸法はカタログ自体のテスト（Task 4）で確認する。
-/// vendor は `apple` / `google`、category は `phone` / `tablet` / `laptop` / `desktop` / `display` のみ許容する
+/// vendor は `apple` / `google`、category は `phone` / `tablet` / `laptop` / `desktop` / `display`、display は `inner` / `outer` のみ許容する
 pub fn validate(entries: &[DeviceEntry]) -> Result<(), String> {
     let mut seen = HashSet::new();
     for e in entries {
@@ -82,6 +86,11 @@ pub fn validate(entries: &[DeviceEntry]) -> Result<(), String> {
         }
         if !CATEGORIES.contains(&e.category.as_str()) {
             return Err(format!("{}: invalid category: {:?}", e.id, e.category));
+        }
+        if let Some(d) = &e.display {
+            if d != "inner" && d != "outer" {
+                return Err(format!("{}: invalid display: {:?}", e.id, d));
+            }
         }
         if e.screen.right() > e.frame.width || e.screen.bottom() > e.frame.height {
             return Err(format!("{}: screen rect exceeds the frame", e.id));
@@ -159,6 +168,18 @@ mod tests {
     }
 
     #[test]
+    fn display_is_optional_and_limited_to_inner_or_outer() {
+        let e = parse_catalog(SAMPLE).unwrap();
+        assert_eq!(e[0].display, None);
+        let json = SAMPLE.replacen(r#""orientation": "portrait","#, r#""orientation": "portrait", "display": "inner","#, 1);
+        let e = parse_catalog(&json).unwrap();
+        assert_eq!(e[0].display.as_deref(), Some("inner"));
+        let mut e = parse_catalog(SAMPLE).unwrap();
+        e[1].display = Some("back".into());
+        assert!(validate(&e).unwrap_err().contains("invalid display"));
+    }
+
+    #[test]
     fn rejects_screen_outside_frame() {
         let mut e = parse_catalog(SAMPLE).unwrap();
         e[0].screen.x = 200; // 200 + 1080 > 1198
@@ -177,12 +198,12 @@ mod tests {
         assert!(parse_catalog("[{").unwrap_err().starts_with("Failed to load the frame catalog"));
     }
 
-    /// 同梱カタログそのもの: 30 件、不変条件を満たし、bundled の PNG が存在して frame 寸法と一致する
+    /// 同梱カタログそのもの: 36 件、不変条件を満たし、bundled の PNG が存在して frame 寸法と一致する
     #[test]
     fn bundled_catalog_is_valid_and_bundled_pngs_match_frame_size() {
         let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("frames");
         let entries = load_catalog(&root.join("catalog.json")).expect("frames/catalog.json");
-        assert_eq!(entries.len(), 30);
+        assert_eq!(entries.len(), 36);
         for e in &entries {
             if let Source::Bundled { file } = &e.source {
                 let path = root.join(file);
@@ -235,6 +256,6 @@ mod tests {
                 _ => assert_eq!(ua, None, "{}", e.id),
             }
         }
-        assert_eq!((iphones, pixels, tablets), (4, 8, 1), "UA を持つ件数");
+        assert_eq!((iphones, pixels, tablets), (10, 8, 1), "UA を持つ件数");
     }
 }

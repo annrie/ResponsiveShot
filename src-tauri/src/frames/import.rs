@@ -21,6 +21,7 @@ mod tests {
             category: "phone".into(),
             name: name.into(),
             orientation: "portrait".into(),
+            display: None,
             css: CssSpec { width: 402, height: 874, dpr: 3.0, mobile: true, user_agent: None },
             frame: Size { width: w, height: h },
             screen: Rect { x: 1, y: 1, width: w - 2, height: h - 2 },

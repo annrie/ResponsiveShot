@@ -55,7 +55,14 @@
 | iPhone 16 Plus | 1470×2970 | 90, 87, 1290, 2796 | 430×932 @3 | 同上 |
 | iPhone 16 Pro | 1350×2760 | 72, 69, 1206, 2622 | 402×874 @3 | Black / Desert / Natural / White Titanium |
 | iPhone 16 Pro Max | 1470×3000 | 75, 66, 1320, 2868 | 440×956 @3 | 同上 |
+| iPhone 18 Pro（2026-09-21 実測） | 1350×2760 | 72, 69, 1206, 2622 | 402×874 @3 | Black / Burgundy / Glacier / Silver |
+| iPhone 18 Pro Max（同） | 1470×3000 | 75, 66, 1320, 2868 | 440×956 @3 | 同上 |
+| iPhone Duo 内側 縦（同、`Inner Open Portrait`） | 2247×3093 | 120, 120, 2007, 2853 | 669×951 @3 | Night Sky / Star White |
+| iPhone Duo 内側 横（同、`Inner Open Landscape`） | 3093×2247 | 120, 120, 2853, 2007 | 951×669 @3 | 同上 |
+| iPhone Duo 外側 縦（同、`Outer Closed Portrait`） | 1574×2194 | 88, 80, 1398, 2034 | 466×678 @3 | 同上 |
+| iPhone Duo 外側 横（同、`Outer Closed Landscape`） | 2194×1574 | 80, 88, 2034, 1398 | 678×466 @3 | 同上 |
 
+- iPhone 18 系の DMG は 16 と同じ `PNG/<機種>/` 構成。iPhone Duo は `PNG/` 直下に `iPhone Duo - <色> - Inner Open|Outer Closed Portrait|Landscape.png` と `Outer Open.png`（3056×2194、開いた状態の背面外側画面。穴は 1570, 80, 1398, 2034 で外側画面と同寸のため未登録）が並ぶ。Duo の内側画面の穴に折り目の不透明画素は無い（透明画素数 5,701,438 ≈ 矩形の 99.6%、差は角丸のみ）
 - ライセンス: App Store Marketing Artwork License Agreement。App Store 公開アプリのマーケティング用途向けで、**第三者への再配布不可**、製品画像への「reflections, shadows, highlights の追加」等を改変として禁止。→ アプリには同梱せず、ユーザーが自分で取得したものを自分の環境で使う設計にする
 
 ### 3.2 Google — AOSP `tools/adt/idea` の `device-art-resources`
@@ -113,13 +120,16 @@ pixel_10 / 10_pro / 10_pro_xl は `layout` の記載値と `back.webp` の実寸
 
 `src-tauri/frames/catalog.json`。配列で、1 デバイス 1 エントリ。
 
+**UI 表示名の契約（2026-09-21 改定）**: `name` は機種名だけを持ち、向き・画面種別を埋め込まない（旧 `iPad Pro 11" (M5) 縦` は `iPad Pro 11" (M5)` に改めた）。`DeviceFramePanel.vue` の `displayName` が `name · t(frames.display.<display>) · t(frames.orientation.<orientation>)` をロケール別に合成する。向きのラベルは同じ vendor + name + display が複数の向きで登録されているときだけ付ける（縦のみの iPhone には付かない）。`display` の許容値は `validate` が検証する。
+
 ```jsonc
 {
   "id": "apple-iphone-16-pro",          // 英小文字・数字・ハイフン。ファイル名にも使う
   "vendor": "apple",                    // "apple" | "google"
   "category": "phone",                  // "phone" | "tablet"
-  "name": "iPhone 16 Pro",              // UI 表示名
-  "orientation": "portrait",            // "portrait" | "landscape"（v1 は情報のみ）
+  "name": "iPhone 16 Pro",              // 機種名のみ（向き・画面種別は含めない。2026-09-21 から）
+  "orientation": "portrait",            // "portrait" | "landscape"
+  "display": "inner",                   // 任意。折りたたみ端末の画面種別 "inner" | "outer"（iPhone Duo）
   "css":    { "width": 402, "height": 874, "dpr": 3.0, "mobile": true },
   "frame":  { "width": 1350, "height": 2760 },
   "screen": { "x": 72, "y": 69, "width": 1206, "height": 2622 },
@@ -168,6 +178,7 @@ DMG を展開し、PNG の寸法と §3.3 のフラッドフィルで画面矩�
 ```rust
 #[command] fn list_frames(app: AppHandle) -> Result<Vec<FrameStatus>, String>
 // FrameStatus { id, vendor, category, name, orientation,
+//               display: Option<String>,      // "inner" | "outer"（折りたたみ端末のみ、それ以外は null）
 //               state: "bundled" | "imported" | "missing",
 //               variants: Vec<String>,        // 取り込み済みの色スラッグ（bundled は空）
 //               source_url: Option<String> }

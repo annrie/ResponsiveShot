@@ -89,6 +89,14 @@
       "desktop": "Ordinateur de bureau",
       "display": "Écran"
     },
+    "orientation": {
+      "portrait": "Portrait",
+      "landscape": "Paysage"
+    },
+    "display": {
+      "inner": "Écran intérieur",
+      "outer": "Écran extérieur"
+    },
     "state": {
       "bundled": "Inclus",
       "imported": "Importé",

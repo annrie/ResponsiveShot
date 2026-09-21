@@ -89,6 +89,14 @@
       "desktop": "데스크톱",
       "display": "디스플레이"
     },
+    "orientation": {
+      "portrait": "세로",
+      "landscape": "가로"
+    },
+    "display": {
+      "inner": "내부 화면",
+      "outer": "외부 화면"
+    },
     "state": {
       "bundled": "기본 제공",
       "imported": "가져옴",

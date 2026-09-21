@@ -40,8 +40,68 @@
       "pattern": "PNG/iPhone 16 Pro Max/iPhone 16 Pro Max - {variant} - Portrait.png" }
   },
   {
+    "id": "apple-iphone-18-pro",
+    "vendor": "apple", "category": "phone", "name": "iPhone 18 Pro", "orientation": "portrait",
+    "css": { "width": 402, "height": 874, "dpr": 3.0, "mobile": true, "userAgent": "Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.0 Mobile/15E148 Safari/604.1" },
+    "frame": { "width": 1350, "height": 2760 },
+    "screen": { "x": 72, "y": 69, "width": 1206, "height": 2622 },
+    "source": { "kind": "import",
+      "url": "https://devimages-cdn.apple.com/design/resources/download/Bezel-iPhone-18.dmg",
+      "pattern": "PNG/iPhone 18 Pro/iPhone 18 Pro - {variant} - Portrait.png" }
+  },
+  {
+    "id": "apple-iphone-18-pro-max",
+    "vendor": "apple", "category": "phone", "name": "iPhone 18 Pro Max", "orientation": "portrait",
+    "css": { "width": 440, "height": 956, "dpr": 3.0, "mobile": true, "userAgent": "Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.0 Mobile/15E148 Safari/604.1" },
+    "frame": { "width": 1470, "height": 3000 },
+    "screen": { "x": 75, "y": 66, "width": 1320, "height": 2868 },
+    "source": { "kind": "import",
+      "url": "https://devimages-cdn.apple.com/design/resources/download/Bezel-iPhone-18.dmg",
+      "pattern": "PNG/iPhone 18 Pro Max/iPhone 18 Pro Max - {variant} - Portrait.png" }
+  },
+  {
+    "id": "apple-iphone-duo-inner-portrait",
+    "vendor": "apple", "category": "phone", "name": "iPhone Duo", "orientation": "portrait", "display": "inner",
+    "css": { "width": 669, "height": 951, "dpr": 3.0, "mobile": true, "userAgent": "Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.0 Mobile/15E148 Safari/604.1" },
+    "frame": { "width": 2247, "height": 3093 },
+    "screen": { "x": 120, "y": 120, "width": 2007, "height": 2853 },
+    "source": { "kind": "import",
+      "url": "https://devimages-cdn.apple.com/design/resources/download/Bezel-iPhone-Duo.dmg",
+      "pattern": "PNG/iPhone Duo - {variant} - Inner Open Portrait.png" }
+  },
+  {
+    "id": "apple-iphone-duo-inner-landscape",
+    "vendor": "apple", "category": "phone", "name": "iPhone Duo", "orientation": "landscape", "display": "inner",
+    "css": { "width": 951, "height": 669, "dpr": 3.0, "mobile": true, "userAgent": "Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.0 Mobile/15E148 Safari/604.1" },
+    "frame": { "width": 3093, "height": 2247 },
+    "screen": { "x": 120, "y": 120, "width": 2853, "height": 2007 },
+    "source": { "kind": "import",
+      "url": "https://devimages-cdn.apple.com/design/resources/download/Bezel-iPhone-Duo.dmg",
+      "pattern": "PNG/iPhone Duo - {variant} - Inner Open Landscape.png" }
+  },
+  {
+    "id": "apple-iphone-duo-outer-portrait",
+    "vendor": "apple", "category": "phone", "name": "iPhone Duo", "orientation": "portrait", "display": "outer",
+    "css": { "width": 466, "height": 678, "dpr": 3.0, "mobile": true, "userAgent": "Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.0 Mobile/15E148 Safari/604.1" },
+    "frame": { "width": 1574, "height": 2194 },
+    "screen": { "x": 88, "y": 80, "width": 1398, "height": 2034 },
+    "source": { "kind": "import",
+      "url": "https://devimages-cdn.apple.com/design/resources/download/Bezel-iPhone-Duo.dmg",
+      "pattern": "PNG/iPhone Duo - {variant} - Outer Closed Portrait.png" }
+  },
+  {
+    "id": "apple-iphone-duo-outer-landscape",
+    "vendor": "apple", "category": "phone", "name": "iPhone Duo", "orientation": "landscape", "display": "outer",
+    "css": { "width": 678, "height": 466, "dpr": 3.0, "mobile": true, "userAgent": "Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.0 Mobile/15E148 Safari/604.1" },
+    "frame": { "width": 2194, "height": 1574 },
+    "screen": { "x": 80, "y": 88, "width": 2034, "height": 1398 },
+    "source": { "kind": "import",
+      "url": "https://devimages-cdn.apple.com/design/resources/download/Bezel-iPhone-Duo.dmg",
+      "pattern": "PNG/iPhone Duo - {variant} - Outer Closed Landscape.png" }
+  },
+  {
     "id": "apple-ipad-pro-11-m5-portrait",
-    "vendor": "apple", "category": "tablet", "name": "iPad Pro 11\" (M5) 縦", "orientation": "portrait",
+    "vendor": "apple", "category": "tablet", "name": "iPad Pro 11\" (M5)", "orientation": "portrait",
     "css": { "width": 834, "height": 1210, "dpr": 2.0, "mobile": true },
     "frame": { "width": 1880, "height": 2640 },
     "screen": { "x": 106, "y": 110, "width": 1668, "height": 2420 },
@@ -51,7 +111,7 @@
   },
   {
     "id": "apple-ipad-pro-11-m5-landscape",
-    "vendor": "apple", "category": "tablet", "name": "iPad Pro 11\" (M5) 横", "orientation": "landscape",
+    "vendor": "apple", "category": "tablet", "name": "iPad Pro 11\" (M5)", "orientation": "landscape",
     "css": { "width": 1210, "height": 834, "dpr": 2.0, "mobile": true },
     "frame": { "width": 2640, "height": 1880 },
     "screen": { "x": 110, "y": 106, "width": 2420, "height": 1668 },
@@ -61,7 +121,7 @@
   },
   {
     "id": "apple-ipad-pro-13-m5-portrait",
-    "vendor": "apple", "category": "tablet", "name": "iPad Pro 13\" (M5) 縦", "orientation": "portrait",
+    "vendor": "apple", "category": "tablet", "name": "iPad Pro 13\" (M5)", "orientation": "portrait",
     "css": { "width": 1032, "height": 1376, "dpr": 2.0, "mobile": true },
     "frame": { "width": 2300, "height": 3000 },
     "screen": { "x": 118, "y": 124, "width": 2064, "height": 2752 },
@@ -71,7 +131,7 @@
   },
   {
     "id": "apple-ipad-pro-13-m5-landscape",
-    "vendor": "apple", "category": "tablet", "name": "iPad Pro 13\" (M5) 横", "orientation": "landscape",
+    "vendor": "apple", "category": "tablet", "name": "iPad Pro 13\" (M5)", "orientation": "landscape",
     "css": { "width": 1376, "height": 1032, "dpr": 2.0, "mobile": true },
     "frame": { "width": 3000, "height": 2300 },
     "screen": { "x": 124, "y": 118, "width": 2752, "height": 2064 },
@@ -81,7 +141,7 @@
   },
   {
     "id": "apple-ipad-air-11-m4-portrait",
-    "vendor": "apple", "category": "tablet", "name": "iPad Air 11\" (M4) 縦", "orientation": "portrait",
+    "vendor": "apple", "category": "tablet", "name": "iPad Air 11\" (M4)", "orientation": "portrait",
     "css": { "width": 820, "height": 1180, "dpr": 2.0, "mobile": true },
     "frame": { "width": 1900, "height": 2620 },
     "screen": { "x": 130, "y": 130, "width": 1640, "height": 2360 },
@@ -91,7 +151,7 @@
   },
   {
     "id": "apple-ipad-air-11-m4-landscape",
-    "vendor": "apple", "category": "tablet", "name": "iPad Air 11\" (M4) 横", "orientation": "landscape",
+    "vendor": "apple", "category": "tablet", "name": "iPad Air 11\" (M4)", "orientation": "landscape",
     "css": { "width": 1180, "height": 820, "dpr": 2.0, "mobile": true },
     "frame": { "width": 2620, "height": 1900 },
     "screen": { "x": 130, "y": 130, "width": 2360, "height": 1640 },
@@ -101,7 +161,7 @@
   },
   {
     "id": "apple-ipad-air-13-m4-portrait",
-    "vendor": "apple", "category": "tablet", "name": "iPad Air 13\" (M4) 縦", "orientation": "portrait",
+    "vendor": "apple", "category": "tablet", "name": "iPad Air 13\" (M4)", "orientation": "portrait",
     "css": { "width": 1024, "height": 1366, "dpr": 2.0, "mobile": true },
     "frame": { "width": 2300, "height": 2980 },
     "screen": { "x": 126, "y": 124, "width": 2048, "height": 2732 },
@@ -111,7 +171,7 @@
   },
   {
     "id": "apple-ipad-air-13-m4-landscape",
-    "vendor": "apple", "category": "tablet", "name": "iPad Air 13\" (M4) 横", "orientation": "landscape",
+    "vendor": "apple", "category": "tablet", "name": "iPad Air 13\" (M4)", "orientation": "landscape",
     "css": { "width": 1366, "height": 1024, "dpr": 2.0, "mobile": true },
     "frame": { "width": 2980, "height": 2300 },
     "screen": { "x": 124, "y": 126, "width": 2732, "height": 2048 },
@@ -121,7 +181,7 @@
   },
   {
     "id": "apple-ipad-mini-a17-pro-portrait",
-    "vendor": "apple", "category": "tablet", "name": "iPad mini (A17 Pro) 縦", "orientation": "portrait",
+    "vendor": "apple", "category": "tablet", "name": "iPad mini (A17 Pro)", "orientation": "portrait",
     "css": { "width": 744, "height": 1133, "dpr": 2.0, "mobile": true },
     "frame": { "width": 1780, "height": 2550 },
     "screen": { "x": 146, "y": 142, "width": 1488, "height": 2266 },
@@ -131,7 +191,7 @@
   },
   {
     "id": "apple-ipad-mini-a17-pro-landscape",
-    "vendor": "apple", "category": "tablet", "name": "iPad mini (A17 Pro) 横", "orientation": "landscape",
+    "vendor": "apple", "category": "tablet", "name": "iPad mini (A17 Pro)", "orientation": "landscape",
     "css": { "width": 1133, "height": 744, "dpr": 2.0, "mobile": true },
     "frame": { "width": 2550, "height": 1780 },
     "screen": { "x": 142, "y": 146, "width": 2266, "height": 1488 },
