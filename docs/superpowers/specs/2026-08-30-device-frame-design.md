@@ -55,6 +55,10 @@
 | iPhone 16 Plus | 1470×2970 | 90, 87, 1290, 2796 | 430×932 @3 | 同上 |
 | iPhone 16 Pro | 1350×2760 | 72, 69, 1206, 2622 | 402×874 @3 | Black / Desert / Natural / White Titanium |
 | iPhone 16 Pro Max | 1470×3000 | 75, 66, 1320, 2868 | 440×956 @3 | 同上 |
+| iPhone 17（2026-09-21 実測） | 1350×2760 | 72, 69, 1206, 2622 | 402×874 @3 | Black / Lavender / Mist Blue / Sage / White |
+| iPhone Air（同） | 1380×2880 | 60, 72, 1260, 2736 | 420×912 @3 | Cloud White / Light Gold / Sky Blue / Space Black |
+| iPhone 17 Pro（同） | 1350×2760 | 72, 69, 1206, 2622 | 402×874 @3 | Cosmic Orange / Deep Blue / Silver |
+| iPhone 17 Pro Max（同） | 1470×3000 | 75, 66, 1320, 2868 | 440×956 @3 | 同上 |
 | iPhone 18 Pro（2026-09-21 実測） | 1350×2760 | 72, 69, 1206, 2622 | 402×874 @3 | Black / Burgundy / Glacier / Silver |
 | iPhone 18 Pro Max（同） | 1470×3000 | 75, 66, 1320, 2868 | 440×956 @3 | 同上 |
 | iPhone Duo 内側 縦（同、`Inner Open Portrait`） | 2247×3093 | 120, 120, 2007, 2853 | 669×951 @3 | Night Sky / Star White |
@@ -62,7 +66,7 @@
 | iPhone Duo 外側 縦（同、`Outer Closed Portrait`） | 1574×2194 | 88, 80, 1398, 2034 | 466×678 @3 | 同上 |
 | iPhone Duo 外側 横（同、`Outer Closed Landscape`） | 2194×1574 | 80, 88, 2034, 1398 | 678×466 @3 | 同上 |
 
-- iPhone 18 系の DMG は 16 と同じ `PNG/<機種>/` 構成。iPhone Duo は `PNG/` 直下に `iPhone Duo - <色> - Inner Open|Outer Closed Portrait|Landscape.png` と `Outer Open.png`（3056×2194、開いた状態の背面外側画面。穴は 1570, 80, 1398, 2034 で外側画面と同寸のため未登録）が並ぶ。Duo の内側画面の穴に折り目の不透明画素は無い（透明画素数 5,701,438 ≈ 矩形の 99.6%、差は角丸のみ）
+- iPhone 17 系（`Bezel-iPhone-17.dmg`、17 / Air / 17 Pro / 17 Pro Max）と 18 系の DMG は 16 と同じ `PNG/<機種>/` 構成。iPhone Duo は `PNG/` 直下に `iPhone Duo - <色> - Inner Open|Outer Closed Portrait|Landscape.png` と `Outer Open.png`（3056×2194、開いた状態の背面外側画面。穴は 1570, 80, 1398, 2034 で外側画面と同寸のため未登録）が並ぶ。Duo の内側画面の穴に折り目の不透明画素は無い（透明画素数 5,701,438 ≈ 矩形の 99.6%、差は角丸のみ）
 - ライセンス: App Store Marketing Artwork License Agreement。App Store 公開アプリのマーケティング用途向けで、**第三者への再配布不可**、製品画像への「reflections, shadows, highlights の追加」等を改変として禁止。→ アプリには同梱せず、ユーザーが自分で取得したものを自分の環境で使う設計にする
 
 ### 3.2 Google — AOSP `tools/adt/idea` の `device-art-resources`
