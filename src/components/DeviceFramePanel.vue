@@ -46,14 +46,15 @@ const categoryLabel = (c: FrameStatus['category']) => t(`frames.category.${c}`)
 const APPLE_DESIGN_RESOURCES = 'https://developer.apple.com/design/resources/#product-bezels'
 const stateLabel = (s: FrameStatus['state']) => t(`frames.state.${s}`)
 
-/** 同じ機種（vendor + name + display）が複数の向きで登録されているときだけ向きを表示する（縦のみの iPhone には付けない） */
+/** 同じ機種（vendor + name + display）が複数の「向き」で登録されているときだけ向きを表示する（縦のみの iPhone には付けない）。
+ *  エントリ数ではなく向きの種類数で判定するので、同じ向きの重複エントリがあっても向きは付かない */
 const orientationNeeded = computed(() => {
-  const counts = new Map<string, number>()
+  const orientations = new Map<string, Set<FrameStatus['orientation']>>()
   for (const f of frames.value) {
     const key = `${f.vendor}|${f.name}|${f.display ?? ''}`
-    counts.set(key, (counts.get(key) ?? 0) + 1)
+    orientations.set(key, (orientations.get(key) ?? new Set()).add(f.orientation))
   }
-  return (f: FrameStatus) => (counts.get(`${f.vendor}|${f.name}|${f.display ?? ''}`) ?? 0) > 1
+  return (f: FrameStatus) => (orientations.get(`${f.vendor}|${f.name}|${f.display ?? ''}`)?.size ?? 0) > 1
 })
 
 /** 表示名: 機種名 · 画面種別 · 向き（ロケール別。カタログの name には向き・画面種別を含めない） */
