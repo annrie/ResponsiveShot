@@ -1,6 +1,27 @@
 # Changelog
 
 
+## v1.3.1
+
+[compare changes](https://github.com/annrie/ResponsiveShot/compare/v1.3.0...v1.3.1)
+
+### 📖 ドキュメント
+
+- 📖 README を英語・日本語の 2 部構成に整理 / Restructure README into full English and Japanese sections ([826d103](https://github.com/annrie/ResponsiveShot/commit/826d103))
+
+### 📦 ビルド
+
+- 🔧 リリーススクリプトで版数を一括同期 / Add release script that syncs every version field ([#10](https://github.com/annrie/ResponsiveShot/pull/10))
+- **deps:** ⬆️ tauri 2.11.6(セキュリティ修正)・unocss 66.10.5・vite 8.3.1 ほか minor/patch 一括更新 / Bump tauri to 2.11.6 (security fix), unocss, vite and other minor/patch deps ([96b8aec](https://github.com/annrie/ResponsiveShot/commit/96b8aec))
+
+### 🧹 ビルドプロセスまたは補助ツールの変更
+
+- 🔧 Codex アプリのプロジェクト設定を追跡 / Track Codex app project settings (.codex) ([811050b](https://github.com/annrie/ResponsiveShot/commit/811050b))
+
+### ❤️ Contributors
+
+- Annrie ([@annrie](https://github.com/annrie))
+
 ## v1.3.0
 
 [compare changes](https://github.com/annrie/ResponsiveShot/compare/v1.2.0...v1.3.0)
