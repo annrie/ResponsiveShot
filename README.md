@@ -38,6 +38,10 @@
   <a href="#features">Features</a> · <a href="#device-frames">Device frames</a> · <a href="#requirements">Requirements</a> · <a href="#build">Build</a> · <a href="#日本語">日本語</a>
 </p>
 
+<p align="center">
+  <img src="docs/images/main.png" alt="ResponsiveShot main screen" width="760" />
+</p>
+
 ---
 
 ResponsiveShot launches Chrome, opens a target URL, and saves screenshots for multiple viewport widths in one run.
