@@ -1,6 +1,26 @@
 # Changelog
 
 
+## v1.3.2
+
+[compare changes](https://github.com/annrie/ResponsiveShot/compare/v1.3.1...v1.3.2)
+
+### 🐛 バグ修正
+
+- 🔏 macOSビルドをadhoc署名するよう設定 / Sign macOS builds with adhoc identity ([0674429](https://github.com/annrie/ResponsiveShot/commit/0674429))
+
+### 📖 ドキュメント
+
+- 📸 READMEにメイン画面のスクリーンショットを追加 / Add main screen screenshot to README ([645342e](https://github.com/annrie/ResponsiveShot/commit/645342e))
+
+### 📦 ビルド
+
+- **deps:** ⬆️ tauri 2.12.5(セキュリティ修正)・unocss 66.12.0・vite 8.3.5 ほか minor/patch 一括更新 / Bump tauri to 2.12.5 (security fix), unocss, vite and other minor/patch deps ([772b69a](https://github.com/annrie/ResponsiveShot/commit/772b69a))
+
+### ❤️ Contributors
+
+- Annrie ([@annrie](https://github.com/annrie))
+
 ## v1.3.1
 
 [compare changes](https://github.com/annrie/ResponsiveShot/compare/v1.3.0...v1.3.1)
